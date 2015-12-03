@@ -465,7 +465,7 @@ def pathoreportr(matchdict, analysistype, organismdict, organismlist):
                             targetname = os.path.basename(target).split(".")[0]
                             headergenes += "%s," % targetname
                         # As the header and data variables are strings, the header information only needs to be appended
-                        # once, otherwise, the header would preceed the data for every strain
+                        # once, otherwise, the header would precede the data for every strain
                         if orgcount == 1:
                             organismheader += headergenes
                             completestring += "Strain,Genus,"

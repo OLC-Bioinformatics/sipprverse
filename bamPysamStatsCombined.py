@@ -146,59 +146,6 @@ def bestmatch(parseddict, seqdict):
     return resultdict
 
 
-# def filtermatches(parseddict, seqdict, analysistype):
-#     plusdict = defaultdict(make_dict)
-#     for strain in seqdict:
-#         identitycutoff = seqdict[strain]["cutoff"][analysistype]
-#         baittype = seqdict[strain]["bait"]["fastqFiles"].keys()[0]
-#         fastqdir = os.path.split(seqdict[strain]["bait"]["fastqFiles"][baittype][0])[0]
-#         catfile = seqdict[strain]["concatenatedTargets"][analysistype]
-#         try:
-#             # variable = catfile.split(".")[0]
-#             jsonprofile = "%s/%s_concatenatedFilterDict.json" % (fastqdir, analysistype)
-#             if not os.path.isfile(jsonprofile):
-#                 for target in seqdict[strain]["targets"][analysistype]:
-#                     targetname = os.path.basename(target).split(".")[0]
-#                     for aro in sorted(seqdict[strain]["targetSequences"][analysistype][target]["allele"]):
-#                         if targetname in aro:
-#                             # 
-#                             length = seqdict[strain]["targetSequences"][analysistype][target]["allele"][aro]
-#                             matches = 0
-#                             totaldepth = 0
-#                             minDepth = 10
-#                             for presence in sorted(parseddict[strain][aro]):
-#                                 # print strain, targetname, aro, length, presence, parseddict[strain][aro][presence]
-#                                 depth = parseddict[strain][aro][presence]
-#                                 matches += 1
-#                                 totaldepth += depth
-#                                 if depth < minDepth:
-#                                     minDepth = depth
-#                                 # if gene == "AP009048.1.gene3309" and aros == "3000502":
-#                                 #     print gene, aros, length, presence, type(presence), matches, totaldepth
-#                             averageDepth = float("%0.2f" % (float(totaldepth) / float(length)))
-#                             percentID = float("%0.2f" % (float(matches) / float(length))) * 100
-#                             if percentID > identitycutoff and minDepth > 4:
-#                                 plusdict[strain][targetname][aro][percentID] = averageDepth
-#                 jsonreport = open(jsonprofile, "wb")
-#                 # print jsonreport
-#                 output = json.dumps(plusdict[strain], sort_keys=True, indent=4, separators=(',', ': '))
-#                 jsonreport.write(output)
-#                 jsonreport.close()
-#             else:
-#                         # if analysistype == "16S":
-#                 with open(jsonprofile, "rb") as jsonreport:
-#                     # Load the data
-#                     # print strain, targetname, jsonprofile, jsonreport
-#                     plusdict[strain].update(json.load(jsonreport))
-#                     # print strain, targetname, aro, matches, length, percentID, averageDepth
-# 
-#         except AttributeError:
-#             pass
-# 
-#     # print json.dumps(plusdict, sort_keys=True, indent=4, separators=(',', ': '))
-#     return plusdict
-
-
 def armiparser(parseddict, seqdict, analysistype, reportfolder):
     """Creates a dictionary that can be put into Mike's ARMI decipher function
     :param parseddict: dictionary of parsed results
@@ -230,7 +177,7 @@ def armiparser(parseddict, seqdict, analysistype, reportfolder):
                 for pos in parseddict[strain][target][allele]:
                     # Number of matches
                     for matches in parseddict[strain][target][allele][pos]:
-                        # Number of mistmatches and depth of coverage
+                        # Number of mismatches and depth of coverage
                         for mismatches, depth in parseddict[strain][target][allele][pos][matches].iteritems():
                             # Each position represents a non-SNP due to pre-filtering
                             nonsnps += 1
