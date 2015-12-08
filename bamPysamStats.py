@@ -8,6 +8,8 @@ from collections import defaultdict
 from glob import glob
 from multiprocessing import Pool
 
+__author__ = 'adamkoziol'
+
 
 def make_dict():
     """Makes Perl-style dictionaries"""
@@ -42,6 +44,23 @@ def dotter():
         sys.stdout.write('\n[%s] .' % (time.strftime("%H:%M:%S")))
         count = 1
 
+#
+# def filler(listofdictionaries):
+#     """
+#     Properly populates the dictionary - when I tried to populate the dictionary within the multi-processed functions,
+#     it was returned as a list (likely due to how the files were returned. This essentially
+#      iterates through the list, and updates a dictionary appropriately
+#      :param listofdictionaries: list of dictionaries returned from a multiprocessed function
+#      """
+#     # Initialise the dictionary
+#     replacementdictionary = defaultdict(make_dict)
+#     # Iterate through listofdictionaries
+#     for dictionary in listofdictionaries:
+#         # Update the dictionary with the dictionaries stored in the list
+#         replacementdictionary.update(dictionary)
+#     # Return the beautifully-populated dictionary
+#     return replacementdictionary
+
 
 def filler(listofdictionaries):
     """
@@ -54,20 +73,24 @@ def filler(listofdictionaries):
     replacementdictionary = defaultdict(make_dict)
     # Iterate through listofdictionaries
     for dictionary in listofdictionaries:
-        # Update the dictionary with the dictionaries stored in the list
-        replacementdictionary.update(dictionary)
+        # Each dictionary follows a strict formula - iterate through all the nested values
+        for strain in dictionary:
+            for target in dictionary[strain]:
+                for allele in dictionary[strain][target]:
+                    for pos in dictionary[strain][target][allele]:
+                        for depth, quality in dictionary[strain][target][allele][pos].iteritems():
+                            # Populate the replacement dictionary with the values
+                            replacementdictionary[strain][target][allele][pos][depth] = quality
     # Return the beautifully-populated dictionary
     return replacementdictionary
 
-# Initialise parsedict
-parsedict = defaultdict(make_dict)
 
-
-def bestmatch(parseddict, seqdict):
+def bestmatch(parseddict, seqdict, analysistype):
     """
     Determines the best match to a target based on sequence identity
     :param parseddict: dictionary of filtered, parsed results
     :param seqdict: dictionary containing names and paths of files and folders required for these analyses
+    :param analysistype: string of the current analysis type
     """
     # Initialise a dictionary to hold the results
     resultdict = defaultdict(make_dict)
@@ -107,11 +130,21 @@ def bestmatch(parseddict, seqdict):
                         # Iterate through the identity values
                         # If the identity is equal to the largest identity
                         identity = parseddict[strain][targetname][record][depth]
-                        if identity == maxidentity:
-                            # Find the best depth value
-                            if depth > maxdepth:
-                                # Set the maximum depth to the current depth
-                                maxdepth = depth
+                        # Virulence type is special - I want to allow multiple best matches and the matches don't
+                        # have to all be the same - allowing a decrease of 2% from the best hit
+                        if analysistype == "virulencetype":
+                            if identity >= maxidentity - 2:
+                                # resultDict will store this best result
+                                resultdict[strain][targetname][record][identity] = depth
+                                # tempDict stores the same data as resultDict except for the strain name
+                                tempdict[targetname][record][identity] = depth
+                        # Find the best depth value
+                        else:
+                            if identity == maxidentity:
+                                # If the depth is equal to the best value of depth
+                                if depth > maxdepth:
+                                    # Set the maximum depth to the current depth
+                                    maxdepth = depth
                 # Now that the highest identity and depth values are known, iterate through the records again
                 for record in parseddict[strain][targetname]:
                     # Iterate through the depth values
@@ -120,7 +153,7 @@ def bestmatch(parseddict, seqdict):
                         identity = parseddict[strain][targetname][record][depth]
                         # If this records has the highest identity, and the highest depth value observed for that
                         # identity, then add the appropriate information to dictionaries
-                        if depth == maxdepth:
+                        if depth == maxdepth and analysistype != "virulencetype":
                             # resultDict will store this best result
                             resultdict[strain][targetname][record][identity] = depth
                             # tempDict stores the same data as resultDict except for the strain name
@@ -246,12 +279,13 @@ def bamparseprocesses(seqdict, analysistype):
     # Analyses are filtered based on whether results are above the identity cutoff
     filtereddict = dictparser(parseddict, seqdict, analysistype)
     # Find the best result
-    resultsdict = bestmatch(filtereddict, seqdict)
+    resultsdict = bestmatch(filtereddict, seqdict, analysistype)
     # Find the genus from the best result for 16S/18S analyses
     if analysistype == "16S" or analysistype == "18S":
         genusdict, genusset = classifyr(resultsdict, seqdict, analysistype)
         # Return the dictionary with the genera, and a list of all genera encountered in these analyses
         return genusdict, list(genusset)
+    # print json.dumps(filtereddict, sort_keys=True, indent=4, separators=(',', ': '))
     # Otherwise return resultsDict
     else:
         return resultsdict
@@ -259,7 +293,7 @@ def bamparseprocesses(seqdict, analysistype):
 
 def bamparse((strain, target, bamfile)):
     """Parses bam files using pysam stats"""
-    global parsedict
+    parsedict = defaultdict(make_dict)
     # Use the stat_baseq_ext (extended base quality statistics) function of pysam stats to return records parsed
     # from sorted bam files
     for rec in pysamstats.stat_baseq_ext(alignmentfile=bamfile, fafile=target):

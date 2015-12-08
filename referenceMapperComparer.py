@@ -19,6 +19,8 @@ import time
 from multiprocessing import Pool
 # JSON module for reading and printing variables in .json format
 # import json
+# Sequence parsing module from BioPython
+from Bio import SeqIO
 # Default dictionaries allow nested dictionaries
 from collections import defaultdict
 # Import custom modules
@@ -34,13 +36,13 @@ import fastqCreator
 # Argument parser for user-inputted values, and a nifty help menu
 from argparse import ArgumentParser
 
-__author__ = 'akoziol'
+__author__ = 'adamkoziol'
 
 # Parser for arguments
 parser = ArgumentParser(description='Perform modelling of parameters for GeneSipping')
 parser.add_argument('-v', '--version', action='version', version='%(prog)s v1.0')
 parser.add_argument('-p', '--path', required=True, help='Specify input directory')
-parser.add_argument('-s', '--sequencepath', required=True, help='Path of .fastq(.gz) files to process. If not '
+parser.add_argument('-s', '--sequencepath', required=False, help='Path of .fastq(.gz) files to process. If not '
                     'provided, the default path of "path/sequences" will be used')
 parser.add_argument('-t', '--targetpath', required=False, help='Path of target files to process. If not '
                     'provided, the default path of "path/targets" will be used')
@@ -56,6 +58,14 @@ parser.add_argument('-P', '--projectName', required=False, help='A name for the 
                     'the "Sample_Project" field in the provided sample sheet will be used. Please note that bcl2fastq '
                     'creates subfolders using the project name, so if multiple names are provided, the results will be '
                     'split as into multiple projects')
+parser.add_argument('-M', '--Mlst', required=False, action='store_true', help='Perform MLST analyses')
+parser.add_argument('-Y', '--pathotYping', required=False, action='store_true', help='Perform pathotyping analyses')
+parser.add_argument('-S', '--Serotyping', required=False, action='store_true', help='Perform serotyping analyses')
+parser.add_argument('-V', '--Virulencetyping', required=False, action='store_true',
+                    help='Perform virulence typing analyses')
+parser.add_argument('-a', '--armi', required=False, action='store_true',
+                    help='Perform ARMI antimicrobial typing analyses')
+parser.add_argument('-r', '--rmlst', required=False, action='store_true', help='Perform rMLST analyses')
 
 # Get the arguments into a list
 args = vars(parser.parse_args())
@@ -63,7 +73,7 @@ args = vars(parser.parse_args())
 # Define variables from the arguments - there may be a more streamlined way to do this
 path = os.path.join(args['path'], "")
 
-# Optional arguments. If these paths are present, add a trailing "/" with os.path.join
+# Optional path arguments. If these paths are present, add a trailing "/" with os.path.join
 if args['miSeqPath']:
     miseqpath = os.path.join(args['miSeqPath'], "")
 else:
@@ -397,7 +407,7 @@ def sixteensreportmaker(resultdict, analysistype):
     compiledresultstring = ""
     csvheader = ""
     # Iterate through each strain in resultDict
-    for strain in resultdict:
+    for strain in seqdict:
         # Create variables as required
         baittype = seqdict[strain]["bait"]["fastqFiles"].keys()[0]
         fastqdir = os.path.split(seqdict[strain]["bait"]["fastqFiles"][baittype][0])[0]
@@ -415,8 +425,10 @@ def sixteensreportmaker(resultdict, analysistype):
             for database in resultdict[strain][genus]:
                 for accession in resultdict[strain][genus][database]:
                     for avgidentity, avgfoldcov in resultdict[strain][genus][database][accession].iteritems():
+                        # Add the appropriate variables to the string
                         resultstring = "%s,%s,%s,%s,%s" % (strain, genus, accession, avgidentity, avgfoldcov)
-                        compiledresultstring += "%s,%s,%s,%s,%s\n" % (strain, genus, accession, avgidentity, avgfoldcov)
+        # Append the result plus a newline character to string containing results for all strains
+        compiledresultstring += resultstring + "\n"
         # Write the header and data strings to file
         csvfile.write(csvheader)
         csvfile.write(resultstring)
@@ -527,6 +539,51 @@ def pathoreportr(matchdict, analysistype, organismdict, organismlist):
     compiledcsvfile.close()
 
 
+def virulencer(resultsdict, analysistype):
+    """
+    Determines genus of strains based on reference mapping results
+    :param resultsdict: dictionary containing the best match to a target
+    :param analysistype: string of analysis type
+    """
+    global seqdict
+    notefile = ""
+    strainheader = ""
+    combinedvirulence = []
+    # Iterate through the strains in resultsdict
+    for strain in seqdict:
+        # Initialise the set containing the virulence types
+        virulenceset = set()
+        # Retrieve the target path from seqdict
+        for target in seqdict[strain]["targets"][analysistype]:
+            targetspath = os.path.split(target)[0]
+            # The notes.txt file stores the associations between gene names and subtype
+            notefile = open(targetspath + "/notes.txt", "rb").readlines()
+        for targetname in resultsdict[strain]:
+            for allele in resultsdict[strain][targetname]:
+                for line in notefile:
+                    if targetname + allele.split(":")[1] + ":" in line:
+                        virulenceset.add(targetname + line.rstrip()[-1])
+        # Pull values from seqdict in order to create properly named reports in the appropriate folders
+        baittype = seqdict[strain]["bait"]["fastqFiles"].keys()[0]
+        fastqdir = os.path.split(seqdict[strain]["bait"]["fastqFiles"][baittype][0])[0]
+        reportdir = "%s/reports" % fastqdir
+        reportname = "%s/%s_%s_reports.csv" % (reportdir, strain, baittype)
+        make_path(reportdir)
+        # Open the strain-specific report, and write the appropriate header/results
+        strainheader = "Strain\tvirulenceType\n"
+        straindata = "%s\t%s\n" % (strain, "; ".join(sorted(list(virulenceset))))
+        combinedvirulence.append(straindata)
+        straincsvfile = open(reportname, "wb")
+        straincsvfile.write(strainheader)
+        straincsvfile.write(straindata)
+        straincsvfile.close()
+    # Create the organism-specific report, and write the appropriate header/results
+    organismcsvfile = open("%s/%s_results.csv" % (reportfolder, analysistype), "wb")
+    organismcsvfile.write(strainheader)
+    organismcsvfile.write("".join(combinedvirulence))
+    organismcsvfile.close()
+
+
 def baittargets(currenttargetpath, analysistype):
     """
     Creates a file to be used for baiting if one does not already exist by concatenating together all individual
@@ -541,14 +598,20 @@ def baittargets(currenttargetpath, analysistype):
         targetfiles = glob("%s/*.*fa*" % currenttargetpath)
         # List comprehension to remove faidx processed target files with the format .fa.fai
         targetfiles = [target for target in targetfiles if ".fai" not in target and "Concatenated" not in target]
+        # Initialise a list to store all the target records
+        alltargets = []
         # Iterate through the filtered list
         for tfile in targetfiles:
-            # Open the bait file
-            with open("%s/bait/%sBait.fa" % (currenttargetpath, analysistype), "ab") as bait:
-                # Create a handle for each target file
-                with open(tfile, "rb") as targetf:
-                    # Use shutil.copyfileobj to concatenate all files together
-                    shutil.copyfileobj(targetf, bait)
+            # Pull all records using BioPython
+            for record in SeqIO.parse(open(tfile, "rU"), "fasta"):
+                # Append the records to the list
+                alltargets.append(record)
+        # Create the name of the output file
+        concatenated = "%s/bait/%sBait.fa" % (currenttargetpath, analysistype)
+        # Open the file
+        with open(concatenated, "wb") as formatted:
+            # Write all the records to the concatenated file
+            SeqIO.write(alltargets, formatted, "fasta")
 
 
 def sixteens():
@@ -745,6 +808,71 @@ def pathotyper(organismdict, organismlist, analysistype):
     pathomatches = bamPysamStatsCombined.bamparseprocesses(seqdict, analysistype, reportfolder)
     # Create a report
     pathoreportr(pathomatches, analysistype, organismdict, organismlist)
+    
+    
+def virulencetyper(organismdict, analysistype):
+    """
+    Performs the necessary analyses on strains using genus-specific pathotype/serotype targets
+    :param organismdict: dictionary of the 16S results
+    :param analysistype: string of the current analysis type
+    """
+    global targetpath, seqdict
+    # Targets are stored in targetpath/Organism/<genus>/<analysistype>/
+    currenttargetpath = "%sOrganism" % targetpath
+    # Print this prior to the loop
+    print 'Indexing %s target files' % analysistype
+    # As strains will be processed depending differently based on their genus, they must be processed separately
+    for strain in organismdict:
+        # Try/except account for genera without pathotyping schemes
+        try:
+            # Set the target path
+            viropath = glob("%s/%s/%s" % (currenttargetpath, organismdict[strain].keys()[0], analysistype))[0]
+            # Create the bait targets if necessary
+            baittargets(viropath, analysistype)
+            # The cat file will be used in the "combined" reference mapping
+            catfile = "%s/%sConcatenated.fasta" % (viropath, analysistype)
+            # If the cat file does not exist, copy the bait file from the bait folder to the target folder
+            if not os.path.isfile(catfile):
+                shutil.copyfile("%s/bait/%sBait.fa" % (viropath, analysistype), catfile)
+            # Find the files to be used in baiting - if a precomputed hash file is present, use it
+            hashfile = glob("%s/bait/*.gz" % viropath)
+            if hashfile:
+                baitfile = hashfile[0]
+            else:
+                baitfile = glob("%s/bait/*.fa*" % viropath)[0]
+            # Set the baittype variable as the genus, and the analysis type
+            baittype = "%s_%s" % (organismdict[strain].keys()[0], analysistype)
+            # Get all the targets into a list
+            # Even though the cat file will be used for the reference mapping rather than the individual target files,
+            # the target names (taken from the name of the target files) is still used in the parsing of results
+            targets = glob("%s/*.fa*" % viropath)
+            # Remove faidx processed files from the list
+            targets = [target for target in targets if ".fai" not in target and "Concatenated" not in target]
+            # Add the bait file, the cat file, and the list of targets to seqdict
+            seqdict[strain]["bait"]["fastqFiles"][baittype] = baitfile
+            seqdict[strain]["targets"][analysistype] = targets
+            seqdict[strain]["concatenatedTargets"][analysistype] = catfile
+            # Index the SMALT targets
+            SMALT.smaltindextargetsprocesses(targets, viropath)
+        except IndexError:
+            pass
+    # Bait!
+    print "\nFiltering .fastq files with %s targets" % analysistype
+    baitrprocesses(analysistype)
+    print '\nPerforming reference mapping'
+    # Use SMALT to perform reference mapping
+    SMALT.smaltmappingprocesses(seqdict, analysistype, "SMALT")
+    print '\nSorting mapped %s files' % analysistype
+    # Use samtools to sort bam files
+    bamProcessor.sortingprocesses(seqdict, analysistype)
+    print '\nIndexing sorted %s files' % analysistype
+    # Use samtools to index sorted bam files
+    bamProcessor.bamindexingprocesses(seqdict, analysistype)
+    print '\nParsing %s results' % analysistype
+    # Use pysamstats to parse results
+    viromatches = bamPysamStats.bamparseprocesses(seqdict, analysistype)
+    # Create a report
+    virulencer(viromatches, analysistype)
 
 
 def armi():
@@ -862,32 +990,42 @@ def rmlst():
 
 def runner():
     """Calls the geneSipping functions in the appropriate order"""
-    global sequencepath, path, miseqpath, projectname, forwardreads, reversereads
+    global sequencepath, path, miseqpath, projectname, forwardreads, reversereads, args
     # Run the fastqCreator function if necessary
     if miseqpath:
         printtime("fastqCreator")
-        fastqCreator.createFastq(miseqpath, miseqfolder, path, projectname, 
+        fastqCreator.createfastq(miseqpath, miseqfolder, path, projectname,
                                  forwardreads, reversereads, customsamplesheet)
     # Run name extractor to determine the name of the samples. Additionally, this function decompresses any .gz files
     print "Finding sample names"
     nameextractor()
     printtime("16S")
     organismdict, organismlist = sixteens()
-    # Run MLST analyses
-    printtime("MLST")
-    mlst(organismdict, organismlist)
-    # Perform pathotyping analyses
-    printtime("pathotype")
-    pathotyper(organismdict, organismlist, "pathotype")
-    # Perform serotyping analyses
-    printtime("serotype")
-    pathotyper(organismdict, organismlist, "serotype")
-    # Perform armi analyses
-    printtime("ARMI")
-    armi()
-    # Perform rMLST analyses
-    printtime("rMLST")
-    rmlst()
+    # Perform specified analyses
+    if args['Mlst']:
+        # Run MLST analyses
+        printtime("MLST")
+        mlst(organismdict, organismlist)
+    if args['pathotYping']:
+        # Perform pathotyping analyses
+        printtime("pathotype")
+        pathotyper(organismdict, organismlist, "pathotype")
+    if args['Serotyping']:
+        # Perform serotyping analyses
+        printtime("serotype")
+        pathotyper(organismdict, organismlist, "serotype")
+    if args['Virulencetyping']:
+        # Perform virulence typing
+        printtime("virulence typing")
+        virulencetyper(organismdict, "virulencetype")
+    if args['armi']:
+        # Perform armi analyses
+        printtime("ARMI")
+        armi()
+    if args['rmlst']:
+        # Perform rMLST analyses
+        printtime("rMLST")
+        rmlst()
 
 # Define the start time
 start = time.time()

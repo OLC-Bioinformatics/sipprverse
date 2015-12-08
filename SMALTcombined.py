@@ -6,7 +6,7 @@ import errno
 # Multiprocessing module
 from multiprocessing import Pool
 
-__author__ = 'akoziol'
+__author__ = 'adamkoziol'
 
 # Initialise the count used in the dotter function
 count = 0

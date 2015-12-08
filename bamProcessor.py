@@ -8,7 +8,7 @@ from multiprocessing import Pool
 from glob import glob
 from collections import defaultdict
 
-__author__ = 'akoziol'
+__author__ = 'adamkoziol'
 
 # Initialise the count used in the dotter function
 count = 0

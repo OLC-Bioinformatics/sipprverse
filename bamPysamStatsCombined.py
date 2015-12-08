@@ -10,6 +10,8 @@ from glob import glob
 from multiprocessing import Pool
 from ARMICARD import decipher
 
+__author__ = 'adamkoziol'
+
 
 def make_dict():
     """Makes Perl-style dictionaries"""
@@ -46,6 +48,22 @@ def dotter():
         count = 1
 
 
+# def filler(listofdictionaries):
+#     """
+#     Properly populates the dictionary - when I tried to populate the dictionary within the multi-processed functions,
+#     it was returned as a list (likely due to how the files were returned. This essentially
+#      iterates through the list, and updates a dictionary appropriately
+#      :param listofdictionaries: list of dictionaries returned from a multiprocessed function
+#      """
+#     # Initialise the dictionary
+#     replacementdictionary = defaultdict(make_dict)
+#     # Iterate through listofdictionaries
+#     for dictionary in listofdictionaries:
+#         # Update the dictionary with the dictionaries stored in the list
+#         replacementdictionary.update(dictionary)
+#     # Return the beautifully-populated dictionary
+#     return replacementdictionary
+
 def filler(listofdictionaries):
     """
     Properly populates the dictionary - when I tried to populate the dictionary within the multi-processed functions,
@@ -57,10 +75,17 @@ def filler(listofdictionaries):
     replacementdictionary = defaultdict(make_dict)
     # Iterate through listofdictionaries
     for dictionary in listofdictionaries:
-        # Update the dictionary with the dictionaries stored in the list
-        replacementdictionary.update(dictionary)
+        # Each dictionary follows a strict formula - iterate through all the nested values
+        for strain in dictionary:
+            for target in dictionary[strain]:
+                for allele in dictionary[strain][target]:
+                    for pos in dictionary[strain][target][allele]:
+                        for depth, quality in dictionary[strain][target][allele][pos].iteritems():
+                            # Populate the replacement dictionary with the values
+                            replacementdictionary[strain][target][allele][pos][depth] = quality
     # Return the beautifully-populated dictionary
     return replacementdictionary
+
 
 # Initialise parsedict
 parsedict = defaultdict(make_dict)
