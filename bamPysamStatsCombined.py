@@ -48,22 +48,6 @@ def dotter():
         count = 1
 
 
-# def filler(listofdictionaries):
-#     """
-#     Properly populates the dictionary - when I tried to populate the dictionary within the multi-processed functions,
-#     it was returned as a list (likely due to how the files were returned. This essentially
-#      iterates through the list, and updates a dictionary appropriately
-#      :param listofdictionaries: list of dictionaries returned from a multiprocessed function
-#      """
-#     # Initialise the dictionary
-#     replacementdictionary = defaultdict(make_dict)
-#     # Iterate through listofdictionaries
-#     for dictionary in listofdictionaries:
-#         # Update the dictionary with the dictionaries stored in the list
-#         replacementdictionary.update(dictionary)
-#     # Return the beautifully-populated dictionary
-#     return replacementdictionary
-
 def filler(listofdictionaries):
     """
     Properly populates the dictionary - when I tried to populate the dictionary within the multi-processed functions,
@@ -178,6 +162,8 @@ def armiparser(parseddict, seqdict, analysistype, reportfolder):
     :param analysistype: string of the current analysis type
     :param reportfolder: folder in which reports are stored
     """
+    # Initialise a variable to store the target path used in creating the dictionary of antimicrobial resistances
+    targetpath = ""
     # Initialise the dictionary
     targetdict = defaultdict(make_dict)
     # Iterate through the strains in the analysis
@@ -191,6 +177,7 @@ def armiparser(parseddict, seqdict, analysistype, reportfolder):
             targetpresent = False
             # Create the targetname variable from the target
             targetname = os.path.basename(target).split(".")[0]
+            targetpath = os.path.split(target)[0]
             # Iterate through all the alleles for each target in parseddict
             for allele in parseddict[strain][target]:
                 # Initialise the totaldepth and the number of nonsnps (number of matches to the reference)
@@ -218,7 +205,8 @@ def armiparser(parseddict, seqdict, analysistype, reportfolder):
             if targetpresent:
                 targetdict[strain][targetname] = ["+"]
     # Set the path of the resistance dictionary
-    antidict = json.load(open("/media/nas0/Jackson/ARMI_Docker/ARMI/aro3.json"))
+    # antidict = json.load(open("/media/nas0/Jackson/ARMI_Docker/ARMI/aro3.json"))
+    antidict = json.load(open("%s/aro3.json" % targetpath))
     # Send the dictionaries, and report locations to the decipher function
     decipher(targetdict, antidict, reportfolder + "/geneSippr")
     return targetdict

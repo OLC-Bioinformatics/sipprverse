@@ -2,57 +2,93 @@
 ==============
 #Introduction
 
-This pipeline is designed to be able to (optionally) create FASTQ files from BCL files from a run of an Illumina MiSeq, 
-and search for the presence of defined target sequences in FASTQ files.
+This pipeline searches for gene targets in FASTQ files. These files may be previously generated, or created from BCL 
+files from a run of an Illumina MiSeq as part of the pipeline. The latter functionality is to allow for the creation
+of FASTQ files from an in progress MiSeq run.
 
-
-It has been designed to run using either the archived files obtained from BaseSpace (something similar to analysis_14348334_fastq.zip),
-alternatively, it is possible to use the individual fastq files taken directly from the MiSeq. This is probably better, as,
-in addition to the fastq files, three other files from the MiSeq are required for the pipeline to function:
-
-1. GenerateFASTQRunStatistics.xml
-2. RunInfo.xml
-3. SampleSheet.csv
-
-These files are located within the appropriate subfolder (e.g. 140922_M02466_0030_000000000-AARWU - this folder consists
-of the date (140922), the MiSeq designation (M02466), and the flowcell number (000000000-AARWU)) of the MiSeqOutput
-directory in the MiSeq onboard computer. The fastq files are located in the ../MiSeqOutput/140922_M02466_0030_000000000-AARWU/Data/Intensities/BaseCalls
-folder.
-
-Copy all necessary files to a properly named folder in an easy to remember location (e.g. ../Sequencing/140922).
 
 #Contents
-This pipeline includes a main script (geneSipprV2), and several helper modules located in helper scripts, including
-* Pulling metadata from sequencing run reports/files
- * runMetadataOptater
-* Moving and/or extracting archived files
- * fileExtractionProcessing
-* Performing quake error corrections on the reads
- * quakeR
-* Running SPAdes assembler
- * spadesGoUpper
-* Performing typing using rMLST to determine best reference genome
- * rMLST_typer
-* Determining assembly quality metrics using quast
- * quastR
-* Estimating the size of the library fragments
- * lse
-* Creating a JSON report of all collected metadata for each sequenced strain
- * reportR
+This pipeline includes a main script (geneSipprV2, and several helper modules located in helper scripts, including
+
+* fastqCreator
+    * Creates FASTQ files from a provided Illumina MiSeq folder
+
+* 16S
+    * Performs genus level typing of prokaryotic samples
+
+* MLST
+    * Using the genus determined by 16S typing, the appropriate MLST scheme is used on the strain of interest. Currently
+    only a select genera are represented, but it is possible to add any scheme desired
+
+* pathotyping
+    * CGE pathotype database + CHAS probes
+
+* serotyping
+    * CGE serotype database (currently only for *Escherichia* and *Salmonella*)
+
+* virulence typing
+    * CGE virulence gene database
+
+* antimicrobial resistance marker finding
+    * Uses ARMI
+
+* rMLST
+    * ribosomal multilocus sequence typing
+
+* custom target analysis
+    * Analysis of custom targets
+
+#Arguments
+-p, --path, Required. Path in which to place the reports folder. It is also used to find sequences and targets folders if arguments for these folders are not provided
+
+-s, --sequencepath, Path of .fastq(.gz) files to process. If not provided, the default path of "path/sequences" will be used
+
+-t, --targetpath, Path of target files to process. If not provided, the default path of "path/targets" will be used
+
+-m, --miSeqPath, Path of the folder containing MiSeq run data folder (e.g. /media/miseq/MiSeqOutput)
+
+-f, --miseqfolder, Name of the folder containing MiSeq run data (e.g. 151218_M02466_0126_000000000-AKF4P)
+
+-r1, --readLengthForward, Length of forward reads to use. Can specify "full" to take the full length of forward reads specified on the SampleSheet
+
+-r2, --readLengthReverse, Length of reverse reads to use. Can specify "full" to take the full length of reverse reads specified on the SampleSheet. Default is 0
+
+-c, --customSampleSheet, Path of folder containing a custom sample sheet (still must be named "SampleSheet.csv)"
+
+-P, --projectName, A name for the analyses. If nothing is provided, then the "Sample_Project" field in the provided sample sheet will be used. Please note that bcl2fastq 
+     creates subfolders using the project name, so if multiple names are provided, the results will be split as into multiple projects
+     
+-16S, --16Styping, Perform 16S typing. Note that for analyses such as MLST, pathotyping, serotyping, and virulence typing that require the genus of a strain to proceed, 
+     16S typing will still be performed
+     
+-M, --Mlst, Perform MLST analyses
+
+-Y, --pathotYping, Perform pathotyping analyses
+
+-S, --Serotyping, Perform serotyping analyses
+
+-V, --Virulencetyping, Perform virulence typing analyses
+
+-a, --armi, Perform ARMI antimicrobial typing analyses
+
+-r, --rmlst, Perform rMLST analyses
+
+-d, --detailedReports, Provide detailed reports with percent identity and depth of coverage values rather than just "+" for positive results
+
+-C, --customTargetPath, Provide the path for a folder of custom targets .fasta format. Does not support multifasta files
 
 #Use
-Run SPAdesPipeline.py from the console.
+Run geneSipprV2.py from the console with the desired arguments.
 
 #Requirements
-* Docker
-Everything else should be contained within the docker container, and is ready to run.
+* Linux
+* Python
+* BioPython
+* pysamstats and dependencies
+* SMALT v?
+* samtools
+* mirabait
+* more coming soon!
 
 # Outputs
-This pipeline generates multiple outputs.
-
-1. Assembled contigs - these are collected in the 'BestAssemblies' folder
-2. JSON reports - these are located in the 'reports' folder
-3. A summary of rMLST alleles - this is located in the 'reports' folder
-
-Additionally, within the individual strain subfolders, a .pdf output of plotted insert sizes is included in the 'insertSizes' folder.
-Detailed reports can be found in the 'quast_results' folder, and the reference genome file is located in 'referenceGenome'
+This pipeline generates multiple reports. They should be in the path/reports folder. A new folder is created for each analysis with the format: YYYY.MM.DD.HH.MM.SS

@@ -75,6 +75,7 @@ def smaltmappingprocesses(seqdict, analysistype, mappername):
         catfile = seqdict[strain]["concatenatedTargets"][analysistype]
         # Find the list of baited fastq files to process
         baitedfastqlist = seqdict[strain]["bait"]["fastqFiles"][baittype]
+        print strain, baittype, catfile, baitedfastqlist
         mappingprocessesargs.append((strain, catfile, mappername, baitedfastqlist))
     # Map the arguments to the reference mapping function
     mappingprocessespool.map(mapping, mappingprocessesargs)

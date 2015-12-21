@@ -83,15 +83,20 @@ def smaltmappingprocesses(seqdict, analysistype, mappername):
         baittype = seqdict[strain]["bait"]["fastqFiles"].keys()[0]
         # Find the list of baited fastq files to process
         baitedfastqlist = seqdict[strain]["bait"]["fastqFiles"][baittype]
+        # Check the files in the list to see if they are not size 0
+        iszero = [os.stat(fastqfile).st_size for fastqfile in baitedfastqlist]
+        # If they are empty, use the original fastq files for mapping
+        if iszero[0] == 0:
+            baitedfastqlist = seqdict[strain]["rawFastq"]
         # Retrieve the path/name of each target file
         for target in seqdict[strain]["targets"][analysistype]:
             # Append a tuple of the arguments to be used in the multiprocessed analysis
-            mappingprocessesargs.append((strain, target, mappername, baitedfastqlist))
+            mappingprocessesargs.append((strain, target, mappername, baitedfastqlist, analysistype))
     # Map the arguments to the reference mapping function
     mappingprocessespool.map(mapping, mappingprocessesargs)
 
 
-def mapping((strain, target, mappername, baitedfastqlist)):
+def mapping((strain, target, mappername, baitedfastqlist, analysistype)):
     """Performs the mapping of the reads to the targets"""
     # Initialise the smaltmap variable
     smaltmap = ""
@@ -104,8 +109,13 @@ def mapping((strain, target, mappername, baitedfastqlist)):
     if len(baitedfastqlist) == 2:
         # Set the names of the forward and reverse fastq files from the supplied list
         forwardfastq, reversefastq = baitedfastqlist
-        # Determine the path of the fastq files by splitting off the file name
-        fastqpath = os.path.split(forwardfastq)[0]
+        # Catches if baited files don't exist, and full fastq files are used instead
+        if "match" not in forwardfastq:
+            # Add the analysis type to the end of the path
+            fastqpath = os.path.split(forwardfastq)[0] + "/" + analysistype
+        else:
+            # Determine the path of the fastq files by splitting off the file name
+            fastqpath = os.path.split(forwardfastq)[0]
         # Set the path to store the outputs of the reference mapping
         outpath = "%s/%s" % (fastqpath, targetname)
         # Create the path if necessary

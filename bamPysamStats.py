@@ -44,23 +44,6 @@ def dotter():
         sys.stdout.write('\n[%s] .' % (time.strftime("%H:%M:%S")))
         count = 1
 
-#
-# def filler(listofdictionaries):
-#     """
-#     Properly populates the dictionary - when I tried to populate the dictionary within the multi-processed functions,
-#     it was returned as a list (likely due to how the files were returned. This essentially
-#      iterates through the list, and updates a dictionary appropriately
-#      :param listofdictionaries: list of dictionaries returned from a multiprocessed function
-#      """
-#     # Initialise the dictionary
-#     replacementdictionary = defaultdict(make_dict)
-#     # Iterate through listofdictionaries
-#     for dictionary in listofdictionaries:
-#         # Update the dictionary with the dictionaries stored in the list
-#         replacementdictionary.update(dictionary)
-#     # Return the beautifully-populated dictionary
-#     return replacementdictionary
-
 
 def filler(listofdictionaries):
     """
@@ -131,9 +114,9 @@ def bestmatch(parseddict, seqdict, analysistype):
                         # If the identity is equal to the largest identity
                         identity = parseddict[strain][targetname][record][depth]
                         # Virulence type is special - I want to allow multiple best matches and the matches don't
-                        # have to all be the same - allowing a decrease of 2% from the best hit
+                        # have to all be the same - allowing a decrease of 5% from the best hit
                         if analysistype == "virulencetype":
-                            if identity >= maxidentity - 2:
+                            if identity >= maxidentity - 5:
                                 # resultDict will store this best result
                                 resultdict[strain][targetname][record][identity] = depth
                                 # tempDict stores the same data as resultDict except for the strain name
@@ -202,6 +185,8 @@ def classifyr(bestresult, seqdict, analysistype):
                         # Bacteria;Proteobacteria;Gammaproteobacteria;Enterobacteriales;Enterobacteriaceae;Escherichia;
                         # would give Escherichia. I don't remember why this value is also split on the "_"
                         genus = line.split(";")[-2].split("_")[0]
+                        if genus == "Shigella":
+                            genus = "Escherichia"
                         # Add the best results to the bestResult dictionary
                         for bestcontig in bestresult[strain]:
                             genusdict[strain][genus][bestcontig][bestresult[strain][bestcontig].keys()[0]] = \

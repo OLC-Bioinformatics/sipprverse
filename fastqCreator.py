@@ -7,6 +7,8 @@ import time
 from glob import glob
 from multiprocessing import Pool
 
+__author__ = 'adamkoziol'
+
 
 def make_path(inpath):
     """
@@ -44,7 +46,10 @@ def createfastq(miseqpath, miseqfolder, path, project, forwardreads, reverseread
         miseqfolder = miseqpath + miseqfolder
 
     # Get the flow cell id from the folder name - it should be the last part of the name, and will be separated by a "-"
-    flowcellid = miseqfolder.split("_")[1]
+    try:
+        flowcellid = miseqfolder.split("_")[1]
+    except IndexError:
+        flowcellid = "NA"
     # Initialise the folder in which to place the .fastq sequences once they are created
     seqfolder = path + "sequences"
     folderpath = seqfolder + "/" + foldername
@@ -124,7 +129,7 @@ def createfastq(miseqpath, miseqfolder, path, project, forwardreads, reverseread
     else:
         forwardreads = int(forwardreads)
     if reversereads == "full":
-        reversereads = reversereads
+        reversereads = reverselength
     else:
         reversereads = int(reversereads)
     # As the number of cycles required is the number of forward reads + the index(8) + the second index(8)
@@ -338,7 +343,10 @@ if __name__ == "__main__":
     # Define variables from the arguments - there may be a more streamlined way to do this
     patharg = os.path.join(args['path'], "")
     miseqPath = os.path.join(args['miseqpath'], "")
-    customsamplesheetarg = os.path.join(args['customsamplesheet'], "")
+    if args['customsamplesheet']:
+        customsamplesheetarg = os.path.join(args['customsamplesheet'], "")
+    else:
+        customsamplesheetarg = ""
     # If these variables are not defined, set to default values
     if args['sequencePath']:
         sequencePath = os.path.join(args['sequencePath'], "")
