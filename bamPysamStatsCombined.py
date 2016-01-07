@@ -162,6 +162,8 @@ def armiparser(parseddict, seqdict, analysistype, reportfolder):
     :param analysistype: string of the current analysis type
     :param reportfolder: folder in which reports are stored
     """
+    # import bamPysamStats
+    # seqdict = bamPysamStats.targetlength(seqdict, analysistype)
     # Initialise a variable to store the target path used in creating the dictionary of antimicrobial resistances
     targetpath = ""
     # Initialise the dictionary
@@ -179,45 +181,28 @@ def armiparser(parseddict, seqdict, analysistype, reportfolder):
             targetname = os.path.basename(target).split(".")[0]
             targetpath = os.path.split(target)[0]
             # Iterate through all the alleles for each target in parseddict
-            for allele in parseddict[strain][target]:
-                # Initialise the totaldepth and the number of nonsnps (number of matches to the reference)
-                totaldepth = 0
-                nonsnps = 0
-                # Retrieve the length of the allele
-                contiglength = len(seqdict[strain]["targetSequences"][analysistype][target]["allele"][allele])
-                # Iterate through each position in the allele
-                for pos in parseddict[strain][target][allele]:
-                    # Number of matches
-                    for matches in parseddict[strain][target][allele][pos]:
-                        # Number of mismatches and depth of coverage
-                        for mismatches, depth in parseddict[strain][target][allele][pos][matches].iteritems():
-                            # Each position represents a non-SNP due to pre-filtering
-                            nonsnps += 1
-                            # Increment the total depth
-                            totaldepth += depth
-                # Calculate the total percent identity
-                currentidentity = float("%.2f" % (float(nonsnps)/contiglength * 100))
-                # If this identity is greater than the cutoff
-                if currentidentity >= identitycutoff:
-                    # The target is present in the strain
-                    targetpresent = True
+            for allele in parseddict[strain][targetname]:
+                # Iterate through the percent identity of each allele
+                for percentidentity in parseddict[strain][targetname][allele]:
+                    # If this identity is greater than the cutoff
+                    if percentidentity >= identitycutoff:
+                        # The target is present in the strain
+                        targetpresent = True
             # If the target is present, add a plus to Dict
             if targetpresent:
                 targetdict[strain][targetname] = ["+"]
     # Set the path of the resistance dictionary
-    # antidict = json.load(open("/media/nas0/Jackson/ARMI_Docker/ARMI/aro3.json"))
     antidict = json.load(open("%s/aro3.json" % targetpath))
     # Send the dictionaries, and report locations to the decipher function
     decipher(targetdict, antidict, reportfolder + "/geneSippr")
     return targetdict
 
 
-def bamparseprocesses(seqdict, analysistype, reportfolder):
+def bamparseprocesses(seqdict, analysistype):
     """
     Multiprocessing for sorting bam files
     :param seqdict: dictionary containing import path and name information of files and folders
     :param analysistype: string of the analysis type
-    :param reportfolder: string of output directory
     """
     # Initialise dictionary for later
     loadedresultsdict = defaultdict(make_dict)
@@ -282,8 +267,9 @@ def bamparseprocesses(seqdict, analysistype, reportfolder):
     parseddict.update(loadedresultsdict)
     # ARMI analyses require special parsing compared to the other types of analysis
     if analysistype == "ARMI":
-        armidict = armiparser(parseddict, seqdict, analysistype, reportfolder)
-        return armidict
+        pass
+        # armidict = armiparser(parseddict, seqdict, analysistype, reportfolder)
+        # return armidict
     else:
         # Parse and filter the results
         resultsdict.update(dictparser(parseddict, seqdict, analysistype))

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Import the necessary modules
 # OS is used for file/folder manipulations
 import os
@@ -42,38 +43,39 @@ __author__ = 'adamkoziol'
 parser = ArgumentParser(description='Perform modelling of parameters for GeneSipping')
 parser.add_argument('-v', '--version', action='version', version='%(prog)s v1.0')
 parser.add_argument('-p', '--path', required=True, help='Specify input directory')
-parser.add_argument('-s', '--sequencepath', required=False, help='Path of .fastq(.gz) files to process. If not '
+parser.add_argument('-s', '--sequencepath', help='Path of .fastq(.gz) files to process. If not '
                     'provided, the default path of "path/sequences" will be used')
-parser.add_argument('-t', '--targetpath', required=False, help='Path of target files to process. If not '
+parser.add_argument('-t', '--targetpath', help='Path of target files to process. If not '
                     'provided, the default path of "path/targets" will be used')
-parser.add_argument('-m', '--miSeqPath', required=False, help='Path of the folder containing MiSeq run data folder')
-parser.add_argument('-f', '--miseqfolder', required=False, help='Name of the folder containing MiSeq run data')
-parser.add_argument('-r1', '--readLengthForward', required=False, help='Length of forward reads to use. Can specify'
+parser.add_argument('-m', '--miSeqPath', help='Path of the folder containing MiSeq run data folder')
+parser.add_argument('-f', '--miseqfolder', help='Name of the folder containing MiSeq run data')
+parser.add_argument('-r1', '--readLengthForward', help='Length of forward reads to use. Can specify'
                     '"full" to take the full length of forward reads specified on the SampleSheet')
-parser.add_argument('-r2', '--readLengthReverse', required=False, default=0, help='Length of reverse reads to use. '
+parser.add_argument('-r2', '--readLengthReverse', default=0, help='Length of reverse reads to use. '
                     'Can specify "full" to take the full length of reverse reads specified on the SampleSheet')
-parser.add_argument('-c', '--customSampleSheet', required=False, help='Path of folder containing a custom sample '
+parser.add_argument('-c', '--customSampleSheet', help='Path of folder containing a custom sample '
                     'sheet (still must be named "SampleSheet.csv")')
-parser.add_argument('-P', '--projectName', required=False, help='A name for the analyses. If nothing is provided, then '
+parser.add_argument('-P', '--projectName', help='A name for the analyses. If nothing is provided, then '
                     'the "Sample_Project" field in the provided sample sheet will be used. Please note that bcl2fastq '
                     'creates subfolders using the project name, so if multiple names are provided, the results will be '
                     'split as into multiple projects')
-parser.add_argument('-16S', '--16Styping', required=False, action='store_true', help='Perform 16S typing. Note that'
+parser.add_argument('-16S', '--16Styping', action='store_true', help='Perform 16S typing. Note that'
                     'for analyses such as MLST, pathotyping, serotyping, and virulence typing that require the genus'
                     'of a strain to proceed, 16S typing will still be performed')
-parser.add_argument('-M', '--Mlst', required=False, action='store_true', help='Perform MLST analyses')
-parser.add_argument('-Y', '--pathotYping', required=False, action='store_true', help='Perform pathotyping analyses')
-parser.add_argument('-S', '--Serotyping', required=False, action='store_true', help='Perform serotyping analyses')
-parser.add_argument('-V', '--Virulencetyping', required=False, action='store_true',
+parser.add_argument('-M', '--Mlst', action='store_true', help='Perform MLST analyses')
+parser.add_argument('-Y', '--pathotYping', action='store_true', help='Perform pathotyping analyses')
+parser.add_argument('-S', '--Serotyping', action='store_true', help='Perform serotyping analyses')
+parser.add_argument('-V', '--Virulencetyping', action='store_true',
                     help='Perform virulence typing analyses')
-parser.add_argument('-a', '--armi', required=False, action='store_true',
+parser.add_argument('-a', '--armi', action='store_true',
                     help='Perform ARMI antimicrobial typing analyses')
-parser.add_argument('-r', '--rmlst', required=False, action='store_true', help='Perform rMLST analyses')
-parser.add_argument('-d', '--detailedReports', required=False, action='store_true', help='Provide detailed reports with'
+parser.add_argument('-r', '--rmlst', action='store_true', help='Perform rMLST analyses')
+parser.add_argument('-d', '--detailedReports', action='store_true', help='Provide detailed reports with'
                     'percent identity and depth of coverage values rather than just "+" for positive results')
-parser.add_argument('-C', '--customTargetPath', required=False, help='Provide the path for a folder of custom targets'
+parser.add_argument('-C', '--customTargetPath', help='Provide the path for a folder of custom targets'
                     '.fasta format')
 
+# TODO Add custom cutoffs
 # TODO Assert .fastq files present in provided folder
 # TODO Don't touch .fastq(.gz) files
 
@@ -928,7 +930,7 @@ def pathotyper(organismdict, organismlist, analysistype):
     bamProcessorCombined.bamindexingprocesses(seqdict, analysistype)
     print '\nParsing %s results' % analysistype
     # Use pysamstats to parse results
-    pathomatches = bamPysamStatsCombined.bamparseprocesses(seqdict, analysistype, reportfolder)
+    pathomatches = bamPysamStatsCombined.bamparseprocesses(seqdict, analysistype)
     # Create a report
     pathoreportr(pathomatches, analysistype, organismdict, organismlist)
 
@@ -1035,19 +1037,20 @@ def armi():
     baitrprocesses(analysistype)
     print "\nIndexing %s targets" % analysistype
     # Index the combined target file
-    SMALTcombined.smaltindextargets(catfile, currenttargetpath)
+    SMALT.smaltindextargetsprocesses(armidatabase, currenttargetpath)
     print '\nPerforming %s reference mapping' % analysistype
     # Use SMALT to perform reference mapping of the combined target file
-    SMALTcombined.smaltmappingprocesses(seqdict, analysistype, "SMALT")
+    SMALT.smaltmappingprocesses(seqdict, analysistype, 'SMALT')
     print "\nSorting mapped %s files" % analysistype
     # Use samtools to sort the bam file
-    bamProcessorCombined.sortingprocesses(seqdict, analysistype)
+    bamProcessor.sortingprocesses(seqdict, analysistype)
     print '\nIndexing sorted %s files' % analysistype
     # Use samtools to index the sorted bam file
-    bamProcessorCombined.bamindexingprocesses(seqdict, analysistype)
+    bamProcessor.bamindexingprocesses(seqdict, analysistype)
     print '\nParsing %s results' % analysistype
     # Use pysamstats to parse the bam files. Mike's armi module is called from within bamPysamStatsCombined
-    bamPysamStatsCombined.bamparseprocesses(seqdict, analysistype, reportfolder)
+    parseddict = bamPysamStats.bamparseprocesses(seqdict, analysistype)
+    bamPysamStatsCombined.armiparser(parseddict, seqdict, analysistype, reportfolder)
 
 
 def rmlst():
