@@ -195,6 +195,7 @@ def armiparser(parseddict, seqdict, analysistype, reportfolder):
     antidict = json.load(open("%s/aro3.json" % targetpath))
     # Send the dictionaries, and report locations to the decipher function
     decipher(targetdict, antidict, reportfolder + "/geneSippr")
+    # print json.dumps(antidict, sort_keys=True, indent=4, separators=(',', ': '))
     return targetdict
 
 

@@ -1051,6 +1051,7 @@ def armi():
     # Use pysamstats to parse the bam files. Mike's armi module is called from within bamPysamStatsCombined
     parseddict = bamPysamStats.bamparseprocesses(seqdict, analysistype)
     bamPysamStatsCombined.armiparser(parseddict, seqdict, analysistype, reportfolder)
+    # print json.dumps(seqdict, sort_keys=True, indent=4, separators=(',', ': '))
 
 
 def rmlst():
