@@ -321,7 +321,7 @@ if __name__ == "__main__":
     parser = ArgumentParser(description='Perform modelling of parameters for GeneSipping')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s v1.0')
     parser.add_argument('-p', '--path', required=True, help='Specify input directory')
-    parser.add_argument('-s', '--sequencePath', required=True, help='Path of .fastq(.gz) files to process. If not '
+    parser.add_argument('-s', '--sequencePath', required=False, help='Path of .fastq(.gz) files to process. If not '
                         'provided, the default path of "path/sequences" will be used')
     parser.add_argument('-t', '--targetPath', required=False, help='Path of target files to process. If not '
                         'provided, the default path of "path/targets" will be used')
