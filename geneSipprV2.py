@@ -591,7 +591,7 @@ def virulencer(resultsdict, analysistype):
                         # if targetname + allele.split(":")[1] + ":" in line:
                         # Add the target name (stx2) + the trailing two characters in the line (d1) to the set
                         if resultsdict[strain][targetname][allele].keys()[0] >= 98.0:
-                            # print strain, alleleresult, alleleresult[4:5], resultsdict[strain][targetname][allele].keys()[0]
+                            #
                             virulenceset.add(alleleresult)
                         # There are a two stx2 variants with a subtype: d1 and d2. Allow for this exception
                         # if line.rstrip()[-2] == "d":

@@ -1,61 +1,82 @@
 #!/usr/bin/env python
 # Import the necessary modules
-# OS is used for file/folder manipulations
-import os
 # Subprocess->call is used for making system calls
 import subprocess
-# Errno is used in the file creation command  - I think it's similar to the $! variable in Perl
-import errno
-# Glob finds all the path names matching a specified pattern according to the rules used by the Unix shell
-from glob import glob
-# Shutil is useful for file moving/copying
-import shutil
-# System tools
-import sys
-# Can import date, and calculate length of run, etc.
 import time
-# Multiprocessing module
-from multiprocessing import Pool
-# Regex module
-import re
-# JSON module for reading and printing variables in .json format
-# import json
-# Sequence parsing module from BioPython
-from Bio import SeqIO
-# Default dictionaries allow nested dictionaries
-from collections import defaultdict
-# Import custom modules
-import SMALTcombined
-import SMALT
-import bamProcessorCombined
-import bamProcessor
-import rawMLST
-import bamPysamStats
-import bamPysamStatsCombined
-import fastqCreator
+# Import the accessoryFunctions sub-module
+import createFastq
+import createObject
+import SPAdesPipeline.OLCspades.metadataprinter as metadataprinter
+from SPAdesPipeline.OLCspades.accessoryFunctions import *
 
 __author__ = 'adamkoziol'
 
 
 class GeneSippr(object):
+    def objectprep(self):
+        """
+        Creates fastq files from an in-progress Illumina MiSeq run or create an object and moves files appropriately
+        """
+        # Run the genesipping if necessary. Otherwise create the metadata object
+        if self.bcltofastq:
+            if self.customsamplesheet:
+                assert os.path.isfile(self.customsamplesheet), 'Cannot find custom sample sheet as specified {}' \
+                    .format(self.customsamplesheet)
+            self.runmetadata = createFastq.FastqCreate(self)
+        else:
+            self.runmetadata = createObject.ObjectCreation(self)
 
-    def sippr(self):
-        pass
+    def runner(self):
+        import customtargets
+        """
+        Call the necessary methods in the appropriate order
+        """
+        # Create a sample object and create/link fastq files as necessary
+        self.objectprep()
+        # Run the typing modules
+        if self.customtargetpath:
+            customtargets.Custom(self, 'custom', self.cutoff)
+        metadataprinter.MetadataPrinter(self)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
         """
-
         :param args:
         :param pipelinecommit:
         :param startingtime:
         :param scriptpath:
         """
-        # Define variables from the arguments - there may be a more streamlined way to do this
+        import multiprocessing
+        # Initialise variables
+        self.commit = str(pipelinecommit)
+        self.starttime = startingtime
+        self.homepath = scriptpath
+        # Define variables based on supplied arguments
         self.args = args
         self.path = os.path.join(args.path, '')
-        self.commit = str(pipelinecommit)
-        self.start = startingtime
-        self.homepath = scriptpath
+        assert os.path.isdir(self.path), u'Output location is not a valid directory {0!r:s}'.format(self.path)
+        self.sequencepath = os.path.join(args.sequencepath, '')
+        assert os.path.isdir(self.sequencepath), u'Output location is not a valid directory {0!r:s}' \
+            .format(self.sequencepath)
+        self.targetpath = os.path.join(args.targetpath, '')
+        assert os.path.isdir(self.targetpath), u'Output location is not a valid directory {0!r:s}' \
+            .format(self.targetpath)
+        if args.customtargetpath:
+            self.customtargetpath = os.path.join(args.customtargetpath, '')
+            os.path.isdir(self.customtargetpath), u'Output location is not a valid directory {0!r:s}' \
+                .format(self.customtargetpath)
+        self.bcltofastq = args.bcl2fastq
+        self.fastqdestination = args.destinationfastq
+        self.forwardlength = args.readlengthforward
+        self.reverselength = args.readlengthreverse
+        self.numreads = 2 if self.reverselength != 0 else 1
+        self.customsamplesheet = args.customsamplesheet
+        # Set the custom cutoff value
+        self.cutoff = args.customcutoffs
+        # Use the argument for the number of threads to use, or default to the number of cpus in the system
+        self.cpus = args.threads if args.threads else multiprocessing.cpu_count()
+        self.runmetadata = ""
+        # Run the analyses
+        self.runner()
 
 
 if __name__ == '__main__':
@@ -70,29 +91,39 @@ if __name__ == '__main__':
                               shell=True, stdout=subprocess.PIPE).communicate()[0].rstrip()
     # Parser for arguments
     parser = ArgumentParser(description='Perform modelling of parameters for GeneSipping')
-    parser.add_argument('-v', '--version',
-                        version='%(prog)s commit {}'.format(commit))
-    parser.add_argument('-p', '--path',
-                        required=True,
+    # parser.add_argument('-v', '--version',
+    #                     version='%(prog)s commit {}'.format(commit))
+    parser.add_argument('path',
                         help='Specify input directory')
     parser.add_argument('-s', '--sequencepath',
-                        help='Path of .fastq(.gz) files to process. If not provided, the default path of '
-                             '"path/sequences" will be used')
+                        required=True,
+                        help='Path of .fastq(.gz) files to process.')
     parser.add_argument('-t', '--targetpath',
-                        help='Path of target files to process. If not provided, the default path of '
-                             '"path/targets" will be used')
-    parser.add_argument('-m', '--miSeqPath',
+                        required=True,
+                        help='Path of target files to process.')
+    parser.add_argument('-T', '--threads',
+                        help='Number of threads. Default is the number of cores in the system')
+    parser.add_argument('-b', '--bcl2fastq',
+                        action='store_true',
+                        help='Optionally run bcl2fastq on an in-progress Illumina MiSeq run. Must include:'
+                             'miseqpath, and miseqfolder arguments, and optionally readlengthforward, '
+                             'readlengthreverse, and projectName arguments.')
+    parser.add_argument('-m', '--miseqpath',
                         help='Path of the folder containing MiSeq run data folder')
     parser.add_argument('-f', '--miseqfolder',
                         help='Name of the folder containing MiSeq run data')
-    parser.add_argument('-r1', '--readLengthForward',
+    parser.add_argument('-d', '--destinationfastq',
+                        help='Optional folder path to store .fastq files created using the fastqCreation module. '
+                             'Defaults to path/miseqfolder')
+    parser.add_argument('-r1', '--readlengthforward',
+                        default='full',
                         help='Length of forward reads to use. Can specify "full" to take the full length of '
                              'forward reads specified on the SampleSheet')
-    parser.add_argument('-r2', '--readLengthReverse',
-                        default=0,
+    parser.add_argument('-r2', '--readlengthreverse',
+                        default='full',
                         help='Length of reverse reads to use. Can specify "full" to take the full length of '
                              'reverse reads specified on the SampleSheet')
-    parser.add_argument('-c', '--customSampleSheet',
+    parser.add_argument('-c', '--customsamplesheet',
                         help='Path of folder containing a custom sample sheet (still must be named "SampleSheet.csv")')
     parser.add_argument('-P', '--projectName',
                         help='A name for the analyses. If nothing is provided, then the "Sample_Project" field '
@@ -123,12 +154,15 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--rmlst',
                         action='store_true',
                         help='Perform rMLST analyses')
-    parser.add_argument('-d', '--detailedReports',
+    parser.add_argument('-D', '--detailedReports',
                         action='store_true',
                         help='Provide detailed reports with percent identity and depth of coverage values '
                              'rather than just "+" for positive results')
-    parser.add_argument('-C', '--customTargetPath',
+    parser.add_argument('-C', '--customtargetpath',
                         help='Provide the path for a folder of custom targets .fasta format')
+    parser.add_argument('-c', '--customcutoffs',
+                        default=0.8,
+                        help='Custom cutoff values')
 
     # TODO Add custom cutoffs
     # TODO Assert .fastq files present in provided folder
