@@ -17,6 +17,7 @@ class GeneSippr(object):
         """
         Creates fastq files from an in-progress Illumina MiSeq run or create an object and moves files appropriately
         """
+        printtime('Starting genesippr analysis pipeline', self.starttime)
         # Run the genesipping if necessary. Otherwise create the metadata object
         if self.bcltofastq:
             if self.customsamplesheet:
@@ -27,15 +28,26 @@ class GeneSippr(object):
             self.runmetadata = createObject.ObjectCreation(self)
 
     def runner(self):
-        import customtargets
         """
         Call the necessary methods in the appropriate order
         """
+        import customtargets
+        import sipprmash
+        import sipprmlst
         # Create a sample object and create/link fastq files as necessary
         self.objectprep()
         # Run the typing modules
         if self.customtargetpath:
             customtargets.Custom(self, 'custom', self.cutoff)
+            # Create reports
+        else:
+            # Run the desired analyses
+
+            sipprmash.SipprMash(self, 'mash')
+            metadataprinter.MetadataPrinter(self)
+            sipprmlst.MLSTmap(self, 'rmlst')
+            sipprmlst.MLSTmap(self, 'mlst')
+
         metadataprinter.MetadataPrinter(self)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
@@ -58,12 +70,15 @@ class GeneSippr(object):
         assert os.path.isdir(self.sequencepath), u'Output location is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
         self.targetpath = os.path.join(args.targetpath, '')
+        self.reportpath = os.path.join(self.path, 'reports')
         assert os.path.isdir(self.targetpath), u'Output location is not a valid directory {0!r:s}' \
             .format(self.targetpath)
         if args.customtargetpath:
             self.customtargetpath = os.path.join(args.customtargetpath, '')
             os.path.isdir(self.customtargetpath), u'Output location is not a valid directory {0!r:s}' \
                 .format(self.customtargetpath)
+        else:
+            self.customtargetpath = ''
         self.bcltofastq = args.bcl2fastq
         self.fastqdestination = args.destinationfastq
         self.forwardlength = args.readlengthforward
@@ -73,7 +88,7 @@ class GeneSippr(object):
         # Set the custom cutoff value
         self.cutoff = args.customcutoffs
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
-        self.cpus = args.threads if args.threads else multiprocessing.cpu_count()
+        self.cpus = int(args.threads if args.threads else multiprocessing.cpu_count())
         self.runmetadata = ""
         # Run the analyses
         self.runner()
@@ -160,7 +175,7 @@ if __name__ == '__main__':
                              'rather than just "+" for positive results')
     parser.add_argument('-C', '--customtargetpath',
                         help='Provide the path for a folder of custom targets .fasta format')
-    parser.add_argument('-c', '--customcutoffs',
+    parser.add_argument('-u', '--customcutoffs',
                         default=0.8,
                         help='Custom cutoff values')
 

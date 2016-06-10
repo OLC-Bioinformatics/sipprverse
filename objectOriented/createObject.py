@@ -43,6 +43,9 @@ class ObjectCreation(object):
                                            if 'trimmed' not in fastq]
             # Add the output directory to the metadata
             metadata.general.outputdirectory = outputdir
+            metadata.general.bestassemblyfile = True
+            metadata.general.trimmedcorrectedfastqfiles = metadata.general.fastqfiles
+            metadata.commands = GenObject()
             # Append the metadata to the list of samples
             self.samples.append(metadata)
 

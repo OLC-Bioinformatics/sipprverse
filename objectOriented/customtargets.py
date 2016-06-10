@@ -41,7 +41,7 @@ class Custom(object):
 
     def baiting(self):
         # Perform baiting
-        printtime('Performing kmer baiting of fastq files with targets', self.start)
+        printtime('Performing kmer baiting of fastq files with {} targets'.format(self.analysistype), self.start)
         # Create and start threads for each fasta file in the list
         for i in range(len(self.metadata)):
             # Send the threads to the bait method
@@ -51,8 +51,9 @@ class Custom(object):
             # Start the threading
             threads.start()
         for sample in self.metadata:
-            # Add the sample to the queue
-            self.baitqueue.put(sample)
+            if sample.general.bestassemblyfile != 'NA':
+                # Add the sample to the queue
+                self.baitqueue.put(sample)
         self.baitqueue.join()
         # Run the bowtie2 read mapping module
         self.mapping()
@@ -76,10 +77,16 @@ class Custom(object):
             sample[self.analysistype].targetpath = self.targetpath
             sample[self.analysistype].baitedfastq = '{}/{}_targetMatches.fastq'.format(sample[self.analysistype]
                                                                                        .outputdir, self.analysistype)
+
             # Make the system call
-            sample[self.analysistype].mirabaitcall = 'mirabait -B {} -t 4 -o {} -p {} {}' \
-                .format(self.hashfile, sample[self.analysistype].baitedfastq, sample.general.fastqfiles[0],
-                        sample.general.fastqfiles[1])
+            if len(sample.general.fastqfiles) == 2:
+                sample[self.analysistype].mirabaitcall = 'mirabait -c -B {} -t 4 -o {} -p {} {}' \
+                    .format(sample[self.analysistype].hashfile, sample[self.analysistype].baitedfastq,
+                            sample.general.fastqfiles[0], sample.general.fastqfiles[1])
+            else:
+                sample[self.analysistype].mirabaitcall = 'mirabait -c -B {} -t 4 -o {} {}' \
+                    .format(sample[self.analysistype].hashfile, sample[self.analysistype].baitedfastq,
+                            sample.general.fastqfiles[0])
             # Run the system call (if necessary)
             if not os.path.isfile(sample[self.analysistype].baitedfastq):
                 call(sample[self.analysistype].mirabaitcall, shell=True, stdout=self.devnull, stderr=self.devnull)
@@ -95,68 +102,72 @@ class Custom(object):
             # Start the threading
             threads.start()
         for sample in self.metadata:
-            # Set the path/name for the sorted bam file to be created
-            sample[self.analysistype].sortedbam = '{}/{}_sorted.bam'.format(sample[self.analysistype].outputdir,
-                                                                            self.analysistype)
-            # Remove the file extension of the bait file for use in the indexing command
-            sample[self.analysistype].baitfilenoext = sample[self.analysistype].baitfile.split('.')[0]
-            # Use bowtie2 wrapper to create index the target file
-            bowtie2build = Bowtie2BuildCommandLine(reference=sample[self.analysistype].baitfile,
-                                                   bt2=sample[self.analysistype].baitfilenoext)
-            # Use samtools wrapper to set up the bam sorting command
-            samsort = SamtoolsSortCommandline(input_bam=sample[self.analysistype].sortedbam,
-                                              o=True,
-                                              out_prefix="-")
-            # Create a list of programs to which data are piped as part of the reference mapping
-            samtools = [
-                # When bowtie2 maps reads to all possible locations rather than just choosing a "best" placement, the
-                # SAM header for that read is set to 'secondary alignment', or 256. Please see:
-                # http://davetang.org/muse/2014/03/06/understanding-bam-flags/ The script below reads in the stdin
-                # and subtracts 256 from headers which include 256
-                'python {}/editsamheaders.py'.format(self.homepath),
-                # # Use samtools wrapper to set up the samtools view
-                SamtoolsViewCommandline(b=True,
-                                        S=True,
-                                        h=True,
-                                        input_file="-"),
-                samsort]
-            # Add custom parameters to a dictionary to be used in the bowtie2 alignment wrapper
-            indict = {'--very-sensitive-local': True,
-                      # For short targets, the match bonus can be increased
-                      '--ma': self.matchbonus,
-                      '-U': sample[self.analysistype].baitedfastq,
-                      '-a': True,
-                      '--local': True}
-            # Create the bowtie2 reference mapping command
-            bowtie2align = Bowtie2CommandLine(bt2=sample[self.analysistype].baitfilenoext,
-                                              threads=self.cpus,
-                                              samtools=samtools,
-                                              **indict)
-            # Create the command to faidx index the bait file
-            sample[self.analysistype].faifile = sample[self.analysistype].baitfile + '.fai'
-            # In methods where there can be multiple fai files e.g. pathotyping difference genera, this will be treated
-            # differently
-            self.faifile = sample[self.analysistype].faifile
-            samindex = SamtoolsFaidxCommandline(reference=sample[self.analysistype].baitfile)
-            # Add the commands (as strings) to the metadata
-            sample[self.analysistype].bowtie2align = str(bowtie2align)
-            sample[self.analysistype].bowtie2build = str(bowtie2build)
-            sample[self.analysistype].samindex = str(samindex)
-            # Add the commands to the queue. Note that the commands would usually be set as attributes of the sample
-            # but there was an issue with their serialization when printing out the metadata
-            if not os.path.isfile(sample[self.analysistype].baitfilenoext + '.1.bt2'):
-                stdoutbowtieindex, stderrbowtieindex = map(StringIO,
-                                                           bowtie2build(cwd=sample[self.analysistype].targetpath))
-                # Write any error to a log file
-                if stderrbowtieindex:
-                    # Write the standard error to log, bowtie2 puts alignment summary here
-                    with open(os.path.join(sample[self.analysistype].targetpath,
-                                           '{}_bowtie_index.log'.format(self.analysistype)), 'ab+') as log:
-                        log.writelines(logstr(bowtie2build, stderrbowtieindex.getvalue(), stdoutbowtieindex.getvalue()))
-                # Close the stdout and stderr streams
-                stdoutbowtieindex.close()
-                stderrbowtieindex.close()
-            self.mapqueue.put((sample, bowtie2build, bowtie2align, samindex))
+            if sample.general.bestassemblyfile != 'NA':
+                # Set the path/name for the sorted bam file to be created
+                sample[self.analysistype].sortedbam = '{}/{}_sorted.bam'.format(sample[self.analysistype].outputdir,
+                                                                                self.analysistype)
+                # Remove the file extension of the bait file for use in the indexing command
+                sample[self.analysistype].baitfilenoext = sample[self.analysistype].baitfile.split('.')[0]
+                # Use bowtie2 wrapper to create index the target file
+                bowtie2build = Bowtie2BuildCommandLine(reference=sample[self.analysistype].baitfile,
+                                                       bt2=sample[self.analysistype].baitfilenoext,
+                                                       **self.builddict)
+                # Use samtools wrapper to set up the bam sorting command
+                samsort = SamtoolsSortCommandline(input_bam=sample[self.analysistype].sortedbam,
+                                                  o=True,
+                                                  out_prefix="-")
+                # Create a list of programs to which data are piped as part of the reference mapping
+                samtools = [
+                    # When bowtie2 maps reads to all possible locations rather than choosing a 'best' placement, the
+                    # SAM header for that read is set to 'secondary alignment', or 256. Please see:
+                    # http://davetang.org/muse/2014/03/06/understanding-bam-flags/ The script below reads in the stdin
+                    # and subtracts 256 from headers which include 256
+                    'python {}/editsamheaders.py'.format(self.homepath),
+                    # # Use samtools wrapper to set up the samtools view
+                    SamtoolsViewCommandline(b=True,
+                                            S=True,
+                                            h=True,
+                                            input_file="-"),
+                    samsort]
+                # Add custom parameters to a dictionary to be used in the bowtie2 alignment wrapper
+                indict = {'--very-sensitive-local': True,
+                          # For short targets, the match bonus can be increased
+                          '--ma': self.matchbonus,
+                          '-U': sample[self.analysistype].baitedfastq,
+                          '-a': True,
+                          '--threads': self.cpus,
+                          '--local': True}
+                # Create the bowtie2 reference mapping command
+                bowtie2align = Bowtie2CommandLine(bt2=sample[self.analysistype].baitfilenoext,
+                                                  threads=self.cpus,
+                                                  samtools=samtools,
+                                                  **indict)
+                # Create the command to faidx index the bait file
+                sample[self.analysistype].faifile = sample[self.analysistype].baitfile + '.fai'
+                # In methods with multiple .fai files e.g. pathotyping different genera, this will be treated
+                # differently
+                self.faifile = sample[self.analysistype].faifile
+                samindex = SamtoolsFaidxCommandline(reference=sample[self.analysistype].baitfile)
+                # Add the commands (as strings) to the metadata
+                sample[self.analysistype].bowtie2align = str(bowtie2align)
+                sample[self.analysistype].bowtie2build = str(bowtie2build)
+                sample[self.analysistype].samindex = str(samindex)
+                # Add the commands to the queue. Note that the commands would usually be set as attributes of the sample
+                # but there was an issue with their serialization when printing out the metadata
+                if not os.path.isfile(sample[self.analysistype].baitfilenoext + '.1' + self.bowtiebuildextension):
+                    stdoutbowtieindex, stderrbowtieindex = map(StringIO,
+                                                               bowtie2build(cwd=sample[self.analysistype].targetpath))
+                    # Write any error to a log file
+                    if stderrbowtieindex:
+                        # Write the standard error to log, bowtie2 puts alignment summary here
+                        with open(os.path.join(sample[self.analysistype].targetpath,
+                                               '{}_bowtie_index.log'.format(self.analysistype)), 'ab+') as log:
+                            log.writelines(logstr(bowtie2build, stderrbowtieindex.getvalue(),
+                                                  stdoutbowtieindex.getvalue()))
+                    # Close the stdout and stderr streams
+                    stdoutbowtieindex.close()
+                    stderrbowtieindex.close()
+                self.mapqueue.put((sample, bowtie2build, bowtie2align, samindex))
         self.mapqueue.join()
         # Use samtools to index the sorted bam file
         self.indexing()
@@ -200,10 +211,11 @@ class Custom(object):
             # Start the threading
             threads.start()
         for sample in self.metadata:
-            bamindex = SamtoolsIndexCommandline(input=sample[self.analysistype].sortedbam)
-            sample[self.analysistype].sortedbai = sample[self.analysistype].sortedbam + '.bai'
-            sample[self.analysistype].bamindex = str(bamindex)
-            self.indexqueue.put((sample, bamindex))
+            if sample.general.bestassemblyfile != 'NA':
+                bamindex = SamtoolsIndexCommandline(input=sample[self.analysistype].sortedbam)
+                sample[self.analysistype].sortedbai = sample[self.analysistype].sortedbam + '.bai'
+                sample[self.analysistype].bamindex = str(bamindex)
+                self.indexqueue.put((sample, bamindex))
         self.indexqueue.join()
         # Parse the results
         self.parsing()
@@ -238,7 +250,8 @@ class Custom(object):
                 data = line.split('\t')
                 self.faidict[data[0]] = int(data[1])
         for sample in self.metadata:
-            self.parsequeue.put(sample)
+            if sample.general.bestassemblyfile != 'NA':
+                self.parsequeue.put(sample)
         self.parsequeue.join()
 
     def parse(self):
@@ -255,6 +268,7 @@ class Custom(object):
             gapdict = dict()
             snpresults = dict()
             gapresults = dict()
+            seqresults = dict()
             # Variable to store the expected position in gene/allele
             pos = 0
             try:
@@ -332,7 +346,6 @@ class Custom(object):
                     # length of the gene
                     averagedepth = float(depthdict[allele]) / float(matchdict[allele])
                     percentidentity = float(matchdict[allele]) / float(self.faidict[allele]) * 100
-                    # print sample.name, allele, averagedepth, percentidentity
                     # Only report a positive result if this average depth is greater than 4X
                     if averagedepth > 4:
                         # Populate resultsdict with the gene/allele name, the percent identity, and the average depth
@@ -340,18 +353,21 @@ class Custom(object):
                         # Add the SNP and gap results to dictionaries
                         snpresults.update({allele: snpdict[allele]})
                         gapresults.update({allele: gapdict[allele]})
+                        seqresults.update({allele: seqdict[allele]})
             # Add these results to the sample object
             sample[self.analysistype].results = resultsdict
             sample[self.analysistype].resultssnp = snpresults
             sample[self.analysistype].resultsgap = gapresults
+            sample[self.analysistype].sequences = seqresults
             self.parsequeue.task_done()
 
-    def __init__(self, inputobject, analysistype, cutoff=0.98, matchbonus=2):
+    # noinspection PyDefaultArgument
+    def __init__(self, inputobject, analysistype, cutoff=0.98, matchbonus=2, builddict=dict(), extension='.bt2'):
         from Queue import Queue
         from threading import Lock
         self.path = inputobject.path
         self.sequencepath = inputobject.sequencepath
-        self.targetpath = inputobject.customtargetpath
+        self.targetpath = inputobject.customtargetpath if inputobject.customtargetpath else inputobject.targetpath
         self.metadata = inputobject.runmetadata.samples
         self.start = inputobject.starttime
         self.analysistype = analysistype
@@ -363,12 +379,14 @@ class Custom(object):
         self.faifile = ''
         self.faidict = dict()
         self.devnull = open(os.devnull, 'wb')  # define /dev/null
-        self.baitqueue = Queue()
-        self.mapqueue = Queue()
-        self.indexqueue = Queue()
-        self.parsequeue = Queue()
+        self.baitqueue = Queue(maxsize=self.cpus)
+        self.mapqueue = Queue(maxsize=self.cpus)
+        self.indexqueue = Queue(maxsize=self.cpus)
+        self.parsequeue = Queue(maxsize=self.cpus)
         self.threadlock = Lock()
         self.cutoff = cutoff
         self.matchbonus = matchbonus
+        self.builddict = builddict
+        self.bowtiebuildextension = extension
         printtime('Performing analysis with {} targets folder'.format(self.analysistype), self.start)
         self.targets()
