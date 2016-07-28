@@ -42,7 +42,6 @@ class GeneSippr(object):
             # Create reports
         else:
             # Run the desired analyses
-
             sipprmash.SipprMash(self, 'mash')
             metadataprinter.MetadataPrinter(self)
             sipprmlst.MLSTmap(self, 'rmlst')
@@ -52,10 +51,10 @@ class GeneSippr(object):
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
         """
-        :param args:
-        :param pipelinecommit:
-        :param startingtime:
-        :param scriptpath:
+        :param args: command line arguments
+        :param pipelinecommit: pipeline commit or version
+        :param startingtime: time the script was started
+        :param scriptpath: home path of the script
         """
         import multiprocessing
         # Initialise variables
@@ -106,8 +105,6 @@ if __name__ == '__main__':
                               shell=True, stdout=subprocess.PIPE).communicate()[0].rstrip()
     # Parser for arguments
     parser = ArgumentParser(description='Perform modelling of parameters for GeneSipping')
-    # parser.add_argument('-v', '--version',
-    #                     version='%(prog)s commit {}'.format(commit))
     parser.add_argument('path',
                         help='Specify input directory')
     parser.add_argument('-s', '--sequencepath',
@@ -194,4 +191,11 @@ if __name__ == '__main__':
 
     # Print a bold, green exit statement
     print '\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m'
+
     # print json.dumps(seqdict, sort_keys=True, indent=4, separators=(',', ': '))
+    """
+    -m
+    /media/miseq/MiSeqOutput
+    -f
+    160421_M02466_0152_000000000-AMLFW
+    """

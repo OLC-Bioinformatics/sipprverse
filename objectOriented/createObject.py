@@ -7,7 +7,6 @@ __author__ = 'adamkoziol'
 class ObjectCreation(object):
     def createobject(self):
         from glob import glob
-        from shutil import copyfile
         # Grab any .fastq files in the path
         fastqfiles = glob('{}*.fastq*'.format(self.path))
         # Extract the base name of the globbed name + path provided
@@ -23,13 +22,15 @@ class ObjectCreation(object):
             make_path(outputdir)
             # Get the fastq files specific to the fastqname
             specificfastq = glob('{}{}*.fastq*'.format(self.path, fastqname))
-            # Copy the files to the output folder
+            # Make relative symlinks to the files in :self.path
             try:
-                # Copy the .gz files to :self.path/:filename
-                for fastqfile in specificfastq:
-                    destinationfastq = '{}/{}'.format(outputdir, os.path.split(fastqfile)[1])
-                    if not os.path.isfile(destinationfastq):
-                        copyfile(fastqfile, destinationfastq)
+                for fastq in specificfastq:
+                    # Get the basename of the file
+                    fastqfile = os.path.split(fastq)[-1]
+                    # Set the destination fastq path as the base name plus the destination folder
+                    destinationfastq = os.path.join(outputdir, fastqfile)
+                    # Symlink the files
+                    os.symlink('../{}'.format(fastqfile), destinationfastq)
             # Except os errors
             except OSError as exception:
                 # If there is an exception other than the file exists, raise it
@@ -37,7 +38,6 @@ class ObjectCreation(object):
                     raise
             # Initialise the general and run categories
             metadata.general = GenObject()
-            metadata.run = GenObject()
             # Populate the .fastqfiles category of :self.metadata
             metadata.general.fastqfiles = [fastq for fastq in glob('{}/{}*.fastq*'.format(outputdir, fastqname))
                                            if 'trimmed' not in fastq]
@@ -45,7 +45,6 @@ class ObjectCreation(object):
             metadata.general.outputdirectory = outputdir
             metadata.general.bestassemblyfile = True
             metadata.general.trimmedcorrectedfastqfiles = metadata.general.fastqfiles
-            metadata.commands = GenObject()
             # Append the metadata to the list of samples
             self.samples.append(metadata)
 

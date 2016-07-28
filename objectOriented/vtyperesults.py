@@ -61,6 +61,7 @@ class VtypeResults(object):
                 sample[self.analysistype].detailedresultsfile = detailedresultsfile
                 sample[self.analysistype].resultsfile = resultsfile
                 sample[self.analysistype].reportdir = self.reportpath
+                sample.general.vtxset = sorted(vtxset)
                 sample.general.vtype = ','.join(sorted(vtxset))
         # Open and write the detail and regular reports
         with open(detailedresultsfile, 'wb') as writedetails:

@@ -2,9 +2,7 @@
 from glob import glob
 from subprocess import call
 from threading import Thread
-
 from Bio.Sequencing.Applications import *
-
 from SPAdesPipeline.OLCspades.accessoryFunctions import *
 from SPAdesPipeline.OLCspades.bowtie import *
 
@@ -17,6 +15,7 @@ __author__ = 'adamkoziol'
 
 class Custom(object):
     def targets(self):
+        printtime('Performing analysis with {} targets folder'.format(self.analysistype), self.start)
         # There is a relatively strict databasing scheme necessary for the custom targets. Eventually, there will
         # be a helper script to combine individual files into a properly formatted combined file
         try:
@@ -29,11 +28,11 @@ class Custom(object):
             raise
         # Create the hash file of the baitfile
         targetbase = self.baitfile.split('.')[0]
-        self.hashcall = 'cd {} && mirabait -b {} -k 19 -K {}.mhs.gz'.format(self.targetpath, self.baitfile, targetbase)
-        if not os.path.isfile(self.baitfile.split('.')[0] + '.mhs.gz'):
+        self.hashfile = targetbase + '.mhs.gz'
+        self.hashcall = 'cd {} && mirabait -b {} -k 19 -K {}'.format(self.targetpath, self.baitfile, self.hashfile)
+        if not os.path.isfile(self.hashfile):
             call(self.hashcall, shell=True, stdout=self.devnull, stderr=self.devnull)
         # Ensure that the hash file was successfully created
-        self.hashfile = targetbase + '.mhs.gz'
         assert os.path.isfile(self.hashfile), u'Hashfile could not be created for the combined target file {0!r:s}' \
             .format(self.baitfile)
         # Bait
@@ -388,5 +387,4 @@ class Custom(object):
         self.matchbonus = matchbonus
         self.builddict = builddict
         self.bowtiebuildextension = extension
-        printtime('Performing analysis with {} targets folder'.format(self.analysistype), self.start)
-        self.targets()
+        # self.targets()

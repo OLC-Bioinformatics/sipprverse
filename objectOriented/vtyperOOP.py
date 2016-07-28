@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # Import the necessary modules
 from SPAdesPipeline.OLCspades.accessoryFunctions import *
+import SPAdesPipeline.OLCspades.metadataprinter as metadataprinter
+import allelefind
+import customtargets
+import versions
 
 __author__ = 'adamkoziol'
 
@@ -10,16 +14,17 @@ class Vtyper(object):
         """
         Calls the necessary methods in the appropriate order
         """
-        import customtargets
         import vtyperesults
         import createObject
-        import SPAdesPipeline.OLCspades.metadataprinter as metadataprinter
         # Create a sample object
         self.runmetadata = createObject.ObjectCreation(self)
         # Run the baiting, mapping, sorting, and parsing method. Include a cutoff of 1.0 and a match bonus of 5
-        customtargets.Custom(self, 'vtyper', 1.0, 5)
+        custom = customtargets.Custom(self, 'vtyper', 1.0, 5)
+        custom.targets()
         # Create the report
         vtyperesults.VtypeResults(self, 'vtyper')
+        # Get the versions of the software used
+        versions.Versions(self)
         # Print the metadata to file
         metadataprinter.MetadataPrinter(self)
 
@@ -49,10 +54,18 @@ class Vtyper(object):
         self.customtargetpath = self.targetpath
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = args.threads if args.threads else multiprocessing.cpu_count()
+        # Determine if the determining the alleles is necessary
+        self.alleles = args.alleles
+        # Initialise the metadata
         self.runmetadata = MetadataObject()
         # Run the analyses
         self.vtyper()
-
+        # Optionally run the allele-finding methods
+        if self.alleles:
+            alleles = allelefind.FindAllele(self, 'vtalleles')
+            allelefind.FindAllele.allelefinder(alleles)
+            # Print the metadata to file
+            metadataprinter.MetadataPrinter(self)
 
 if __name__ == '__main__':
     # Argument parser for user-inputted values, and a nifty help menu
@@ -83,7 +96,9 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Provide detailed reports with percent identity and depth of coverage values '
                              'rather than just "+" for positive results')
-
+    parser.add_argument('-a', '--alleles',
+                        action='store_true',
+                        help='Determine which vtx allele(s) are present in each strain. Save new alleles to be curated')
     # Get the arguments into an object
     arguments = parser.parse_args()
     # Define the start time
