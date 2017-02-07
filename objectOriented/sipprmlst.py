@@ -12,8 +12,7 @@ class MLSTmap(Custom):
             setattr(sample, self.analysistype, GenObject())
             if self.analysistype.lower() == 'rmlst':
                 # Run the allele updater method
-                updatecall, allelefolder = getrmlsthelper(self.referencefilepath, self.updatermlst, self.start,
-                                                          self.analysistype)
+                updatecall, allelefolder = getrmlsthelper(self.referencefilepath, self.updatermlst, self.start)
                 self.alleles = glob('{}/*.tfa'.format(allelefolder))
                 self.profile = glob('{}/*.txt'.format(allelefolder))
                 self.supplementalprofile = '{}rMLST/OLC_rMLST_profiles.txt'.format(self.referencefilepath)
@@ -23,18 +22,19 @@ class MLSTmap(Custom):
                 sample[self.analysistype].updatecall = updatecall
                 sample[self.analysistype].targetpath = allelefolder
             else:
-                self.alleles = glob('{}MLST/{}/*.tfa'.format(self.referencefilepath,
-                                                             sample.mash.closestrefseqgenus))
-                self.profile = glob('{}MLST/{}/*.txt'.format(self.referencefilepath,
-                                                             sample.mash.closestrefseqgenus))
                 try:
-                    self.combinedalleles = glob('{}MLST/{}/*.fasta'.format(
-                        self.referencefilepath, sample.mash.closestrefseqgenus))[0]
+                    allelefolder = sorted(glob('{}MLST/{}/*/'.format(self.referencefilepath,
+                                                                     sample.mash.closestrefseqgenus)))[-1]
+                except IndexError:
+                    allelefolder = 'NA'
+                self.alleles = glob('{}*.tfa'.format(allelefolder))
+                self.profile = glob('{}*.txt'.format(allelefolder))
+                try:
+                    self.combinedalleles = glob('{}*.fasta'.format(allelefolder))[0]
                 except IndexError:
                     # Set the metadata file appropriately
                     sample.general.bestassemblyfile = 'NA'
-                sample[self.analysistype].alleledir = '{}MLST/{}/'.format(self.referencefilepath,
-                                                                          sample.mash.closestrefseqgenus)
+                sample[self.analysistype].alleledir = allelefolder
             # Add the combined alleles to the profile set
             self.profileset.add(self.combinedalleles)
             sample[self.analysistype].alleles = self.alleles
@@ -590,7 +590,7 @@ class MLSTmap(Custom):
                 # Create the profiledata variable to avoid writing self.profiledata[self.analysistype]
                 # profiledata = self.profiledata[self.analysistype]
                 profiledata = sample[self.analysistype].profiledata
-                # For each gene in plusdict[genome]
+                # For each gene name in the list of gene names
                 for gene in sample[self.analysistype].allelenames:
                     # Clear the appropriate count and lists
                     multiallele = []
@@ -605,8 +605,6 @@ class MLSTmap(Custom):
                             percentid = sample[self.analysistype].results[geneallele].items()[0][0]
                             # "N" alleles screw up the allele splitter function
                             if allele != "N":
-                                # Use the alleleSplitter function to get the allele number
-                                # allelenumber, alleleprenumber = allelesplitter(allele)
                                 # Append as appropriate - alleleNumber is treated as an integer for proper sorting
                                 multiallele.append(int(allele))
                                 multipercent.append(percentid)
@@ -620,7 +618,9 @@ class MLSTmap(Custom):
                                 multipercent.append(0)
 
                     # For whatever reason, the rMLST profile scheme treat multiple allele hits as 'N's.
-                    multiallele = multiallele if len(multiallele) == 1 else ['N']
+                    # if len(multiallele) > 1:
+                    #     print gene, sorted(multiallele)
+                    multiallele = multiallele if len(multiallele) >= 1 else ['N']
                     if multipercent:
                         multipercent = multipercent if len(multiallele) == 1 else [0, 0]
                     else:
@@ -753,7 +753,12 @@ class MLSTmap(Custom):
                         matches = self.resultprofile[sample.name][seqtype].keys()[0]
                         # If this is the first of one or more sequence types, include the sample name
                         if seqcount == 0:
-                            row += '{},{},{},{},'.format(sample.name, sample.mash.closestrefseqgenus, seqtype, matches)
+                            try:
+                                row += '{},{},{},{},'.format(sample.name, sample.mash.closestrefseqgenus, seqtype,
+                                                             matches)
+                            except KeyError:
+                                row += '{},NA,{},{},'.format(sample.name, seqtype,
+                                                             matches)
                         # Otherwise, skip the sample name
                         else:
                             row += ',,{},{},'.format(seqtype, matches)
@@ -795,6 +800,8 @@ class MLSTmap(Custom):
                     as combinedreport:
                 # Write the results to this report
                 combinedreport.write(combinedrow)
+        # Clean up unnecessary metadata attributes
+        self.metadatacleaner()
 
     def metadatacleaner(self):
         """Remove the attributes from the object; they take up too much room on the .json report"""
@@ -836,4 +843,4 @@ class MLSTmap(Custom):
         self.databasesqueue = Queue(maxsize=self.cpus)
         Custom.__init__(self, inputobject, analysistype, self.cutoff, self.matchbonus)
         self.runmetadata = inputobject.runmetadata
-        self.metadatacleaner()
+        # self.metadatacleaner()

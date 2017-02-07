@@ -34,18 +34,26 @@ class GeneSippr(object):
         import customtargets
         import sipprmash
         import sipprmlst
+        import sixteenS
         # Create a sample object and create/link fastq files as necessary
         self.objectprep()
+        if self.sixteens:
+            sixteens = sixteenS.SixteenS(self, 'sixteens')
+            sixteens.targets()
+        metadataprinter.MetadataPrinter(self)
         # Run the typing modules
         if self.customtargetpath:
-            customtargets.Custom(self, 'custom', self.cutoff)
-            # Create reports
+            custom = customtargets.Custom(self, 'custom', self.cutoff)
+            custom.targets()
         else:
+            #
+            if self.rmlst:
+                rmlst = sipprmlst.MLSTmap(self, 'rmlst')
+                rmlst.targets()
             # Run the desired analyses
             sipprmash.SipprMash(self, 'mash')
-            metadataprinter.MetadataPrinter(self)
-            sipprmlst.MLSTmap(self, 'rmlst')
-            sipprmlst.MLSTmap(self, 'mlst')
+            mlst = sipprmlst.MLSTmap(self, 'mlst')
+            mlst.targets()
 
         metadataprinter.MetadataPrinter(self)
 
@@ -66,11 +74,11 @@ class GeneSippr(object):
         self.path = os.path.join(args.path, '')
         assert os.path.isdir(self.path), u'Output location is not a valid directory {0!r:s}'.format(self.path)
         self.sequencepath = os.path.join(args.sequencepath, '')
-        assert os.path.isdir(self.sequencepath), u'Output location is not a valid directory {0!r:s}' \
+        assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
         self.targetpath = os.path.join(args.targetpath, '')
         self.reportpath = os.path.join(self.path, 'reports')
-        assert os.path.isdir(self.targetpath), u'Output location is not a valid directory {0!r:s}' \
+        assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
         if args.customtargetpath:
             self.customtargetpath = os.path.join(args.customtargetpath, '')
@@ -87,8 +95,11 @@ class GeneSippr(object):
         # Set the custom cutoff value
         self.cutoff = args.customcutoffs
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
-        self.cpus = int(args.threads if args.threads else multiprocessing.cpu_count())
-        self.runmetadata = ""
+        self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
+        self.runmetadata = MetadataObject()
+        #
+        self.sixteens = args.sixteenStyping
+        self.rmlst = args.rmlst
         # Run the analyses
         self.runner()
 
@@ -113,7 +124,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--targetpath',
                         required=True,
                         help='Path of target files to process.')
-    parser.add_argument('-T', '--threads',
+    parser.add_argument('-n', '--numthreads',
                         help='Number of threads. Default is the number of cores in the system')
     parser.add_argument('-b', '--bcl2fastq',
                         action='store_true',
@@ -142,7 +153,7 @@ if __name__ == '__main__':
                              'in the provided sample sheet will be used. Please note that bcl2fastq creates '
                              'subfolders using the project name, so if multiple names are provided, the results '
                              'will be split as into multiple projects')
-    parser.add_argument('-16S', '--16Styping',
+    parser.add_argument('-16S', '--sixteenStyping',
                         action='store_true',
                         help='Perform 16S typing. Note that for analyses such as MLST, pathotyping, '
                              'serotyping, and virulence typing that require the genus of a strain to proceed, '

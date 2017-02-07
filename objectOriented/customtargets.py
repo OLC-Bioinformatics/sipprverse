@@ -37,6 +37,8 @@ class Custom(object):
             .format(self.baitfile)
         # Bait
         self.baiting()
+        # Report
+        self.reporter()
 
     def baiting(self):
         # Perform baiting
@@ -360,6 +362,25 @@ class Custom(object):
             sample[self.analysistype].sequences = seqresults
             self.parsequeue.task_done()
 
+    def reporter(self):
+        """
+        Creates a report of the results
+        """
+        header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
+        data = ''
+        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
+            for sample in self.metadata:
+                data += sample.name + ','
+                multiple = False
+                for name, identity in sample[self.analysistype].results.items():
+                    if not multiple:
+                        data += '{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
+                    else:
+                        data += ',{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
+                    multiple = True
+            report.write(header)
+            report.write(data)
+
     # noinspection PyDefaultArgument
     def __init__(self, inputobject, analysistype, cutoff=0.98, matchbonus=2, builddict=dict(), extension='.bt2'):
         from Queue import Queue
@@ -367,6 +388,8 @@ class Custom(object):
         self.path = inputobject.path
         self.sequencepath = inputobject.sequencepath
         self.targetpath = inputobject.customtargetpath if inputobject.customtargetpath else inputobject.targetpath
+        self.reportpath = os.path.join(self.path, 'reports')
+        make_path(self.reportpath)
         self.metadata = inputobject.runmetadata.samples
         self.start = inputobject.starttime
         self.analysistype = analysistype

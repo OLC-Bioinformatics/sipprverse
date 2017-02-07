@@ -350,12 +350,14 @@ def baitr((baitfile, sequences, baittype)):
             # Define the baiting command - if a hash of the target has previously been computed and placed in the
             # bait folder, then proceed appropriately
             if ".gz" in baitfile:
-                baitcommand = "cd %s && mirabait -L %s -N %s -p %s %s" \
+                baitcommand = "cd %s && mirabait -B %s -N %s -p %s %s" \
                               % (baitpath, baitfile, baittype, forwardfastqpath, reversefastqpath)
+                print baitcommand
                 # Define /dev/null
                 fnull = open(os.devnull, 'wb')
                 # Run the command
                 subprocess.call(baitcommand, shell=True, stdout=fnull, stderr=fnull)
+                # subprocess.call(baitcommand, shell=True)
             else:
                 baitcommand = "cd %s && mirabait -b %s -N %s -p %s %s" \
                               % (baitpath, baitfile, baittype, forwardfastqpath, reversefastqpath)

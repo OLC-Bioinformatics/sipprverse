@@ -45,6 +45,8 @@ class ObjectCreation(object):
             metadata.general.outputdirectory = outputdir
             metadata.general.bestassemblyfile = True
             metadata.general.trimmedcorrectedfastqfiles = metadata.general.fastqfiles
+            # Initialise an attribute to store commands
+            metadata.commands = GenObject()
             # Append the metadata to the list of samples
             self.samples.append(metadata)
 
