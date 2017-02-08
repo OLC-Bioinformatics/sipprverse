@@ -16,11 +16,11 @@ class GeneSippr(object):
         """
         printtime('Starting genesippr analysis pipeline', self.starttime)
         # Create the objects to be used in the analyses
-        self.runmetadata = Objectprep(self)
+        objects = Objectprep(self)
+        #
+        objects.objectprep()
+        self.runmetadata = objects.samples
         # Run the analyses
-        # for sample in self.runmetadata:
-        #     print sample.name
-        quit()
         genesippr = customtargets.Custom(self, 'genesippr', self.cutoff)
         genesippr.targets()
 

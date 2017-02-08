@@ -124,7 +124,7 @@ class Custom(object):
                     # SAM header for that read is set to 'secondary alignment', or 256. Please see:
                     # http://davetang.org/muse/2014/03/06/understanding-bam-flags/ The script below reads in the stdin
                     # and subtracts 256 from headers which include 256
-                    'python {}/editsamheaders.py'.format(self.homepath),
+                    'python {}/sipprcommon/editsamheaders.py'.format(self.homepath),
                     # # Use samtools wrapper to set up the samtools view
                     SamtoolsViewCommandline(b=True,
                                             S=True,
