@@ -2,9 +2,6 @@
 	path = objectOriented/SPAdesPipeline
 	url = https://github.com/adamkoziol/SPAdesPipeline.git
 	branch = dev
-[submodule "sipprverse/sipprcommon/accessoryfunctions"]
-	path = sipprverse/sipprcommon/accessoryfunctions
-	url = https://github.com/adamkoziol/accessoryfunctions.git
 [submodule "sipprverse/genesippr/sipprcommon"]
 	path = sipprverse/genesippr/sipprcommon
 	url = https://github.com/adamkoziol/sipprcommon.git
