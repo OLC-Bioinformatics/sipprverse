@@ -22,7 +22,7 @@ class GeneSippr(object):
         self.runmetadata = objects.samples
         # Run the analyses
         genesippr = customtargets.Custom(self, 'genesippr', self.cutoff)
-        genesippr.targets()
+        genesippr.reporter()
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
         """
