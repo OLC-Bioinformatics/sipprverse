@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import subprocess
 import time
-import customtargets
+from sipprcommon.sippingmethods import *
 from sipprcommon.objectprep import Objectprep
 from sipprcommon.accessoryfunctions.accessoryFunctions import *
 
@@ -21,8 +21,30 @@ class GeneSippr(object):
         objects.objectprep()
         self.runmetadata = objects.samples
         # Run the analyses
-        genesippr = customtargets.Custom(self, 'genesippr', self.cutoff)
-        genesippr.reporter()
+        Sippr(self)
+        # Create the reports
+        self.reporter()
+
+    def reporter(self):
+        """
+        Creates a report of the results
+        """
+        # Create the path in which the reports are stored
+        make_path(self.reportpath)
+        header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
+        data = ''
+        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
+            for sample in self.runmetadata.samples:
+                data += sample.name + ','
+                multiple = False
+                for name, identity in sample[self.analysistype].results.items():
+                    if not multiple:
+                        data += '{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
+                    else:
+                        data += ',{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
+                    multiple = True
+            report.write(header)
+            report.write(data)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
         """
@@ -57,6 +79,7 @@ class GeneSippr(object):
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
         self.runmetadata = MetadataObject()
+        self.analysistype = 'genesippr'
         # Run the analyses
         self.runner()
 
