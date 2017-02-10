@@ -17,7 +17,6 @@ class GeneSippr(object):
         printtime('Starting genesippr analysis pipeline', self.starttime)
         # Create the objects to be used in the analyses
         objects = Objectprep(self)
-        #
         objects.objectprep()
         self.runmetadata = objects.samples
         # Run the analyses
@@ -36,13 +35,16 @@ class GeneSippr(object):
         with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
             for sample in self.runmetadata.samples:
                 data += sample.name + ','
-                multiple = False
-                for name, identity in sample[self.analysistype].results.items():
-                    if not multiple:
-                        data += '{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
-                    else:
-                        data += ',{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
-                    multiple = True
+                if sample[self.analysistype].results:
+                    multiple = False
+                    for name, identity in sample[self.analysistype].results.items():
+                        if not multiple:
+                            data += '{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
+                        else:
+                            data += ',{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
+                        multiple = True
+                else:
+                    data += '\n'
             report.write(header)
             report.write(data)
 
@@ -69,6 +71,8 @@ class GeneSippr(object):
         assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
         self.bcltofastq = args.bcl2fastq
+        self.miseqpath = args.miseqpath
+        self.miseqfolder = args.miseqfolder
         self.fastqdestination = args.destinationfastq
         self.forwardlength = args.readlengthforward
         self.reverselength = args.readlengthreverse
