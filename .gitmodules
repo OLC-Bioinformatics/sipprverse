@@ -8,3 +8,9 @@
 [submodule "sipprverse/MASHsippr/sipprcommon"]
 	path = sipprverse/MASHsippr/sipprcommon
 	url = https://github.com/adamkoziol/sipprcommon.git
+[submodule "sipprverse/MLSTsippr/sipprcommon"]
+	path = sipprverse/MLSTsippr/sipprcommon
+	url = https://github.com/adamkoziol/sipprcommon.git
+[submodule "sipprverse/sipprcommon"]
+	path = sipprverse/sipprcommon
+	url = https://github.com/adamkoziol/sipprcommon.git
