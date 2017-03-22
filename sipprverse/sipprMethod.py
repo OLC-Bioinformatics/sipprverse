@@ -4,11 +4,15 @@ import time
 from sipprcommon.sippingmethods import *
 from sipprcommon.objectprep import Objectprep
 from sipprcommon.accessoryfunctions.accessoryFunctions import *
-
+from sipprcommon import metadataprinter
+from sipprcommon import database
+from MASHsippr import mashsippr
 __author__ = 'adamkoziol'
 
+__doc__ = ''
 
-class GeneSippr(object):
+
+class Method(object):
 
     def runner(self):
         """
@@ -20,33 +24,91 @@ class GeneSippr(object):
         objects.objectprep()
         self.runmetadata = objects.samples
         # Run the analyses
+        self.analysistype = 'mash'
+        mashsippr.PipelineInit(self)
+        self.analysistype = 'genesippr'
+        printtime('Starting {} analyses'.format(self.analysistype), self.starttime)
         Sippr(self)
-        # Create the reports
-        self.reporter()
+        # Create the genesippr reports
+        # self.reporter()
+        #
+        self.analysistype = 'GDCS'
+        Sippr(self)
+        printtime('Creating databases', self.starttime)
+        # Create a database from the metadata object
+        database.Database(self)
+        # Create GDCS reports
+        # self.gdcsreporter()
+        # Print the metadata to file
 
-    def reporter(self):
-        """
-        Creates a report of the results
-        """
-        # Create the path in which the reports are stored
-        make_path(self.reportpath)
-        header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
-        data = ''
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
-            for sample in self.runmetadata.samples:
-                data += sample.name + ','
-                if sample[self.analysistype].results:
-                    multiple = False
-                    for name, identity in sample[self.analysistype].results.items():
-                        if not multiple:
-                            data += '{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
-                        else:
-                            data += ',{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
-                        multiple = True
-                else:
-                    data += '\n'
-            report.write(header)
-            report.write(data)
+        metadataprinter.MetadataPrinter(self)
+
+    # def reporter(self):
+    #     """
+    #     Creates a report of the results
+    #     """
+    #     # Create the path in which the reports are stored
+    #     printtime('Creating {} reports'.format(self.analysistype), self.starttime)
+    #     make_path(self.reportpath)
+    #     header = 'Strain,Genus,Gene,PercentIdentity,FoldCoverage\n'
+    #     data = ''
+    #     with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
+    #         for sample in self.runmetadata.samples:
+    #             if sample.general.bestassemblyfile != 'NA':
+    #                 data += sample.name + ','
+    #                 if sample[self.analysistype].results:
+    #                     multiple = False
+    #                     for name, identity in sample[self.analysistype].results.items():
+    #                         if not multiple:
+    #                             data += '{},{},{},{}\n'.format(sample.mash.closestrefseqgenus, name,
+    #                                                            identity.items()[0][0], identity.items()[0][1])
+    #                         else:
+    #                             data += ',,{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
+    #                         multiple = True
+    #                 else:
+    #                     data += '\n'
+    #             else:
+    #                 data += '{}\n'.format(sample.name)
+    #         report.write(header)
+    #         report.write(data)
+    #
+    # def gdcsreporter(self):
+    #     """
+    #     Creates a report of the results
+    #     """
+    #     from Bio import SeqIO
+    #     # Create the path in which the reports are stored
+    #     for sample in self.runmetadata.samples:
+    #         if sample.general.bestassemblyfile != 'NA':
+    #             # Initialise a set to store all the gene names
+    #             sample[self.analysistype].geneset = set()
+    #             # Populate the set for each sample
+    #             for record in SeqIO.parse(sample[self.analysistype].baitfile, 'fasta'):
+    #                 sample[self.analysistype].geneset.add(record.id.split('_')[0])
+    #     printtime('Creating {} reports'.format(self.analysistype), self.starttime)
+    #     make_path(self.reportpath)
+    #     header = 'Strain,Genus,Gene,PercentIdentity,FoldCoverage\n'
+    #     data = ''
+    #     with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
+    #         for sample in self.runmetadata.samples:
+    #             if sample.general.bestassemblyfile != 'NA':
+    #                 data += sample.name + ','
+    #                 if sample[self.analysistype].results:
+    #                     multiple = False
+    #                     for name, identity in sorted(sample[self.analysistype].results.items()):
+    #                         if not multiple:
+    #                             data += '{},{},{},{}\n'.format(sample.mash.closestrefseqgenus, name, identity.items()[0][0], identity.items()[0][1])
+    #                         else:
+    #                             data += ',,{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
+    #                         multiple = True
+    #                 else:
+    #                     data += '\n'
+    #                 # Clear out the non-JSON serializable set
+    #                 delattr(sample[self.analysistype], 'geneset')
+    #             else:
+    #                 data += '{}\n'.format(sample.name)
+    #         report.write(header)
+    #         report.write(data)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
         """
@@ -83,8 +145,8 @@ class GeneSippr(object):
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
         self.runmetadata = MetadataObject()
-        self.analysistype = 'genesippr'
-        self.pipeline = False
+        self.pipeline = True
+        self.analysistype = str()
         # Run the analyses
         self.runner()
 
@@ -151,7 +213,21 @@ if __name__ == '__main__':
     start = time.time()
 
     # Run the script
-    GeneSippr(arguments, commit, start, homepath)
+    Method(arguments, commit, start, homepath)
 
     # Print a bold, green exit statement
     print '\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m'
+
+"""
+-b
+-m
+/nas0/bio_requests/8312/miseq
+-f
+170131_M02466_0018_000000000-B296Y
+-r1
+50
+-r2
+50
+-c
+/nas0/bio_requests/8312/validation/SampleSheet.csv
+"""

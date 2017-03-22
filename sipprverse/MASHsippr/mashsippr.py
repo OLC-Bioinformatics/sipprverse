@@ -15,12 +15,13 @@ class MashSippr(object):
         Run the necessary methods in the correct order
         """
         printtime('Starting mashsippr analysis pipeline', self.starttime)
-        # Create the objects to be used in the analyses
-        objects = Objectprep(self)
-        objects.objectprep()
-        self.runmetadata = objects.samples
+        if not self.pipeline:
+            # Create the objects to be used in the analyses
+            objects = Objectprep(self)
+            objects.objectprep()
+            self.runmetadata = objects.samples
         # Run the analyses
-        Mash(self, 'mash')
+        Mash(self, self.analysistype)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
         """
@@ -35,29 +36,42 @@ class MashSippr(object):
         self.starttime = startingtime
         self.homepath = scriptpath
         # Define variables based on supplied arguments
-        self.path = os.path.join(args.path, '')
+        if args.path.endswith('/'):
+            self.path = args.path
+        else:
+            self.path = os.path.join(args.path, '')
         assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
-        self.sequencepath = os.path.join(args.sequencepath, '')
+        if args.sequencepath.endswith('/'):
+            self.sequencepath = args.sequencepath
+        else:
+            self.sequencepath = os.path.join(args.sequencepath, '')
         assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
-        self.targetpath = os.path.join(args.targetpath, '')
+        if args.targetpath.endswith('/'):
+            self.targetpath = args.targetpath
+        else:
+            self.targetpath = os.path.join(args.targetpath, '')
         self.reportpath = os.path.join(self.path, 'reports')
         assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
         # ref file path is used to work with sub module code with a different naming scheme
         self.reffilepath = self.targetpath
-        self.bcltofastq = args.bcl2fastq
+        self.bcltofastq = args.bcltofastq
         self.miseqpath = args.miseqpath
         self.miseqfolder = args.miseqfolder
-        self.fastqdestination = args.destinationfastq
-        self.forwardlength = args.readlengthforward
-        self.reverselength = args.readlengthreverse
+        self.fastqdestination = args.fastqdestination
+        self.forwardlength = args.forwardlength
+        self.reverselength = args.reverselength
         self.numreads = 2 if self.reverselength != 0 else 1
         self.customsamplesheet = args.customsamplesheet
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
-        self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
-        self.runmetadata = MetadataObject()
-        self.analysistype = 'genesippr'
+        self.cpus = int(args.cpus if args.cpus else multiprocessing.cpu_count())
+        self.pipeline = args.pipeline
+        if self.pipeline:
+            self.runmetadata = args.runmetadata
+        else:
+            self.runmetadata = MetadataObject()
+        self.analysistype = 'mash'
         # Run the analyses
         self.runner()
 
@@ -81,9 +95,9 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--targetpath',
                         required=True,
                         help='Path of target files to process.')
-    parser.add_argument('-n', '--numthreads',
+    parser.add_argument('-n', '--cpus',
                         help='Number of threads. Default is the number of cores in the system')
-    parser.add_argument('-b', '--bcl2fastq',
+    parser.add_argument('-b', '--bcltofastq',
                         action='store_true',
                         help='Optionally run bcl2fastq on an in-progress Illumina MiSeq run. Must include:'
                              'miseqpath, and miseqfolder arguments, and optionally readlengthforward, '
@@ -92,14 +106,14 @@ if __name__ == '__main__':
                         help='Path of the folder containing MiSeq run data folder')
     parser.add_argument('-f', '--miseqfolder',
                         help='Name of the folder containing MiSeq run data')
-    parser.add_argument('-d', '--destinationfastq',
+    parser.add_argument('-d', '--fastqdestination',
                         help='Optional folder path to store .fastq files created using the fastqCreation module. '
                              'Defaults to path/miseqfolder')
-    parser.add_argument('-r1', '--readlengthforward',
+    parser.add_argument('-r1', '--forwardlength',
                         default='full',
                         help='Length of forward reads to use. Can specify "full" to take the full length of '
                              'forward reads specified on the SampleSheet')
-    parser.add_argument('-r2', '--readlengthreverse',
+    parser.add_argument('-r2', '--reverselength',
                         default='full',
                         help='Length of reverse reads to use. Can specify "full" to take the full length of '
                              'reverse reads specified on the SampleSheet')
@@ -112,7 +126,7 @@ if __name__ == '__main__':
                              'will be split as into multiple projects')
     # Get the arguments into an object
     arguments = parser.parse_args()
-
+    arguments.pipeline = False
     # Define the start time
     start = time.time()
 
@@ -121,3 +135,10 @@ if __name__ == '__main__':
 
     # Print a bold, green exit statement
     print '\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m'
+
+
+class PipelineInit(object):
+
+    def __init__(self, inputobject):
+        inputobject.pipeline = True
+        MashSippr(inputobject, inputobject.commit, inputobject.starttime, inputobject.homepath)
