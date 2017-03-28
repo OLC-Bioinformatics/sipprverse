@@ -30,85 +30,112 @@ class Method(object):
         printtime('Starting {} analyses'.format(self.analysistype), self.starttime)
         Sippr(self)
         # Create the genesippr reports
-        # self.reporter()
+        self.reporter()
         #
         self.analysistype = 'GDCS'
-        Sippr(self)
+        Sippr(self, 0.85)
         printtime('Creating databases', self.starttime)
         # Create a database from the metadata object
         database.Database(self)
         # Create GDCS reports
-        # self.gdcsreporter()
+        self.gdcsreporter()
         # Print the metadata to file
 
         metadataprinter.MetadataPrinter(self)
 
-    # def reporter(self):
-    #     """
-    #     Creates a report of the results
-    #     """
-    #     # Create the path in which the reports are stored
-    #     printtime('Creating {} reports'.format(self.analysistype), self.starttime)
-    #     make_path(self.reportpath)
-    #     header = 'Strain,Genus,Gene,PercentIdentity,FoldCoverage\n'
-    #     data = ''
-    #     with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
-    #         for sample in self.runmetadata.samples:
-    #             if sample.general.bestassemblyfile != 'NA':
-    #                 data += sample.name + ','
-    #                 if sample[self.analysistype].results:
-    #                     multiple = False
-    #                     for name, identity in sample[self.analysistype].results.items():
-    #                         if not multiple:
-    #                             data += '{},{},{},{}\n'.format(sample.mash.closestrefseqgenus, name,
-    #                                                            identity.items()[0][0], identity.items()[0][1])
-    #                         else:
-    #                             data += ',,{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
-    #                         multiple = True
-    #                 else:
-    #                     data += '\n'
-    #             else:
-    #                 data += '{}\n'.format(sample.name)
-    #         report.write(header)
-    #         report.write(data)
-    #
-    # def gdcsreporter(self):
-    #     """
-    #     Creates a report of the results
-    #     """
-    #     from Bio import SeqIO
-    #     # Create the path in which the reports are stored
-    #     for sample in self.runmetadata.samples:
-    #         if sample.general.bestassemblyfile != 'NA':
-    #             # Initialise a set to store all the gene names
-    #             sample[self.analysistype].geneset = set()
-    #             # Populate the set for each sample
-    #             for record in SeqIO.parse(sample[self.analysistype].baitfile, 'fasta'):
-    #                 sample[self.analysistype].geneset.add(record.id.split('_')[0])
-    #     printtime('Creating {} reports'.format(self.analysistype), self.starttime)
-    #     make_path(self.reportpath)
-    #     header = 'Strain,Genus,Gene,PercentIdentity,FoldCoverage\n'
-    #     data = ''
-    #     with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
-    #         for sample in self.runmetadata.samples:
-    #             if sample.general.bestassemblyfile != 'NA':
-    #                 data += sample.name + ','
-    #                 if sample[self.analysistype].results:
-    #                     multiple = False
-    #                     for name, identity in sorted(sample[self.analysistype].results.items()):
-    #                         if not multiple:
-    #                             data += '{},{},{},{}\n'.format(sample.mash.closestrefseqgenus, name, identity.items()[0][0], identity.items()[0][1])
-    #                         else:
-    #                             data += ',,{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
-    #                         multiple = True
-    #                 else:
-    #                     data += '\n'
-    #                 # Clear out the non-JSON serializable set
-    #                 delattr(sample[self.analysistype], 'geneset')
-    #             else:
-    #                 data += '{}\n'.format(sample.name)
-    #         report.write(header)
-    #         report.write(data)
+    def reporter(self):
+        """
+        Creates a report of the results
+        """
+        # Create the path in which the reports are stored
+        printtime('Creating {} reports'.format(self.analysistype), self.starttime)
+        make_path(self.reportpath)
+        header = 'Strain,Genus,Gene,PercentIdentity,FoldCoverage\n'
+        data = ''
+        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
+            for sample in self.runmetadata.samples:
+                if sample.general.bestassemblyfile != 'NA':
+                    data += sample.name + ','
+                    if sample[self.analysistype].results:
+                        multiple = False
+                        for name, identity in sample[self.analysistype].results.items():
+                            print sample.name, name, identity, sample[self.analysistype].avgdepth[name]
+                            if not multiple:
+                                data += '{},{},{},{}\n'.format(sample.mash.closestrefseqgenus, name,
+                                                               identity, sample[self.analysistype].avgdepth[name])
+                            else:
+                                data += ',,{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
+                            multiple = True
+                    else:
+                        data += '\n'
+                else:
+                    data += '{}\n'.format(sample.name)
+            report.write(header)
+            report.write(data)
+
+    def gdcsreporter(self):
+        """
+        Creates a report of the results
+        """
+        from Bio import SeqIO
+        missing = dict()
+        # Create the path in which the reports are stored
+        for sample in self.runmetadata.samples:
+            if sample.general.bestassemblyfile != 'NA':
+                # Make a sorted list of all the gene names (keys) in the dictionary of gene name: gene length extracted
+                # from the .fai files
+                genes = [k for k, v in sorted(sample[self.analysistype].faidict.items())]
+                if sample[self.analysistype].results:
+                    # Iterate through the list of keys to determine if any of the genes are not present in the analysis
+                    for gene in genes:
+                        try:
+                            type(sample[self.analysistype].results[gene])
+                        except KeyError:
+                            # print sample.name, 'Missing ' + gene
+                            # raise
+                            try:
+                                missing[sample.name].append(gene)
+                            except KeyError:
+                                missing[sample.name] = list()
+                                missing[sample.name].append(gene)
+        for genome, miss in sorted(missing.items()):
+            for sample in self.runmetadata.samples:
+                if sample.name == genome:
+                    print genome, sample.mash.closestrefseqgenus, sorted(miss)
+            # print keys
+        #""""""""""""""""""""""""
+        for sample in self.runmetadata.samples:
+            if sample.general.bestassemblyfile != 'NA':
+                # Initialise a set to store all the gene names
+                sample[self.analysistype].geneset = set()
+                # Populate the set for each sample
+                for record in SeqIO.parse(sample[self.analysistype].baitfile, 'fasta'):
+                    sample[self.analysistype].geneset.add(record.id.split('_')[0])
+        printtime('Creating {} reports'.format(self.analysistype), self.starttime)
+        make_path(self.reportpath)
+        header = 'Strain,Genus,Gene,PercentIdentity,FoldCoverage\n'
+        data = ''
+        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
+            for sample in self.runmetadata.samples:
+                if sample.general.bestassemblyfile != 'NA':
+                    data += sample.name + ','
+                    if sample[self.analysistype].results:
+                        multiple = False
+                        for name, identity in sorted(sample[self.analysistype].results.items()):
+                            if not multiple:
+                                data += '{},{},{},{}\n'.format(sample.mash.closestrefseqgenus, name,
+                                  identity, sample[self.analysistype].avgdepth[name])
+                            else:
+                                data += ',,{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
+                            multiple = True
+                    else:
+                        data += '\n'
+                    # Clear out the non-JSON serializable set
+                    delattr(sample[self.analysistype], 'geneset')
+                else:
+                    data += '{}\n'.format(sample.name)
+            report.write(header)
+            report.write(data)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
         """
@@ -144,9 +171,11 @@ class Method(object):
         self.cutoff = args.customcutoffs
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
+        self.copy = args.copy
         self.runmetadata = MetadataObject()
         self.pipeline = True
         self.analysistype = str()
+        self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
         # Run the analyses
         self.runner()
 
@@ -206,6 +235,9 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--customcutoffs',
                         default=0.8,
                         help='Custom cutoff values')
+    parser.add_argument('-C', '--copy',
+                        help='Normally, the program will create symbolic links of the files into the sequence path, '
+                             'however, the are occasions when it is necessary to copy the files instead')
     # Get the arguments into an object
     arguments = parser.parse_args()
 

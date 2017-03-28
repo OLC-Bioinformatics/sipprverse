@@ -14,13 +14,13 @@ class GeneSippr(object):
         """
         Run the necessary methods in the correct order
         """
-        printtime('Starting genesippr analysis pipeline', self.starttime)
+        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
         # Create the objects to be used in the analyses
         objects = Objectprep(self)
         objects.objectprep()
         self.runmetadata = objects.samples
         # Run the analyses
-        Sippr(self)
+        Sippr(self, self.cutoff)
         # Create the reports
         self.reporter()
 
@@ -39,9 +39,9 @@ class GeneSippr(object):
                     multiple = False
                     for name, identity in sample[self.analysistype].results.items():
                         if not multiple:
-                            data += '{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
+                            data += '{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
                         else:
-                            data += ',{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
+                            data += ',{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
                         multiple = True
                 else:
                     data += '\n'

@@ -100,6 +100,7 @@ class Mash(object):
                 #      refseq-NZ-1639-PRJNA224116-SAMN03349770-GCF_000951975.1-p3KSM-Listeria_monocytogenes.fna
                 sample[self.analysistype].closestrefseq = re.findall(r'.+-(.+)\.fna', referenceid)[0]
                 sample[self.analysistype].closestrefseqgenus = sample[self.analysistype].closestrefseq.split('_')[0]
+                sample[self.analysistype].closestrefseqspecies = sample[self.analysistype].closestrefseq.split('_')[1]
             else:
                 # Populate the attribute with negative results
                 sample[self.analysistype].closestrefseqgenus = 'NA'
