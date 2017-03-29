@@ -1,7 +1,5 @@
-<<<<<<< HEAD
 [submodule "sipprverse/gdcs/sipprcommon"]
 	path = sipprverse/gdcs/sipprcommon
-=======
 [submodule "objectOriented/SPAdesPipeline"]
 	path = objectOriented/SPAdesPipeline
 	url = https://github.com/adamkoziol/SPAdesPipeline.git
@@ -20,5 +18,4 @@
 	url = https://github.com/adamkoziol/sipprcommon.git
 [submodule "sipprverse/serosippr/sipprcommon"]
 	path = sipprverse/serosippr/sipprcommon
->>>>>>> sipprverse
 	url = https://github.com/adamkoziol/sipprcommon.git

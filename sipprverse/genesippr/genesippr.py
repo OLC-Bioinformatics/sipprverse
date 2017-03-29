@@ -4,10 +4,7 @@ import time
 from sipprcommon.sippingmethods import *
 from sipprcommon.objectprep import Objectprep
 from sipprcommon.accessoryfunctions.accessoryFunctions import *
-<<<<<<< HEAD
 from sipprcommon.accessoryfunctions.metadataprinter import *
-=======
->>>>>>> sipprverse
 
 __author__ = 'adamkoziol'
 
@@ -27,12 +24,9 @@ class GeneSippr(object):
         Sippr(self, self.cutoff)
         # Create the reports
         self.reporter()
-<<<<<<< HEAD
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
-=======
->>>>>>> sipprverse
 
     def reporter(self):
         """
@@ -93,10 +87,7 @@ class GeneSippr(object):
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
         self.runmetadata = MetadataObject()
-<<<<<<< HEAD
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
-=======
->>>>>>> sipprverse
         self.analysistype = 'genesippr'
         self.pipeline = False
         # Run the analyses
