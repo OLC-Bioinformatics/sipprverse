@@ -4,10 +4,6 @@ import time
 from sipprcommon.sippingmethods import *
 from sipprcommon.objectprep import Objectprep
 from sipprcommon.accessoryfunctions.accessoryFunctions import *
-<<<<<<< HEAD
-from sipprcommon.accessoryfunctions.metadataprinter import *
-=======
->>>>>>> sipprverse
 
 __author__ = 'adamkoziol'
 
@@ -18,21 +14,15 @@ class GeneSippr(object):
         """
         Run the necessary methods in the correct order
         """
-        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
+        printtime('Starting genesippr analysis pipeline', self.starttime)
         # Create the objects to be used in the analyses
         objects = Objectprep(self)
         objects.objectprep()
         self.runmetadata = objects.samples
         # Run the analyses
-        Sippr(self, self.cutoff)
+        Sippr(self)
         # Create the reports
         self.reporter()
-<<<<<<< HEAD
-        # Print the metadata
-        printer = MetadataPrinter(self)
-        printer.printmetadata()
-=======
->>>>>>> sipprverse
 
     def reporter(self):
         """
@@ -49,9 +39,9 @@ class GeneSippr(object):
                     multiple = False
                     for name, identity in sample[self.analysistype].results.items():
                         if not multiple:
-                            data += '{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
+                            data += '{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
                         else:
-                            data += ',{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
+                            data += ',{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
                         multiple = True
                 else:
                     data += '\n'
@@ -93,12 +83,7 @@ class GeneSippr(object):
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
         self.runmetadata = MetadataObject()
-<<<<<<< HEAD
-        self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
-=======
->>>>>>> sipprverse
         self.analysistype = 'genesippr'
-        self.pipeline = False
         # Run the analyses
         self.runner()
 
@@ -156,7 +141,7 @@ if __name__ == '__main__':
                         help='Provide detailed reports with percent identity and depth of coverage values '
                              'rather than just "+" for positive results')
     parser.add_argument('-u', '--customcutoffs',
-                        default=0.8,
+                        default=1.0,
                         help='Custom cutoff values')
     # Get the arguments into an object
     arguments = parser.parse_args()

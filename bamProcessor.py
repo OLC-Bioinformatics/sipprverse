@@ -85,7 +85,8 @@ def sorting((target, fastqdir)):
             # If sorting has not already occurred
             if not os.path.isfile("%s.bam" % sortedname):
                 # Define the samtools sort call
-                bamsort = "samtools sort %s %s" % (bamfile, sortedname)
+                # bamsort = "samtools sort %s %s" % (bamfile, sortedname)
+                bamsort = "samtools sort %s -@ 24 -o %s.bam" % (bamfile, sortedname)
                 # Set /dev/null
                 fnull = open(os.devnull, 'wb')
                 # Run the call

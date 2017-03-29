@@ -213,6 +213,8 @@ def bamparseprocesses(seqdict, analysistype):
             identitycutoff = 70
         elif analysistype == "MLST" or analysistype == "rMLST":
             identitycutoff = 95
+        elif analysistype == 'virulencetype':
+            identitycutoff = 98
         else:
             identitycutoff = 90
         #  Store the identityCutoff in seqDict
@@ -230,9 +232,13 @@ def bamparseprocesses(seqdict, analysistype):
                 # Set the input/output dir
                 outdir = "%s/%s" % (fastqdir, targetname)
                 # Make a list of the sorted bam files
-                bamfile = glob("%s/*_sorted.bam" % outdir)[0]
-                # Append a tuple of the required arguments to the argument list
-                bamparseprocessesargs.append((strain, target, bamfile))
+                try:
+                    bamfile = glob("%s/*_sorted.bam" % outdir)[0]
+                    # Append a tuple of the required arguments to the argument list
+                    bamparseprocessesargs.append((strain, target, bamfile))
+                except IndexError:
+                    print outdir
+
         # If the JSON file exists, read the results from it rather than performing the parsing again
         else:
             # Open the JSON file
@@ -340,12 +346,20 @@ def targetlength(seqdict, analysistype):
     :param seqdict: dictionary containing names and paths of files and folders
     :param analysistype: string of the analysis type (e.g. 16S)
     """
+    import subprocess
     # Iterate through all the strains
     for strain in seqdict:
         # Iterate through the targets for each strain in seqDict
         for target in seqdict[strain]["targets"][analysistype]:
             # The fai file is the target will be the target name, with .fai appended on the end
             faifile = target + ".fai"
+            # If the faidx file does not exist, create it
+            if not os.path.isfile(faifile):
+                faidxcommand = "samtools faidx %s" % target
+                # Define /dev/null
+                fnull = open(os.devnull, 'wb')
+                # Run the command
+                subprocess.call(faidxcommand, shell=True, stdout=fnull, stderr=fnull)
             # Open the .fai file
             with open(faifile, "rb") as faiInfo:
                 # The .fai file is essentially a tab-delimited list of alleles and the length of the allele

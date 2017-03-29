@@ -1,15 +1,23 @@
 #!/usr/bin/env python
 from subprocess import call
 from threading import Thread
+<<<<<<< HEAD
 
 from sipprcommon.accessoryfunctions.accessoryFunctions import *
+=======
+from accessoryfunctions.accessoryFunctions import *
+>>>>>>> sipprverse
 
 __author__ = 'adamkoziol'
 
 
 class Mash(object):
     def sketching(self):
+<<<<<<< HEAD
         printtime('Indexing files for {} analysis'.format(self.analysistype), self.starttime)
+=======
+        printtime('Indexing assemblies for mash analysis', self.starttime)
+>>>>>>> sipprverse
         # Create the threads for the analysis
         for sample in self.metadata:
             if sample.general.bestassemblyfile != 'NA':
@@ -23,7 +31,13 @@ class Mash(object):
             if sample.general.bestassemblyfile != 'NA':
                 # Set attributes
                 sample[self.analysistype].reportdir = os.path.join(sample.general.outputdirectory, self.analysistype)
+<<<<<<< HEAD
                 sample[self.analysistype].targetpath = os.path.join(self.referencefilepath, self.analysistype)
+=======
+                sample[self.analysistype].targetpath = self.referencefilepath if not self.pipeline else os.path.join(
+                    self.referencefilepath, self.analysistype
+                )
+>>>>>>> sipprverse
                 sample[self.analysistype].refseqsketch = \
                     sample[self.analysistype].targetpath + '/RefSeqSketchesDefaults.msh'
                 sample[self.analysistype].sketchfilenoext = '{}/{}'.format(sample[self.analysistype].reportdir,
@@ -54,7 +68,11 @@ class Mash(object):
             self.sketchqueue.task_done()
 
     def mashing(self):
+<<<<<<< HEAD
         printtime('Performing {} analyses'.format(self.analysistype), self.starttime)
+=======
+        printtime('Performing mash analyses', self.starttime)
+>>>>>>> sipprverse
         # Create the threads for the analysis
         for sample in self.metadata:
             if sample.general.bestassemblyfile != 'NA':
@@ -134,5 +152,9 @@ class Mash(object):
         self.sketchqueue = Queue()
         self.mashqueue = Queue()
         self.analysistype = analysistype
+<<<<<<< HEAD
+=======
+        self.pipeline = inputobject.pipeline
+>>>>>>> sipprverse
         self.fnull = open(os.devnull, 'w')  # define /dev/null
         self.sketching()

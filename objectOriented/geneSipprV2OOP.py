@@ -1,62 +1,61 @@
 #!/usr/bin/env python
+# Import the necessary modules
+# Subprocess->call is used for making system calls
 import subprocess
 import time
-from sipprcommon.sippingmethods import *
-from sipprcommon.objectprep import Objectprep
-from sipprcommon.accessoryfunctions.accessoryFunctions import *
-<<<<<<< HEAD
-from sipprcommon.accessoryfunctions.metadataprinter import *
-=======
->>>>>>> sipprverse
+# Import the accessoryFunctions sub-module
+import createFastq
+import createObject
+import SPAdesPipeline.OLCspades.metadataprinter as metadataprinter
+from SPAdesPipeline.OLCspades.accessoryFunctions import *
 
 __author__ = 'adamkoziol'
 
 
 class GeneSippr(object):
+    def objectprep(self):
+        """
+        Creates fastq files from an in-progress Illumina MiSeq run or create an object and moves files appropriately
+        """
+        printtime('Starting genesippr analysis pipeline', self.starttime)
+        # Run the genesipping if necessary. Otherwise create the metadata object
+        if self.bcltofastq:
+            if self.customsamplesheet:
+                assert os.path.isfile(self.customsamplesheet), 'Cannot find custom sample sheet as specified {}' \
+                    .format(self.customsamplesheet)
+            self.runmetadata = createFastq.FastqCreate(self)
+        else:
+            self.runmetadata = createObject.ObjectCreation(self)
 
     def runner(self):
         """
-        Run the necessary methods in the correct order
+        Call the necessary methods in the appropriate order
         """
-        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
-        # Create the objects to be used in the analyses
-        objects = Objectprep(self)
-        objects.objectprep()
-        self.runmetadata = objects.samples
-        # Run the analyses
-        Sippr(self, self.cutoff)
-        # Create the reports
-        self.reporter()
-<<<<<<< HEAD
-        # Print the metadata
-        printer = MetadataPrinter(self)
-        printer.printmetadata()
-=======
->>>>>>> sipprverse
+        import customtargets
+        import sipprmash
+        import sipprmlst
+        import sixteenS
+        # Create a sample object and create/link fastq files as necessary
+        self.objectprep()
+        if self.sixteens:
+            sixteens = sixteenS.SixteenS(self, 'sixteens')
+            sixteens.targets()
+        metadataprinter.MetadataPrinter(self)
+        # Run the typing modules
+        if self.customtargetpath:
+            custom = customtargets.Custom(self, 'custom', self.cutoff)
+            custom.targets()
+        else:
+            #
+            if self.rmlst:
+                rmlst = sipprmlst.MLSTmap(self, 'rmlst')
+                rmlst.targets()
+            # Run the desired analyses
+            sipprmash.SipprMash(self, 'mash')
+            mlst = sipprmlst.MLSTmap(self, 'mlst')
+            mlst.targets()
 
-    def reporter(self):
-        """
-        Creates a report of the results
-        """
-        # Create the path in which the reports are stored
-        make_path(self.reportpath)
-        header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
-        data = ''
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
-            for sample in self.runmetadata.samples:
-                data += sample.name + ','
-                if sample[self.analysistype].results:
-                    multiple = False
-                    for name, identity in sample[self.analysistype].results.items():
-                        if not multiple:
-                            data += '{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
-                        else:
-                            data += ',{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
-                        multiple = True
-                else:
-                    data += '\n'
-            report.write(header)
-            report.write(data)
+        metadataprinter.MetadataPrinter(self)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
         """
@@ -71,8 +70,9 @@ class GeneSippr(object):
         self.starttime = startingtime
         self.homepath = scriptpath
         # Define variables based on supplied arguments
+        self.args = args
         self.path = os.path.join(args.path, '')
-        assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
+        assert os.path.isdir(self.path), u'Output location is not a valid directory {0!r:s}'.format(self.path)
         self.sequencepath = os.path.join(args.sequencepath, '')
         assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
@@ -80,9 +80,13 @@ class GeneSippr(object):
         self.reportpath = os.path.join(self.path, 'reports')
         assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
+        if args.customtargetpath:
+            self.customtargetpath = os.path.join(args.customtargetpath, '')
+            os.path.isdir(self.customtargetpath), u'Output location is not a valid directory {0!r:s}' \
+                .format(self.customtargetpath)
+        else:
+            self.customtargetpath = ''
         self.bcltofastq = args.bcl2fastq
-        self.miseqpath = args.miseqpath
-        self.miseqfolder = args.miseqfolder
         self.fastqdestination = args.destinationfastq
         self.forwardlength = args.readlengthforward
         self.reverselength = args.readlengthreverse
@@ -93,14 +97,12 @@ class GeneSippr(object):
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
         self.runmetadata = MetadataObject()
-<<<<<<< HEAD
-        self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
-=======
->>>>>>> sipprverse
-        self.analysistype = 'genesippr'
-        self.pipeline = False
+        #
+        self.sixteens = args.sixteenStyping
+        self.rmlst = args.rmlst
         # Run the analyses
         self.runner()
+
 
 if __name__ == '__main__':
     # Argument parser for user-inputted values, and a nifty help menu
@@ -151,13 +153,44 @@ if __name__ == '__main__':
                              'in the provided sample sheet will be used. Please note that bcl2fastq creates '
                              'subfolders using the project name, so if multiple names are provided, the results '
                              'will be split as into multiple projects')
+    parser.add_argument('-16S', '--sixteenStyping',
+                        action='store_true',
+                        help='Perform 16S typing. Note that for analyses such as MLST, pathotyping, '
+                             'serotyping, and virulence typing that require the genus of a strain to proceed, '
+                             '16S typing will still be performed')
+    parser.add_argument('-M', '--Mlst',
+                        action='store_true',
+                        help='Perform MLST analyses')
+    parser.add_argument('-Y', '--pathotYping',
+                        action='store_true',
+                        help='Perform pathotyping analyses')
+    parser.add_argument('-S', '--Serotyping',
+                        action='store_true',
+                        help='Perform serotyping analyses')
+    parser.add_argument('-V',
+                        '--Virulencetyping',
+                        action='store_true',
+                        help='Perform virulence typing analyses')
+    parser.add_argument('-a', '--armi',
+                        action='store_true',
+                        help='Perform ARMI antimicrobial typing analyses')
+    parser.add_argument('-r', '--rmlst',
+                        action='store_true',
+                        help='Perform rMLST analyses')
     parser.add_argument('-D', '--detailedReports',
                         action='store_true',
                         help='Provide detailed reports with percent identity and depth of coverage values '
                              'rather than just "+" for positive results')
+    parser.add_argument('-C', '--customtargetpath',
+                        help='Provide the path for a folder of custom targets .fasta format')
     parser.add_argument('-u', '--customcutoffs',
                         default=0.8,
                         help='Custom cutoff values')
+
+    # TODO Add custom cutoffs
+    # TODO Assert .fastq files present in provided folder
+    # TODO Don't touch .fastq(.gz) files
+
     # Get the arguments into an object
     arguments = parser.parse_args()
 
@@ -169,3 +202,11 @@ if __name__ == '__main__':
 
     # Print a bold, green exit statement
     print '\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m'
+
+    # print json.dumps(seqdict, sort_keys=True, indent=4, separators=(',', ': '))
+    """
+    -m
+    /media/miseq/MiSeqOutput
+    -f
+    160421_M02466_0152_000000000-AMLFW
+    """

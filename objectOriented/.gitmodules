@@ -1,0 +1,4 @@
+[submodule "SPAdesPipeline"]
+	path = objectOriented/SPAdesPipeline
+	url = https://github.com/adamkoziol/SPAdesPipeline.git	
+	branch = dev

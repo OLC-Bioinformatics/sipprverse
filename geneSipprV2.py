@@ -350,12 +350,14 @@ def baitr((baitfile, sequences, baittype)):
             # Define the baiting command - if a hash of the target has previously been computed and placed in the
             # bait folder, then proceed appropriately
             if ".gz" in baitfile:
-                baitcommand = "cd %s && mirabait -L %s -N %s -p %s %s" \
+                baitcommand = "cd %s && mirabait -B %s -N %s -p %s %s" \
                               % (baitpath, baitfile, baittype, forwardfastqpath, reversefastqpath)
+                print baitcommand
                 # Define /dev/null
                 fnull = open(os.devnull, 'wb')
                 # Run the command
                 subprocess.call(baitcommand, shell=True, stdout=fnull, stderr=fnull)
+                # subprocess.call(baitcommand, shell=True)
             else:
                 baitcommand = "cd %s && mirabait -b %s -N %s -p %s %s" \
                               % (baitpath, baitfile, baittype, forwardfastqpath, reversefastqpath)
@@ -586,21 +588,25 @@ def virulencer(resultsdict, analysistype):
                     # The format of the gene name is something like stx2:3:GQ429162:3, while the corresponding entry
                     # in notes.txt would be: stx23:ONT 23765, variant a.  Therefore targetname (stx2) +
                     # allele.split(":")[1] (3) + ":" yields stx23: If that is in the line, proceed
-                    if targetname + allele.split(":")[1] + ":" in line:
+                    alleleresult = allele.split(":")[0] + allele.split(":")[-1]
+                    if alleleresult in line:
+                        # if targetname + allele.split(":")[1] + ":" in line:
+                        # Add the target name (stx2) + the trailing two characters in the line (d1) to the set
+                        if resultsdict[strain][targetname][allele].keys()[0] >= 98.0:
+                            #
+                            virulenceset.add(alleleresult)
                         # There are a two stx2 variants with a subtype: d1 and d2. Allow for this exception
-                        if line.rstrip()[-2] == "d":
-                            # Add the target name (stx2) + the trailing two characters in the line (d1) to the set
-                            virulenceset.add(targetname + line.rstrip()[-2:])
-                            # Create the string for the detailed reports
-                            detailedresults += "%s,%s,%s,%s\n" % (strain, targetname + line.rstrip()[-2],
-                                                                  resultsdict[strain][targetname][allele].keys()[0],
-                                                                  resultsdict[strain][targetname][allele].values()[0])
-                        else:
-                            # Add the target name (stx2) + the trailing character (a) in the line -> (stx2a) to the set
-                            virulenceset.add(targetname + line.rstrip()[-1])
-                            detailedresults += "%s,%s,%s,%s\n" % (strain, targetname + line.rstrip()[-1],
-                                                                  resultsdict[strain][targetname][allele].keys()[0],
-                                                                  resultsdict[strain][targetname][allele].values()[0])
+                        # if line.rstrip()[-2] == "d":
+                        #
+                        #     # Create the string for the detailed reports
+                        #     detailedresults += "%s,%s,%s,%s\n" % (strain, alleleresult + line.rstrip()[-2],
+                        #                                           resultsdict[strain][targetname][allele].keys()[0],
+                        #                                           resultsdict[strain][targetname][allele].values()[0])
+                        # else:
+                        # Add the target name (stx2) + the trailing character (a) in the line -> (stx2a) to the set
+                        detailedresults += "%s,%s,%s,%s\n" % (strain, alleleresult,
+                                                              resultsdict[strain][targetname][allele].keys()[0],
+                                                              resultsdict[strain][targetname][allele].values()[0])
         # Add an extra line to the detailed results to delineate between strains
         detailedresults += "\n"
         # Pull values from seqdict in order to create properly named reports in the appropriate folders
@@ -611,7 +617,19 @@ def virulencer(resultsdict, analysistype):
         make_path(reportdir)
         # Open the strain-specific report, and write the appropriate header/results
         strainheader = "Strain,virulenceType\n"
-        straindata = "%s,%s\n" % (strain, "; ".join(sorted(list(virulenceset))))
+        vtxset = set()
+        for vtx in sorted(list(virulenceset)):
+            vtype = vtx[:4] + vtx[-1]
+            # subunit = vtx[4:5]
+            if vtype != 'stx2b':
+                if vtx[:4] + 'A' + vtx[-1] in virulenceset and vtx[:4] + 'B' + vtx[-1] in virulenceset:
+                    # print strain, vtx, vtype, subunit, vtx[:4] + 'A' + vtx[-1]
+                    vtxset.add(vtype)
+            else:
+                # print strain, '2b'
+                vtxset.add(vtype)
+
+        straindata = "%s,%s\n" % (strain, "; ".join(sorted(list(vtxset))))
         combinedvirulence.append(straindata)
         straincsvfile = open(reportname, "wb")
         straincsvfile.write(strainheader)
