@@ -4,42 +4,29 @@ import time
 from sipprcommon.sippingmethods import *
 from sipprcommon.objectprep import Objectprep
 from sipprcommon.accessoryfunctions.accessoryFunctions import *
-from sipprcommon.accessoryfunctions.metadataprinter import *
-from sipprcommon.database import Database
-from MASHsippr.mash import Mash
-from serosippr.serosippr import SeroSippr
+
 __author__ = 'adamkoziol'
 
 
-class Method(object):
+class GeneSippr(object):
 
     def runner(self):
         """
         Run the necessary methods in the correct order
         """
         printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
+        self.targets()
         # Create the objects to be used in the analyses
         objects = Objectprep(self)
         objects.objectprep()
         self.runmetadata = objects.samples
-        #
-        Mash(self, 'mash')
         # Run the analyses
-        Sippr(self, self.cutoff)
+        Sippr(self)
         # Create the reports
         self.reporter()
-        # Run the GDCS analysis
-        self.analysistype = 'GDCS'
-        Sippr(self, 0.95)
-        # Create the database
-        Database(self)
-        # Create the reports
-        self.gdcsreporter()
-        self.analysistype = 'serosippr'
-        SeroSippr(self, self.commit, self.starttime, self.homepath)
-        # Print the metadata
-        printer = MetadataPrinter(self)
-        printer.printmetadata()
+
+    def targets(self):
+        printtime('Finding {} target files'.format(self.analysistype), self.starttime)
 
     def reporter(self):
         """
@@ -51,53 +38,17 @@ class Method(object):
         data = ''
         with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
             for sample in self.runmetadata.samples:
-                if sample.general.bestassemblyfile != 'NA':
-                    data += sample.name + ','
-                    if sample[self.analysistype].results:
-                        multiple = False
-                        for name, identity in sorted(sample[self.analysistype].results.items()):
-                            if not multiple:
-                                data += '{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
-                            else:
-                                data += ',{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
-                            multiple = True
-                    else:
-                        data += '\n'
-            report.write(header)
-            report.write(data)
-
-    def gdcsreporter(self):
-        """
-        Creates a report of the results
-        """
-        # Create the path in which the reports are stored
-        make_path(self.reportpath)
-        header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
-        data = ''
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
-            for sample in self.runmetadata.samples:
-                if sample.general.bestassemblyfile != 'NA':
-                    data += sample.name + ','
-                    if sample[self.analysistype].results:
-                        multiple = False
-                        # for name, identity in sorted(sample[self.analysistype].results.items()):
-                        for faifile in sorted(sample[self.analysistype].faidict):
-                            try:
-                                identity = sample[self.analysistype].results[faifile]
-                                if not multiple:
-                                    data += '{},{},{}\n'.format(faifile, identity, sample[self.analysistype].avgdepth[faifile])
-                                else:
-                                    data += ',{},{},{}\n'.format(faifile, identity, sample[self.analysistype].avgdepth[faifile])
-                                multiple = True
-                            except KeyError:
-                                print 'missing', sample.name, faifile
-                                if not multiple:
-                                    data += '{},-,-\n'.format(faifile)
-                                else:
-                                    data += ',{},-,-\n'.format(faifile)
-                                multiple = True
-                    else:
-                        data += '\n'
+                data += sample.name + ','
+                if sample[self.analysistype].results:
+                    multiple = False
+                    for name, identity in sample[self.analysistype].results.items():
+                        if not multiple:
+                            data += '{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
+                        else:
+                            data += ',{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
+                        multiple = True
+                else:
+                    data += '\n'
             report.write(header)
             report.write(data)
 
@@ -120,8 +71,6 @@ class Method(object):
         assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
         self.targetpath = os.path.join(args.targetpath, '')
-        # ref file path is used to work with sub module code with a different naming scheme
-        self.reffilepath = self.targetpath
         self.reportpath = os.path.join(self.path, 'reports')
         assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
@@ -138,10 +87,7 @@ class Method(object):
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
         self.runmetadata = MetadataObject()
-        self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
         self.analysistype = 'genesippr'
-        self.copy = args.copy
-        self.pipeline = True
         # Run the analyses
         self.runner()
 
@@ -199,12 +145,8 @@ if __name__ == '__main__':
                         help='Provide detailed reports with percent identity and depth of coverage values '
                              'rather than just "+" for positive results')
     parser.add_argument('-u', '--customcutoffs',
-                        default=0.8,
+                        default=1.0,
                         help='Custom cutoff values')
-    parser.add_argument('-C', '--copy',
-                        action='store_true',
-                        help='Normally, the program will create symbolic links of the files into the sequence path, '
-                             'however, the are occasions when it is necessary to copy the files instead')
     # Get the arguments into an object
     arguments = parser.parse_args()
 
@@ -212,26 +154,7 @@ if __name__ == '__main__':
     start = time.time()
 
     # Run the script
-    Method(arguments, commit, start, homepath)
+    GeneSippr(arguments, commit, start, homepath)
 
     # Print a bold, green exit statement
     print '\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m'
-
-"""
-<<<<<<< HEAD
-/nas0/bio_requests/8312/150_100
--s
-/nas0/bio_requests/8312/150_100/sequences
--t
-/nas0/bio_requests/8312/validation/targets
--b
--m
-/media/miseq
--f
-170328_M02466_0029_000000000-AVME4
--r1
-150
--r2
-100
--C
-"""
