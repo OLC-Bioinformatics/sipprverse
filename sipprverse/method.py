@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 import subprocess
 import time
-from sipprmlst import MLSTmap
 from sipprcommon.sippingmethods import *
 from sipprcommon.objectprep import Objectprep
 from sipprcommon.accessoryfunctions.accessoryFunctions import *
-from sipprcommon.metadataprinter import MetadataPrinter
-
+from sipprcommon.accessoryfunctions.metadataprinter import *
+from sipprcommon.database import Database
 __author__ = 'adamkoziol'
 
 
-class GeneSippr(object):
+class Method(object):
 
     def runner(self):
         """
@@ -21,13 +20,12 @@ class GeneSippr(object):
         objects = Objectprep(self)
         objects.objectprep()
         self.runmetadata = objects.samples
-        # Run the analyses
-        MLSTmap(self, self.analysistype)
+        Sippr(self, self.cutoff)
         # Create the reports
-        # self.reporter()
-        # Print the metadata to a .json file
-        MetadataPrinter(self)
-
+        self.reporter()
+        # Print the metadata
+        printer = MetadataPrinter(self)
+        printer.printmetadata()
 
     def reporter(self):
         """
@@ -39,17 +37,53 @@ class GeneSippr(object):
         data = ''
         with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
             for sample in self.runmetadata.samples:
-                data += sample.name + ','
-                if sample[self.analysistype].results:
-                    multiple = False
-                    for name, identity in sample[self.analysistype].results.items():
-                        if not multiple:
-                            data += '{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
-                        else:
-                            data += ',{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
-                        multiple = True
-                else:
-                    data += '\n'
+                if sample.general.bestassemblyfile != 'NA':
+                    data += sample.name + ','
+                    if sample[self.analysistype].results:
+                        multiple = False
+                        for name, identity in sorted(sample[self.analysistype].results.items()):
+                            if not multiple:
+                                data += '{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
+                            else:
+                                data += ',{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
+                            multiple = True
+                    else:
+                        data += '\n'
+            report.write(header)
+            report.write(data)
+
+    def gdcsreporter(self):
+        """
+        Creates a report of the results
+        """
+        # Create the path in which the reports are stored
+        make_path(self.reportpath)
+        header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
+        data = ''
+        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
+            for sample in self.runmetadata.samples:
+                if sample.general.bestassemblyfile != 'NA':
+                    data += sample.name + ','
+                    if sample[self.analysistype].results:
+                        multiple = False
+                        # for name, identity in sorted(sample[self.analysistype].results.items()):
+                        for faifile in sorted(sample[self.analysistype].faidict):
+                            try:
+                                identity = sample[self.analysistype].results[faifile]
+                                if not multiple:
+                                    data += '{},{},{}\n'.format(faifile, identity, sample[self.analysistype].avgdepth[faifile])
+                                else:
+                                    data += ',{},{},{}\n'.format(faifile, identity, sample[self.analysistype].avgdepth[faifile])
+                                multiple = True
+                            except KeyError:
+                                print 'missing', sample.name, faifile
+                                if not multiple:
+                                    data += '{},-,-\n'.format(faifile)
+                                else:
+                                    data += ',{},-,-\n'.format(faifile)
+                                multiple = True
+                    else:
+                        data += '\n'
             report.write(header)
             report.write(data)
 
@@ -72,6 +106,8 @@ class GeneSippr(object):
         assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
         self.targetpath = os.path.join(args.targetpath, '')
+        # ref file path is used to work with sub module code with a different naming scheme
+        self.reffilepath = self.targetpath
         self.reportpath = os.path.join(self.path, 'reports')
         assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
@@ -87,20 +123,11 @@ class GeneSippr(object):
         self.cutoff = args.customcutoffs
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
-        self.copy = args.copy
-        self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
         self.runmetadata = MetadataObject()
-        #
-        self.pipeline = args.pipeline
-        if args.analysistype.lower() == 'mlst':
-            self.analysistype = 'mlst'
-        elif args.analysistype.lower() == 'rmlst':
-            self.analysistype = 'rmlst'
-        else:
-            import sys
-            sys.stderr.write('Please ensure that you specified a valid option for the analysis type. You entered {}. '
-                             'The only acceptable options currently are mlst and rmlst.'.format(args.analysistype))
-            quit()
+        self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
+        self.analysistype = 'genesippr'
+        self.copy = args.copy
+        self.pipeline = False
         # Run the analyses
         self.runner()
 
@@ -158,25 +185,39 @@ if __name__ == '__main__':
                         help='Provide detailed reports with percent identity and depth of coverage values '
                              'rather than just "+" for positive results')
     parser.add_argument('-u', '--customcutoffs',
-                        default=1.0,
+                        default=0.8,
                         help='Custom cutoff values')
-    parser.add_argument('-a', '--analysistype',
-                        required=True,
-                        help='Specify analysis type: mlst or rmlst')
     parser.add_argument('-C', '--copy',
                         action='store_true',
                         help='Normally, the program will create symbolic links of the files into the sequence path, '
                              'however, the are occasions when it is necessary to copy the files instead')
-
     # Get the arguments into an object
     arguments = parser.parse_args()
-    arguments.pipeline = False
 
     # Define the start time
     start = time.time()
 
     # Run the script
-    GeneSippr(arguments, commit, start, homepath)
+    Method(arguments, commit, start, homepath)
 
     # Print a bold, green exit statement
     print '\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m'
+
+"""
+<<<<<<< HEAD
+/nas0/bio_requests/8312/150_100
+-s
+/nas0/bio_requests/8312/150_100/sequences
+-t
+/nas0/bio_requests/8312/validation/targets
+-b
+-m
+/media/miseq
+-f
+170328_M02466_0029_000000000-AVME4
+-r1
+150
+-r2
+100
+-C
+"""
