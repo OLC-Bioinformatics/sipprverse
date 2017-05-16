@@ -300,7 +300,7 @@ def dictparser(parseddict, seqdict, analysistype):
     Filter the results that are below the identity cutoff threshold
     :param parseddict: dictionary containing filtered results
     :param seqdict: dictionary containing names and paths of important files and folders in the analysis
-    :param analysistype: string of the analysis type (e.g. 16S)
+    :param analysistype: string of the analysis type (e.g. sixteenS)
     """
     # Imaginatively named dictionary to store the filtered results
     plusdict = defaultdict(make_dict)
@@ -346,7 +346,7 @@ def targetlength(seqdict, analysistype):
     """
     Uses .fai files to determine the length of target sequences
     :param seqdict: dictionary containing names and paths of files and folders
-    :param analysistype: string of the analysis type (e.g. 16S)
+    :param analysistype: string of the analysis type (e.g. sixteenS)
     """
     # Iterate through all the strains
     for strain in seqdict:

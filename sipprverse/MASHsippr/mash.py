@@ -2,7 +2,6 @@
 from subprocess import call
 from threading import Thread
 from sipprcommon.accessoryfunctions.accessoryFunctions import *
-from accessoryfunctions.accessoryFunctions import *
 
 __author__ = 'adamkoziol'
 

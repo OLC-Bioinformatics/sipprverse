@@ -153,11 +153,11 @@ if __name__ == '__main__':
                              'in the provided sample sheet will be used. Please note that bcl2fastq creates '
                              'subfolders using the project name, so if multiple names are provided, the results '
                              'will be split as into multiple projects')
-    parser.add_argument('-16S', '--sixteenStyping',
+    parser.add_argument('-sixteenS', '--sixteenStyping',
                         action='store_true',
-                        help='Perform 16S typing. Note that for analyses such as MLST, pathotyping, '
+                        help='Perform sixteenS typing. Note that for analyses such as MLST, pathotyping, '
                              'serotyping, and virulence typing that require the genus of a strain to proceed, '
-                             '16S typing will still be performed')
+                             'sixteenS typing will still be performed')
     parser.add_argument('-M', '--Mlst',
                         action='store_true',
                         help='Perform MLST analyses')

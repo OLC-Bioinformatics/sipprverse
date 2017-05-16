@@ -271,8 +271,8 @@ def bamparseprocesses(seqdict, analysistype):
     filtereddict = dictparser(parseddict, seqdict, analysistype)
     # Find the best result
     resultsdict = bestmatch(filtereddict, seqdict, analysistype)
-    # Find the genus from the best result for 16S/18S analyses
-    if analysistype == "16S" or analysistype == "18S":
+    # Find the genus from the best result for sixteenS/18S analyses
+    if analysistype == "sixteenS" or analysistype == "18S":
         genusdict, genusset = classifyr(resultsdict, seqdict, analysistype)
         # Return the dictionary with the genera, and a list of all genera encountered in these analyses
         return genusdict, list(genusset)
@@ -303,7 +303,7 @@ def dictparser(parseddict, seqdict, analysistype):
     Filter the results that are below the identity cutoff threshold
     :param parseddict: dictionary containing filtered results
     :param seqdict: dictionary containing names and paths of important files and folders in the analysis
-    :param analysistype: string of the analysis type (e.g. 16S)
+    :param analysistype: string of the analysis type (e.g. sixteenS)
     """
     # Imaginatively name dictionary to store the filtered results
     plusdict = defaultdict(make_dict)
@@ -344,7 +344,7 @@ def targetlength(seqdict, analysistype):
     """
     Uses .fai files to determine the length of target sequences
     :param seqdict: dictionary containing names and paths of files and folders
-    :param analysistype: string of the analysis type (e.g. 16S)
+    :param analysistype: string of the analysis type (e.g. sixteenS)
     """
     import subprocess
     # Iterate through all the strains

@@ -59,9 +59,9 @@ parser.add_argument('-P', '--projectName', help='A name for the analyses. If not
                     'the "Sample_Project" field in the provided sample sheet will be used. Please note that bcl2fastq '
                     'creates subfolders using the project name, so if multiple names are provided, the results will be '
                     'split as into multiple projects')
-parser.add_argument('-16S', '--16Styping', action='store_true', help='Perform 16S typing. Note that'
+parser.add_argument('-sixteenS', '--16Styping', action='store_true', help='Perform sixteenS typing. Note that'
                     'for analyses such as MLST, pathotyping, serotyping, and virulence typing that require the genus'
-                    'of a strain to proceed, 16S typing will still be performed')
+                    'of a strain to proceed, sixteenS typing will still be performed')
 parser.add_argument('-M', '--Mlst', action='store_true', help='Perform MLST analyses')
 parser.add_argument('-Y', '--pathotYping', action='store_true', help='Perform pathotyping analyses')
 parser.add_argument('-S', '--Serotyping', action='store_true', help='Perform serotyping analyses')
@@ -409,8 +409,8 @@ def baitr((baitfile, sequences, baittype)):
 
 def sixteensreportmaker(resultdict, analysistype):
     """
-    Creates reports for 16S analyses
-    :param resultdict: dictionary containing results of 16S analyses
+    Creates reports for sixteenS analyses
+    :param resultdict: dictionary containing results of sixteenS analyses
     :param analysistype: string of the analysis type
     """
     global reportfolder, seqdict
@@ -425,7 +425,7 @@ def sixteensreportmaker(resultdict, analysistype):
         baittype = seqdict[strain]["bait"]["fastqFiles"].keys()[0]
         fastqdir = os.path.split(seqdict[strain]["bait"]["fastqFiles"][baittype][0])[0]
         reportdir = "%s/reports" % fastqdir
-        # Create a strain-specific report in the <strain>/16S/reports directory
+        # Create a strain-specific report in the <strain>/sixteenS/reports directory
         reportname = "%s/%s_%s_reports.tsv" % (reportdir, strain, baittype)
         make_path(reportdir)
         csvfile = open(reportname, "wb")
@@ -446,7 +446,7 @@ def sixteensreportmaker(resultdict, analysistype):
         csvfile.write(csvheader)
         csvfile.write(resultstring)
         csvfile.close()
-    # Create a report containing all the 16S results from each strain
+    # Create a report containing all the sixteenS results from each strain
     compiledcsvfile = open("%s/%s_results.tsv" % (reportfolder, analysistype), "wb")
     # Write the header and data strings to file
     compiledcsvfile.write(csvheader)
@@ -459,7 +459,7 @@ def pathoreportr(matchdict, analysistype, organismdict, organismlist):
     Creates reports for pathotyping and serotyping results
     :param matchdict: dictionary of hits of a strain to targets
     :param analysistype: string of the analysis type
-    :param organismdict: dictionary of the 16S results
+    :param organismdict: dictionary of the sixteenS results
     :param organismlist: list of all the genera in the current analysis
     """
     global reportfolder, seqdict, args
@@ -757,10 +757,11 @@ def baittargets(currenttargetpath, analysistype):
 
 
 def sixteens():
-    """Performs the necessary analyses on strains using 16S targets"""
+    """Performs the necessary analyses on strains using sixteenS targets"""
     global targetpath, seqdict
-    # Set the analysis type variable to 16S. This variable is important for retrieving 16S-specific data from seqdict
-    analysistype = "16S"
+    # Set the analysis type variable to sixteenS. This variable is important for retrieving sixteenS-specific data
+    # from seqdict
+    analysistype = "sixteenS"
     # Set the path of the analysistype data
     currenttargetpath = "%s%s" % (targetpath, analysistype)
     # Create the bait target file (if necessary)
@@ -808,7 +809,7 @@ def sixteens():
 def mlst(organismdict, organismlist):
     """
     Performs the necessary analyses on strains using genus-specific MLST targets
-    :param organismdict: dictionary of the 16S results
+    :param organismdict: dictionary of the sixteenS results
     :param organismlist: list of all the genera in the current analysis
     """
     global targetpath, seqdict
@@ -823,7 +824,7 @@ def mlst(organismdict, organismlist):
         # If there is not an MLST scheme installed for a particular organism, then the script will crash when it tries
         # to find the necessary files, as they are not present. Allow index errors to pass
         try:
-            # Using the organismdict entry (genus) generated in the 16S analysis, set the allele and profile paths
+            # Using the organismdict entry (genus) generated in the sixteenS analysis, set the allele and profile paths
             # NB: This will come up multiple times with this script, but I only allowed a small amount of freedom in
             # the placement of folders. Usually, there are strict folder hierarchies, which must be followed
             mlstpath = glob("%s/%s/*MLST*" % (currenttargetpath, organismdict[strain].keys()[0]))[0] + "/alleles"
@@ -889,7 +890,7 @@ def mlst(organismdict, organismlist):
 def pathotyper(organismdict, organismlist, analysistype):
     """
     Performs the necessary analyses on strains using genus-specific pathotype/serotype targets
-    :param organismdict: dictionary of the 16S results
+    :param organismdict: dictionary of the sixteenS results
     :param organismlist: list of all the genera in the current analysis
     :param analysistype: string of the current analysis type
     """
@@ -956,7 +957,7 @@ def pathotyper(organismdict, organismlist, analysistype):
 def virulencetyper(organismdict, analysistype):
     """
     Performs the necessary analyses on strains using genus-specific pathotype/serotype targets
-    :param organismdict: dictionary of the 16S results
+    :param organismdict: dictionary of the sixteenS results
     :param analysistype: string of the current analysis type
     """
     global targetpath, seqdict
@@ -1137,7 +1138,8 @@ def rmlst():
 def customtargets():
     """Performs genesipping on user-provided custom targets"""
     global targetpath, seqdict, args
-    # Set the analysis type variable to 16S. This variable is important for retrieving 16S-specific data from seqdict
+    # Set the analysis type variable to sixteenS. This variable is important for retrieving sixteenS-specific
+    # data from seqdict
     analysistype = "custom"
     # Set the path of the analysistype data
     currenttargetpath = args['customTargetPath']
@@ -1186,7 +1188,7 @@ def customtargets():
 def runner():
     """Calls the geneSipping functions in the appropriate order"""
     global sequencepath, path, miseqpath, projectname, forwardreads, reversereads, args
-    # Initialise dictionary and list to store 16S typing results
+    # Initialise dictionary and list to store sixteenS typing results
     organismdict = defaultdict(make_dict)
     organismlist = []
     # Run the fastqCreator function if necessary
@@ -1197,9 +1199,9 @@ def runner():
     # Run name extractor to determine the name of the samples. Additionally, this function decompresses any .gz files
     print "Finding sample names"
     nameextractor()
-    # Run the 16S typing function if one or more of a few arguments are provided
+    # Run the sixteenS typing function if one or more of a few arguments are provided
     if args['16Styping'] or args['Mlst'] or args['pathotYping'] or args['Serotyping'] or args['Virulencetyping']:
-        printtime("16S")
+        printtime("sixteenS")
         organismdict, organismlist = sixteens()
     # Perform specified analyses
     if args['Mlst']:

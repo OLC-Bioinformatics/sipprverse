@@ -16,5 +16,7 @@ setup(
     install_requires=['biopython >= 1.65',
                       'pysam',
                       'pysamstats',
-                      'xlsxwriter'],
+                      'xlsxwriter',
+                      'numpy',
+                      'pandas'],
 )
