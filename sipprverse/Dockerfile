@@ -23,7 +23,7 @@ RUN apt-get update -y -qq && apt-get install -y \
 	libtool \
 	build-essential \
 	autoconf \
-	python-pip \
+	python3-pip \
 	samtools \
 	bowtie2 \	
 	nano && \
@@ -31,15 +31,21 @@ RUN apt-get update -y -qq && apt-get install -y \
     	rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip
-RUN pip install --upgrade pip
+RUN pip3 install --upgrade pip
 
 # Install biopython
-RUN pip install numpy==1.9.1
-RUN pip install biopython==1.69
+RUN pip3 install numpy==1.9.1
+RUN pip3 install biopython==1.69
 
 # Install pysamstats
-RUN pip install pysam==0.8.4
-RUN pip install pysamstats==0.24.2
+RUN pip3 install pysam==0.8.4
+RUN pip3 install pysamstats==0.24.2
+
+# Install MIRA4
+RUN curl -L https://sourceforge.net/projects/mira-assembler/files/MIRA/stable/mira_4.0.2_linux-gnu_x86_64_static.tar.bz2 -o mira.tar.bz2
+RUN tar -xvjf mira.tar.bz2 && rm mira.tar.bz2
+RUN mv mira* /mira
+ENV PATH /mira/bin:$PATH
 
 # Install the pipeline
 RUN git clone https://github.com/OLC-LOC-Bioinformatics/geneSipprV2.git --recursive
