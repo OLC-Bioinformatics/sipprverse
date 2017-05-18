@@ -1,5 +1,6 @@
 [submodule "sipprverse/gdcs/sipprcommon"]
 	path = sipprverse/gdcs/sipprcommon
+	url = https://github.com/adamkoziol/sipprcommon.git
 [submodule "objectOriented/SPAdesPipeline"]
 	path = objectOriented/SPAdesPipeline
 	url = https://github.com/adamkoziol/SPAdesPipeline.git

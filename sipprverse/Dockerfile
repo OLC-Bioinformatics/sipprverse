@@ -6,7 +6,7 @@ MAINTAINER Dr. Adam G. Koziol <adam.koziol@inspection.gc.ca>
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install packages
-RUN apt-get update -y -qq && apt-get install -y --allow \
+RUN apt-get update -y -qq && apt-get install -y \
 	python-dev \
 	git \
 	curl \
@@ -25,7 +25,6 @@ RUN apt-get update -y -qq && apt-get install -y --allow \
 	autoconf \
 	python-pip \
 	samtools \
-	#bcftools \
 	bowtie2 \	
 	nano && \
     	apt-get clean  && \
@@ -43,11 +42,10 @@ RUN pip install pysam==0.8.4
 RUN pip install pysamstats==0.24.2
 
 # Install the pipeline
-RUN git clone https://github.com/OLC-LOC-Bioinformatics/geneSipprV2.git
+RUN git clone https://github.com/OLC-LOC-Bioinformatics/geneSipprV2.git --recursive
 
 # Edit the path
-
 ENV PATH /geneSipprV2/sipprverse:$PATH
 
 # TO RUN
-# docker rm genesippr && docker run -it -v /nas0:/nas0 --name genesippr 192.168.1.5:5000/genesipprmethod method.py /genesipprrun -t /targets -s /genesipprrun/sequences
+# docker rm genesipprmethod && docker run -it -v /nas0:/nas0 --name genesipprmethod 192.168.1.5:5000/genesipprmethod method.py /genesipprrun -t /targets -s /sequences
