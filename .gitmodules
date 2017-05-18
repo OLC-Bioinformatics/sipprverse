@@ -19,3 +19,6 @@
 [submodule "sipprverse/serosippr/sipprcommon"]
 	path = sipprverse/serosippr/sipprcommon
 	url = https://github.com/adamkoziol/sipprcommon.git
+[submodule "sipprverse/sixteenS/sipprcommon"]
+	path = sipprverse/sixteenS/sipprcommon
+	url = https://github.com/adamkoziol/sipprcommon.git

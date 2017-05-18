@@ -2,10 +2,10 @@
 import subprocess
 import time
 from sipprcommon.sippingmethods import *
-from .sipprcommon.objectprep import Objectprep
-from .sipprcommon.accessoryfunctions.accessoryFunctions import *
-from .sipprcommon.accessoryfunctions.metadataprinter import *
-from .sixteenS.sixteenS import SixteenS
+from sipprcommon.objectprep import Objectprep
+from sipprcommon.accessoryfunctions.accessoryFunctions import *
+from sipprcommon.accessoryfunctions.metadataprinter import *
+from sixteenS.sixteenS import SixteenS
 __author__ = 'adamkoziol'
 
 
@@ -263,7 +263,7 @@ class Method(object):
         # The report will have every gene for all genera in the header
         header = 'Strain,Genus,{},\n'.format(','.join(geneset))
         data = str()
-        with open(os.path.join(self.reportpath, self.analysistype + '.csv'), 'wb') as report:
+        with open(os.path.join(self.reportpath, self.analysistype + '.csv'), 'w') as report:
             for sample in self.runmetadata.samples:
                 if sample.general.bestassemblyfile != 'NA':
                     # Add the genus/genera found in the sample
@@ -307,7 +307,7 @@ class Method(object):
                         gdcs.append(gene)
         header = 'Strain,Genus,Matches,{},\n'.format(','.join(gdcs))
         data = str()
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
+        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'w') as report:
             # Sort the samples in the report based on the closest refseq genus e.g. all samples with the same genus
             # will be grouped together in the report
             for genus in genera:
@@ -385,7 +385,7 @@ class Method(object):
         self.customsamplesheet = os.path.join(self.samplesheetpath, 'SampleSheet.csv')
         header = ['Sample_ID', 'Sample_Name', 'Sample_Plate', 'Sample_Well', 'I7_Index_ID', 'index', 'I5_Index_ID',
                   'index2', 'Sample_Project', 'Description']
-        with open(self.customsamplesheet, 'wb') as samplesheet:
+        with open(self.customsamplesheet, 'w') as samplesheet:
             lines = str()
             lines += '[Header]\n'
             lines += 'IEMFileVersion,{}\n'.format(self.header['IEMFileVersion'])
@@ -464,7 +464,7 @@ class Method(object):
         make_path(self.reportpath)
         header = 'Strain,Gene,PercentIdentity,Genus,FoldCoverage\n'
         data = ''
-        with open(os.path.join(self.reportpath, self.analysistype + '.csv'), 'wb') as report:
+        with open(os.path.join(self.reportpath, self.analysistype + '.csv'), 'w') as report:
             for sample in self.runmetadata.samples:
                 data += sample.name + ','
                 if sample[self.analysistype].results:

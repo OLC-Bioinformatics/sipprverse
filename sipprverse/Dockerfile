@@ -1,15 +1,12 @@
 # Dockerfile for GeneSippr raw read typing pipeline
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 
 MAINTAINER Dr. Adam G. Koziol <adam.koziol@inspection.gc.ca>
 
 ENV DEBIAN_FRONTEND noninteractive
 
-# Add the accessory files to the image
-ADD accessoryfiles /accessoryfiles
-
 # Install packages
-RUN apt-get update -y -qq && apt-get install -y --force-yes \
+RUN apt-get update -y -qq && apt-get install -y --allow \
 	python-dev \
 	git \
 	curl \
@@ -20,41 +17,37 @@ RUN apt-get update -y -qq && apt-get install -y --force-yes \
 	libbz2-dev \
 	software-properties-common \
 	xsltproc \
-	python-numpy \
 	libncurses5-dev \ 
         pkg-config \ 
         automake \
 	libtool \
 	build-essential \
-	autoconf \	
+	autoconf \
+	python-pip \
+	samtools \
+	#bcftools \
+	bowtie2 \	
 	nano && \
     	apt-get clean  && \
     	rm -rf /var/lib/apt/lists/*
 
+# Upgrade pip
+RUN pip install --upgrade pip
+
 # Install biopython
-RUN python /accessoryfiles/get-pip.py
-RUN easy_install -f http://biopython.org/DIST/ biopython
+RUN pip install numpy==1.9.1
+RUN pip install biopython==1.69
 
 # Install pysamstats
 RUN pip install pysam==0.8.4
-RUN pip install pysamstats
+RUN pip install pysamstats==0.24.2
 
-# Install mash
-ENV PATH /accessoryfiles:$PATH
-
-# Install bowtie2
-ENV PATH /accessoryfiles/bowtie2:$PATH
-
-# Install samtools
-WORKDIR /accessoryfiles/samtools
-RUN make && \ 
-    make prefix=/accessoryfiles/samtools install
-ENV PATH /accessoryfiles/samtools/bin:$PATH
+# Install the pipeline
+RUN git clone https://github.com/OLC-LOC-Bioinformatics/geneSipprV2.git
 
 # Edit the path
 
-ENV PATH /genesipprpipeline/objectOriented:$PATH
-ENV PATH /accessoryfiles/mira/bin:$PATH
+ENV PATH /geneSipprV2/sipprverse:$PATH
 
 # TO RUN
-# docker rm genesippr && docker run -it -v /home/blais/PycharmProjects/geneSipprV2:/genesipprpipeline -v /home/blais/Bioinformatics/00_Analyses/genesippr/:/genesipprrun -v /media/miseq:/media/miseq -v /nas0:/nas0 --name genesippr 192.168.1.5:5000/genesippr geneSipprV2OOP.py /genesipprrun -t /nas0/bio_requests/6396/genesipprAnalysis/targets -s /genesipprrun/sequences -m /media/miseq/MiSeqOutput -f 160421_M02466_0152_000000000-AMLFW -C /nas0/bio_requests/6396/genesipprAnalysis/targets/Organism/Escherichia/vtype
+# docker rm genesippr && docker run -it -v /nas0:/nas0 --name genesippr 192.168.1.5:5000/genesipprmethod method.py /genesipprrun -t /targets -s /genesipprrun/sequences
