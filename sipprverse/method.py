@@ -3,10 +3,12 @@ import subprocess
 import time
 from sipprcommon.sippingmethods import *
 from sipprcommon.objectprep import Objectprep
-from sipprcommon.accessoryfunctions.accessoryFunctions import *
-from sipprcommon.accessoryfunctions.metadataprinter import *
+from accessoryFunctions.accessoryFunctions import *
+from accessoryFunctions.metadataprinter import *
 from geneSipprV2.sipprverse.sixteenS.sixteenS import SixteenS
 from geneSipprV2.sipprverse.sixteenS.sixteens_full import SixteenS as SixteensFull
+
+
 __author__ = 'adamkoziol'
 
 
