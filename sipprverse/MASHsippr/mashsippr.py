@@ -72,6 +72,7 @@ class MashSippr(object):
         else:
             self.runmetadata = MetadataObject()
         self.analysistype = 'mash'
+        self.copy = False
         # Run the analyses
         self.runner()
 
@@ -134,7 +135,7 @@ if __name__ == '__main__':
     MashSippr(arguments, commit, start, homepath)
 
     # Print a bold, green exit statement
-    print '\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m'
+    print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')
 
 
 class PipelineInit(object):

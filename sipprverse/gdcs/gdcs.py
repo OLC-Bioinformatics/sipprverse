@@ -36,7 +36,7 @@ class GDCS(object):
         make_path(self.reportpath)
         header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
         data = ''
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
+        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'w') as report:
             for sample in self.runmetadata.samples:
                 data += sample.name + ','
                 if sample[self.analysistype].results:
@@ -159,4 +159,4 @@ if __name__ == '__main__':
     GDCS(arguments, commit, start, homepath)
 
     # Print a bold, green exit statement
-    print '\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m'
+    print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')

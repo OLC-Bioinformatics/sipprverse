@@ -5,7 +5,8 @@ from sipprcommon.sippingmethods import *
 from sipprcommon.objectprep import Objectprep
 from sipprcommon.accessoryfunctions.accessoryFunctions import *
 from sipprcommon.accessoryfunctions.metadataprinter import *
-from sixteenS.sixteenS import SixteenS
+from geneSipprV2.sipprverse.sixteenS.sixteenS import SixteenS
+from geneSipprV2.sipprverse.sixteenS.sixteens_full import SixteenS as SixteensFull
 __author__ = 'adamkoziol'
 
 
@@ -31,6 +32,8 @@ class Method(object):
         objects.objectprep()
         # Set the metadata
         self.runmetadata = objects.samples
+        self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(self.runmetadata.samples) > 1 \
+            else 1
         # Pull the full length of the forward and reverse reads, as well as the indices
         self.forward = int(objects.forward)
         self.reverse = int(objects.reverse)
@@ -149,11 +152,14 @@ class Method(object):
         Sippr(self, self.cutoff)
         # Create the reports
         self.reporter()
-        # Run the 16S analyses
-        self.analysistype = '16S'
+        # Run the 16S analyses using the filtered database
+        self.analysistype = 'sixteens'
         self.cutoff = 0.985
         self.targetpath = self.reffilepath
         SixteenS(self, self.commit, self.starttime, self.homepath)
+        # Run the 16S analyses on strains that were not classified using the filtered database
+        # self.analysistype = '16S_full'
+        # SixteenS(self, self.commit, self.starttime, self.homepath)
         # Run the GDCS analysis
         self.analysistype = 'GDCS'
         self.pipeline = True
@@ -174,26 +180,29 @@ class Method(object):
         objects = Objectprep(self)
         objects.objectprep()
         self.runmetadata = objects.samples
+        self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(self.runmetadata.samples) > 1 \
+            else 1
         # Run the genesippr analyses
         self.analysistype = 'genesippr'
         self.targetpath = os.path.join(self.reffilepath, self.analysistype, '')
         Sippr(self, self.cutoff)
         # Create the reports
         self.reporter()
-        # Run the 16S analyses
-        self.analysistype = '16S'
+        # Run the 16S analyses using the filtered database
+        # self.analysistype = 'sixteens'
         self.cutoff = 0.985
         self.targetpath = self.reffilepath
-        SixteenS(self, self.commit, self.starttime, self.homepath)
+        # Run the 16S analyses
+        self.analysistype = 'sixteens_full'
+        SixteensFull(self, self.commit, self.starttime, self.homepath)
         # Run the GDCS analysis
         self.analysistype = 'GDCS'
         self.pipeline = True
-        # self.targetpath = os.path.join(self.reffilepath, self.analysistype, '')
         Sippr(self, 0.95)
         # Create the reports
         self.gdcsreporter()
-        '''
-        from .serosippr.serosippr import SeroSippr
+        # '''
+        from geneSipprV2.sipprverse.serosippr.serosippr import SeroSippr
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
                 sample.mash = GenObject()
@@ -211,7 +220,7 @@ class Method(object):
         self.cutoff = 0.9
         self.analysistype = 'serosippr'
         SeroSippr(self, self.commit, self.starttime, self.homepath)
-        '''
+        # '''
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
@@ -344,6 +353,7 @@ class Method(object):
                                                         specific)
                     # Any samples with a best assembly of 'NA' are considered incomplete.
                     else:
+                        data += '{},{}\n'.format(sample.name, sample.general.closestrefseqgenus)
                         sample.general.incomplete = True
             # Write the header and data to file
             report.write(header)
@@ -518,8 +528,8 @@ class Method(object):
         self.cutoff = args.customcutoffs
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
+        self.threads = int()
         self.runmetadata = MetadataObject()
-        self.runmetadata.samples = list()
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
         self.analysistype = 'GeneSippr method'
         self.copy = args.copy
@@ -629,4 +639,5 @@ if __name__ == '__main__':
 -r2
 0
 -C
+
 """

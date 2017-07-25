@@ -32,7 +32,7 @@ class SeroSippr(object):
         make_path(self.reportpath)
         header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
         data = ''
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
+        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'w') as report:
             for sample in self.runmetadata.samples:
                 if sample.general.bestassemblyfile != 'NA':
                     data += sample.name + ','
@@ -95,6 +95,8 @@ class SeroSippr(object):
         else:
 
             self.runmetadata = args.runmetadata
+        self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(self.runmetadata.samples) > 1 \
+            else 1
         # Run the analyses
         self.runner()
 
@@ -165,4 +167,4 @@ if __name__ == '__main__':
     SeroSippr(arguments, commit, start, homepath)
 
     # Print a bold, green exit statement
-    print '\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m'
+    print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')

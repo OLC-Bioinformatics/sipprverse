@@ -26,15 +26,15 @@ class SixteenS(object):
                 objects = Objectprep(self)
                 objects.objectprep()
                 self.runmetadata = objects.samples
-        # Run the analyses
-        Sippr(self, self.cutoff)
-        #
-        self.attributer()
-        # Create the reports
-        self.reporter()
-        # Print the metadata
-        printer = MetadataPrinter(self)
-        printer.printmetadata()
+            # Run the analyses
+            Sippr(self, self.cutoff)
+            #
+            self.attributer()
+            # Create the reports
+            self.reporter()
+            # Print the metadata
+            printer = MetadataPrinter(self)
+            printer.printmetadata()
 
     def attributer(self):
         """
@@ -59,7 +59,7 @@ class SixteenS(object):
             if len(sample[self.analysistype].classification) > 1:
                 # print('multiple: ', sample.name, sample[self.analysistype].classification)
                 sample.general.closestrefseqgenus = sample[self.analysistype].classification
-                sample.general.bestassemblyfile = 'NA'
+                # sample.general.bestassemblyfile = 'NA'
                 sample[self.analysistype].multiple = True
             else:
                 sample[self.analysistype].multiple = False
@@ -113,7 +113,7 @@ class SixteenS(object):
         self.commit = str(pipelinecommit)
         self.starttime = startingtime
         self.homepath = scriptpath
-        self.analysistype = '16S'
+        self.analysistype = args.analysistype
         # Define variables based on supplied arguments
         self.path = os.path.join(args.path, '')
         assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
@@ -210,7 +210,7 @@ if __name__ == '__main__':
     arguments = parser.parse_args()
     arguments.pipeline = False
     arguments.runmetadata.samples = MetadataObject()
-
+    arguments.analysistype = '16S'
     # Define the start time
     start = time.time()
 

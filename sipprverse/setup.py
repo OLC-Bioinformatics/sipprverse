@@ -18,5 +18,7 @@ setup(
                       'pysamstats',
                       'xlsxwriter',
                       'numpy',
-                      'pandas'],
+                      'pandas',
+                      'scipy',
+                      'ete3'],
 )
