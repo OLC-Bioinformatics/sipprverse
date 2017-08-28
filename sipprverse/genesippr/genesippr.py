@@ -84,9 +84,15 @@ class GeneSippr(object):
         self.customsamplesheet = args.customsamplesheet
         # Set the custom cutoff value
         self.cutoff = args.customcutoffs
+        self.copy = args.copy
+        self.runmetadata = MetadataObject()
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
-        self.runmetadata = MetadataObject()
+        try:
+            self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(self.runmetadata.samples) \
+                                                                             > 1 else 1
+        except TypeError:
+            self.threads = self.cpus
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
         self.analysistype = 'genesippr'
         self.pipeline = False
@@ -149,6 +155,10 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--customcutoffs',
                         default=0.8,
                         help='Custom cutoff values')
+    parser.add_argument('-C', '--copy',
+                        action='store_true',
+                        help='Normally, the program will create symbolic links of the files into the sequence path, '
+                             'however, the are occasions when it is necessary to copy the files instead')
     # Get the arguments into an object
     arguments = parser.parse_args()
 
