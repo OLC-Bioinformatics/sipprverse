@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from subprocess import call
 from threading import Thread
-from sipprcommon.accessoryfunctions.accessoryFunctions import *
+from accessoryFunctions.accessoryFunctions import *
 
 __author__ = 'adamkoziol'
 
@@ -105,14 +105,15 @@ class Mash(object):
                 try:
                     referenceid, queryid, sample[self.analysistype].mashdistance, sample[self.analysistype]. \
                         pvalue, sample[self.analysistype].nummatches = data
+                    # The database is formatted such that the reference file name is usually preceded by '-.-'
+                    # e.g. refseq-NZ-1005511-PRJNA224116-SAMN00794588-GCF_000303935.1-.-Escherichia_coli_PA45.fna
+                    #      refseq-NZ-1639-PRJNA224116-SAMN03349770-GCF_000951975.1-p3KSM-Listeria_monocytogenes.fna
+                    sample[self.analysistype].closestrefseq = re.findall(r'.+-(.+)\.fna', referenceid)[0]
+                    sample[self.analysistype].closestrefseqgenus = sample[self.analysistype].closestrefseq.split('_')[0]
+                    sample[self.analysistype].closestrefseqspecies = sample[self.analysistype].closestrefseq.split('_')[
+                        1]
                 except ValueError:
                     sample.general.bestassemblyfile = 'NA'
-                # The database is formatted such that the reference file name is usually preceded by '-.-'
-                # e.g. refseq-NZ-1005511-PRJNA224116-SAMN00794588-GCF_000303935.1-.-Escherichia_coli_PA45.fna
-                #      refseq-NZ-1639-PRJNA224116-SAMN03349770-GCF_000951975.1-p3KSM-Listeria_monocytogenes.fna
-                sample[self.analysistype].closestrefseq = re.findall(r'.+-(.+)\.fna', referenceid)[0]
-                sample[self.analysistype].closestrefseqgenus = sample[self.analysistype].closestrefseq.split('_')[0]
-                sample[self.analysistype].closestrefseqspecies = sample[self.analysistype].closestrefseq.split('_')[1]
             else:
                 # Populate the attribute with negative results
                 sample[self.analysistype].closestrefseqgenus = 'NA'

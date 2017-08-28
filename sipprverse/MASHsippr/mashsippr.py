@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import subprocess
 import time
-from mash import *
-from sipprcommon.objectprep import Objectprep
-from sipprcommon.accessoryfunctions.accessoryFunctions import *
+from geneSipprV2.sipprverse.MASHsippr.mash import *
+from sipprCommon.objectprep import Objectprep
+from accessoryFunctions.accessoryFunctions import *
 
 __author__ = 'adamkoziol'
 

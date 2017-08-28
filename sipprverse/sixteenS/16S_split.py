@@ -1,5 +1,5 @@
 #!/usr/bin/env python 3
-from sipprcommon.accessoryfunctions.accessoryFunctions import *
+from accessoryFunctions.accessoryFunctions import *
 import subprocess
 __author__ = 'adamkoziol'
 

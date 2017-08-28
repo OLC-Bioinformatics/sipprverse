@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 import subprocess
 import time
-from sipprcommon.sippingmethods import *
-from sipprcommon.objectprep import Objectprep
+from sipprCommon.sippingmethods import *
+from sipprCommon.objectprep import Objectprep
 from accessoryFunctions.accessoryFunctions import *
 from accessoryFunctions.metadataprinter import *
 from geneSipprV2.sipprverse.sixteenS.sixteenS import SixteenS

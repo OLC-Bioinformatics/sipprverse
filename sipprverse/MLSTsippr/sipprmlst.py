@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from sipprcommon.sippingmethods import *
+from sipprCommon.sippingmethods import *
 __author__ = 'adamkoziol'
 
 
@@ -54,7 +54,8 @@ class MLSTmap(Sippr):
                         sample[self.analysistype].hashcall = hashcall
                         sample[self.analysistype].hashfile = hashfile
                         sample[self.analysistype].targetpath = self.targetpath
-                        sample[self.analysistype].outputdir = os.path.join(sample.run.outputdirectory, self.analysistype)
+                        sample[self.analysistype].outputdir = os.path.join(sample.run.outputdirectory,
+                                                                           self.analysistype)
                         sample[self.analysistype].baitedfastq = '{}/{}_targetMatches.fastq'\
                             .format(sample[self.analysistype].outputdir, self.analysistype)
         # Run the baiting method in the Sippr class

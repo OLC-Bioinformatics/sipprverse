@@ -1,5 +1,5 @@
 #!/usr/bin/env python 3
-from sipprcommon.accessoryfunctions.accessoryFunctions import *
+from accessoryFunctions.accessoryFunctions import *
 from Bio import SeqIO
 from ete3 import NCBITaxa
 import shutil

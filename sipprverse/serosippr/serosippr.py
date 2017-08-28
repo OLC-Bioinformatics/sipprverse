@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import subprocess
 import time
-from sipprcommon.sippingmethods import *
-from sipprcommon.objectprep import Objectprep
-from sipprcommon.accessoryfunctions.accessoryFunctions import *
-from sipprcommon.accessoryfunctions.metadataprinter import *
+from sipprCommon.sippingmethods import *
+from sipprCommon.objectprep import Objectprep
+from accessoryFunctions.accessoryFunctions import *
+from accessoryFunctions.metadataprinter import *
 
 __author__ = 'adamkoziol'
 

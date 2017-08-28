@@ -2,9 +2,9 @@
 from Bio import SeqIO
 import operator
 import time
-from sipprcommon.sippingmethods import *
-from sipprcommon.objectprep import Objectprep
-from sipprcommon.accessoryfunctions.accessoryFunctions import *
+from sipprCommon.sippingmethods import *
+from sipprCommon.objectprep import Objectprep
+from accessoryFunctions.accessoryFunctions import *
 
 __author__ = 'adamkoziol'
 
@@ -119,12 +119,15 @@ class SixteenSSipper(Sippr):
                 samsort = SamtoolsSortCommandline(input=sample[self.analysistype].sortedbam,
                                                   o=True,
                                                   out_prefix="-")
+                # Determine the location of the SAM header editing script
+                import sipprCommon.editsamheaders
+                scriptlocation = sipprCommon.editsamheaders.__file__
                 samtools = [
                     # When bowtie2 maps reads to all possible locations rather than choosing a 'best' placement, the
                     # SAM header for that read is set to 'secondary alignment', or 256. Please see:
                     # http://davetang.org/muse/2014/03/06/understanding-bam-flags/ The script below reads in the stdin
                     # and subtracts 256 from headers which include 256
-                    'python {}/sipprcommon/editsamheaders.py'.format(self.homepath),
+                    'python3 {}'.format(scriptlocation),
                     # Use samtools wrapper to set up the samtools view
                     SamtoolsViewCommandline(b=True,
                                             S=True,
@@ -332,7 +335,8 @@ class SixteenS(object):
                 objects = Objectprep(self)
                 objects.objectprep()
                 self.runmetadata = objects.samples
-            self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(self.runmetadata.samples) > 1 \
+            self.threads = int(self.cpus / len(self.runmetadata.samples)) \
+                if self.cpus / len(self.runmetadata.samples) > 1 \
                 else 1
             # Use a custom sippr method to use the full reference database as bait, and run mirabait against the FASTQ
             # reads - do not perform reference mapping yet
@@ -463,8 +467,10 @@ class SixteenS(object):
         while True:
             sample, blastn = self.blastqueue.get()
             if not os.path.isfile(sample[self.analysistype].blastreport):
-                # Perform the BLAST analysis
-                blastn()
+                # Ensure that the query file exists; this can happen with very small .fastq files
+                if os.path.isfile(sample[self.analysistype].fasta):
+                    # Perform the BLAST analysis
+                    blastn()
             self.blastqueue.task_done()
 
     def blastparse(self):
@@ -476,32 +482,39 @@ class SixteenS(object):
         # Load the NCBI 16S reference database as a dictionary
         dbrecords = SeqIO.to_dict(SeqIO.parse(self.baitfile, 'fasta'))
         for sample in self.runmetadata.samples:
-            # Initialise a dictionary to store the number of times a genus is the best hit
-            sample[self.analysistype].frequency = dict()
-            # Open the sequence profile file as a dictionary
-            blastdict = DictReader(open(sample[self.analysistype].blastreport),
-                                   fieldnames=self.fieldnames, dialect='excel-tab')
-            for record in blastdict:
-                # Create the subject id. It will look like this: gi|1018196593|ref|NR_136472.1|
-                subject = record['subject_id']
-                # Extract the genus name. Use the subject id as a key in the dictionary of the reference database. It
-                # will return the full record description e.g. gi|1018196593|ref|NR_136472.1| Escherichia marmotae
-                # strain HT073016 16S ribosomal RNA, partial sequence
-                # This full description can be manipulated to extract the genus e.g. Escherichia
-                genus = dbrecords[subject].description.split('|')[-1].split()[0]
-                # Increment the number of times this genus was encountered, or initialise the dictionary with this
-                # genus the first time it is seen
-                try:
-                    sample[self.analysistype].frequency[genus] += 1
-                except KeyError:
-                    sample[self.analysistype].frequency[genus] = 1
-            # Sort the dictionary based on the number of times a genus is seen
-            sample[self.analysistype].sortedgenera = sorted(sample[self.analysistype].frequency.items(),
-                                                            key=operator.itemgetter(1), reverse=True)
-            # Extract the top result, and set it as the genus of the sample
-            sample[self.analysistype].genus = sample[self.analysistype].sortedgenera[0][0]
-            # Previous code relies on having the closest refseq genus, so set this as above
-            sample.general.closestrefseqgenus = sample[self.analysistype].genus
+            # Allow for no BLAST results
+            if os.path.isfile(sample[self.analysistype].blastreport):
+                # Initialise a dictionary to store the number of times a genus is the best hit
+                sample[self.analysistype].frequency = dict()
+                # Open the sequence profile file as a dictionary
+                blastdict = DictReader(open(sample[self.analysistype].blastreport),
+                                       fieldnames=self.fieldnames, dialect='excel-tab')
+                for record in blastdict:
+                    # Create the subject id. It will look like this: gi|1018196593|ref|NR_136472.1|
+                    subject = record['subject_id']
+                    # Extract the genus name. Use the subject id as a key in the dictionary of the reference database.
+                    # It will return the full record e.g. gi|1018196593|ref|NR_136472.1| Escherichia marmotae
+                    # strain HT073016 16S ribosomal RNA, partial sequence
+                    # This full description can be manipulated to extract the genus e.g. Escherichia
+                    genus = dbrecords[subject].description.split('|')[-1].split()[0]
+                    # Increment the number of times this genus was encountered, or initialise the dictionary with this
+                    # genus the first time it is seen
+                    try:
+                        sample[self.analysistype].frequency[genus] += 1
+                    except KeyError:
+                        sample[self.analysistype].frequency[genus] = 1
+                # Sort the dictionary based on the number of times a genus is seen
+                sample[self.analysistype].sortedgenera = sorted(sample[self.analysistype].frequency.items(),
+                                                                key=operator.itemgetter(1), reverse=True)
+                # Extract the top result, and set it as the genus of the sample
+                sample[self.analysistype].genus = sample[self.analysistype].sortedgenera[0][0]
+                # Previous code relies on having the closest refseq genus, so set this as above
+                sample.general.closestrefseqgenus = sample[self.analysistype].genus
+            else:
+                # Populate attributes with 'NA'
+                sample[self.analysistype].sortedgenera = 'NA'
+                sample[self.analysistype].genus = 'NA'
+                sample.general.closestrefseqgenus = 'NA'
 
     def reporter(self):
         """
@@ -514,7 +527,7 @@ class SixteenS(object):
         data = ''
         with open(os.path.join(self.reportpath, self.analysistype + '.csv'), 'w') as report:
             for sample in self.runmetadata.samples:
-                if sample[self.analysistype].results:
+                try:
                     # Select the best hit of all the full-length 16S genes mapped
                     sample[self.analysistype].besthit = sorted(sample[self.analysistype].results.items(),
                                                                key=operator.itemgetter(1), reverse=True)[0][0]
@@ -526,7 +539,7 @@ class SixteenS(object):
                         if name == sample[self.analysistype].besthit:
                             data += '{},{},{},{}\n'.format(name, identity, sample[self.analysistype].genus,
                                                            sample[self.analysistype].avgdepth[name])
-                else:
+                except (KeyError, IndexError):
                     data += '\n'
             # Write the results to the report
             report.write(header)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from sipprcommon.sippingmethods import *
+from sipprCommon.sippingmethods import *
 __author__ = 'adamkoziol'
 
 
@@ -14,7 +14,7 @@ class Custom(object):
         #
         header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
         data = ''
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
+        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'w') as report:
             for sample in self.metadata:
                 data += sample.name + ','
                 multiple = False

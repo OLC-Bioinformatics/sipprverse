@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 import subprocess
 import time
-from sipprmlst import MLSTmap
-from sipprcommon.sippingmethods import *
-from sipprcommon.objectprep import Objectprep
-from sipprcommon.accessoryfunctions.accessoryFunctions import *
-from sipprcommon.metadataprinter import MetadataPrinter
+from geneSipprV2.sipprverse.MLSTsippr.sipprmlst import MLSTmap
+from sipprCommon.objectprep import Objectprep
+from accessoryFunctions.accessoryFunctions import *
+from accessoryFunctions.metadataprinter import MetadataPrinter
 
 __author__ = 'adamkoziol'
 
@@ -24,10 +23,9 @@ class GeneSippr(object):
         # Run the analyses
         MLSTmap(self, self.analysistype)
         # Create the reports
-        # self.reporter()
+        self.reporter()
         # Print the metadata to a .json file
         MetadataPrinter(self)
-
 
     def reporter(self):
         """
@@ -37,7 +35,7 @@ class GeneSippr(object):
         make_path(self.reportpath)
         header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
         data = ''
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'wb') as report:
+        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'w') as report:
             for sample in self.runmetadata.samples:
                 data += sample.name + ','
                 if sample[self.analysistype].results:
@@ -179,4 +177,4 @@ if __name__ == '__main__':
     GeneSippr(arguments, commit, start, homepath)
 
     # Print a bold, green exit statement
-    print '\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m'
+    print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')

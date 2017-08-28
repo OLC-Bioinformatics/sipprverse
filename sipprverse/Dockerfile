@@ -80,6 +80,9 @@ RUN tar -xvjf mira.tar.bz2 && rm mira.tar.bz2
 RUN mv mira* /mira
 ENV PATH /mira/bin:$PATH
 
+# Install OLCTools
+RUN pip install OLCTools
+
 # Install the pipeline
 WORKDIR /
 RUN git clone https://github.com/OLC-LOC-Bioinformatics/geneSipprV2.git --recursive
