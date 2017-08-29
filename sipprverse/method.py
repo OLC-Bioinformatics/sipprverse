@@ -204,7 +204,7 @@ class Method(object):
         # Create the reports
         self.gdcsreporter()
         # '''
-        from geneSipprV2.sipprverse.serosippr.serosippr import SeroSippr
+        from serosippr.serosippr import SeroSippr
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
                 sample.mash = GenObject()
