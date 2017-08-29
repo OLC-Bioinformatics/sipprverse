@@ -26,6 +26,7 @@ RUN apt-get update -y -qq && apt-get install -y \
 	autoconf \
 	python3-pip \
 	unzip \
+        ncbi-blast+ \
 	nano && \
     	apt-get clean  && \
     	rm -rf /var/lib/apt/lists/*
@@ -83,8 +84,14 @@ ENV PATH /mira/bin:$PATH
 # Install OLCTools
 RUN pip install OLCTools
 
-# Install the pipeline
+# Install seqtk
 WORKDIR /
+RUN git clone https://github.com/lh3/seqtk.git
+RUN cd /seqtk && make
+# Edit the path
+ENV PATH /seqtk:$PATH
+
+# Install the pipeline
 RUN git clone https://github.com/OLC-LOC-Bioinformatics/geneSipprV2.git --recursive
 
 # Edit the path
