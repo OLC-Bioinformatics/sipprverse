@@ -27,6 +27,7 @@ RUN apt-get update -y -qq && apt-get install -y \
 	python3-pip \
 	unzip \
         ncbi-blast+ \
+	fastx-toolkit \
 	nano && \
     	apt-get clean  && \
     	rm -rf /var/lib/apt/lists/*

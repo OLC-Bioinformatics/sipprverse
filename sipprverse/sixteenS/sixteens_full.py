@@ -390,7 +390,7 @@ class SixteenS(object):
 
     def fasta(self):
         """
-        Convert the subsampled reads to FASTA format
+        Convert the subsampled reads to FASTA format using fastq_to_fasta from the FASTX toolkit
         """
         printtime('Converting FASTQ files to FASTA format', self.starttime)
         # Create the threads for the analysis
