@@ -5,8 +5,8 @@ from sipprCommon.sippingmethods import *
 from sipprCommon.objectprep import Objectprep
 from accessoryFunctions.accessoryFunctions import *
 from accessoryFunctions.metadataprinter import *
-from geneSipprV2.sipprverse.sixteenS.sixteenS import SixteenS
-from geneSipprV2.sipprverse.sixteenS.sixteens_full import SixteenS as SixteensFull
+from sixteenS.sixteenS import SixteenS
+from sixteenS.sixteens_full import SixteenS as SixteensFull
 
 
 __author__ = 'adamkoziol'
