@@ -527,7 +527,7 @@ class Method(object):
         self.numreads = 2 if self.reverselength != 0 else 1
         self.customsamplesheet = args.customsamplesheet
         # Set the custom cutoff value
-        self.cutoff = args.customcutoffs
+        self.cutoff = float(args.customcutoffs)
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
         self.threads = int()

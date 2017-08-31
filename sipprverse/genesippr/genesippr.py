@@ -83,7 +83,8 @@ class GeneSippr(object):
         self.numreads = 2 if self.reverselength != 0 else 1
         self.customsamplesheet = args.customsamplesheet
         # Set the custom cutoff value
-        self.cutoff = args.customcutoffs
+        self.cutoff = float(args.customcutoffs)
+        self.averagedepth = int(args.averagedepth)
         self.copy = args.copy
         self.runmetadata = MetadataObject()
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
@@ -155,6 +156,9 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--customcutoffs',
                         default=0.8,
                         help='Custom cutoff values')
+    parser.add_argument('-a', '--averagedepth',
+                        default=10,
+                        help='Supply an integer of the minimum mapping depth in order to return a positive result ')
     parser.add_argument('-C', '--copy',
                         action='store_true',
                         help='Normally, the program will create symbolic links of the files into the sequence path, '

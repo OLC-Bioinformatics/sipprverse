@@ -20,5 +20,5 @@ setup(
                       'numpy',
                       'pandas',
                       'scipy',
-                      'ete3'],
+                      'ete3', 'psutil'],
 )
