@@ -16,10 +16,13 @@ class GeneSippr(object):
         Run the necessary methods in the correct order
         """
         printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
-        # Create the objects to be used in the analyses
-        objects = Objectprep(self)
-        objects.objectprep()
-        self.runmetadata = objects.samples
+        if not self.pipeline:
+            # Create the objects to be used in the analyses
+            objects = Objectprep(self)
+            objects.objectprep()
+            self.runmetadata = objects.samples
+        else:
+            self.targetpath = os.path.join(self.targetpath, self.analysistype)
         # Run the analyses
         Sippr(self, self.cutoff)
         # Create the reports
@@ -52,12 +55,14 @@ class GeneSippr(object):
             report.write(header)
             report.write(data)
 
-    def __init__(self, args, pipelinecommit, startingtime, scriptpath):
+    def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline):
         """
         :param args: command line arguments
         :param pipelinecommit: pipeline commit or version
         :param startingtime: time the script was started
         :param scriptpath: home path of the script
+        :param analysistype: name of the analysis being performed - allows the program to find databases
+        :param cutoff: percent identity cutoff for matches
         """
         import multiprocessing
         # Initialise variables
@@ -67,36 +72,57 @@ class GeneSippr(object):
         # Define variables based on supplied arguments
         self.path = os.path.join(args.path, '')
         assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
-        self.sequencepath = os.path.join(args.sequencepath, '')
+        try:
+            self.sequencepath = os.path.join(args.sequencepath, '')
+        except AttributeError:
+            self.sequencepath = self.path
         assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
-        self.targetpath = os.path.join(args.targetpath, '')
+        try:
+            self.targetpath = os.path.join(args.reffilepath, analysistype)
+        except AttributeError:
+            self.targetpath = os.path.join(args.targetpath, '')
         self.reportpath = os.path.join(self.path, 'reports')
         assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
-        self.bcltofastq = args.bcl2fastq
+        try:
+            self.bcltofastq = args.bcltofastq
+        except AttributeError:
+            self.bcltofastq = False
         self.miseqpath = args.miseqpath
-        self.miseqfolder = args.miseqfolder
-        self.fastqdestination = args.destinationfastq
-        self.forwardlength = args.readlengthforward
-        self.reverselength = args.readlengthreverse
+        try:
+            self.miseqfolder = args.miseqfolder
+        except AttributeError:
+            self.miseqfolder = str()
+        self.fastqdestination = args.fastqdestination
+        self.forwardlength = args.forwardlength
+        self.reverselength = args.reverselength
         self.numreads = 2 if self.reverselength != 0 else 1
         self.customsamplesheet = args.customsamplesheet
         # Set the custom cutoff value
-        self.cutoff = float(args.customcutoffs)
-        self.averagedepth = int(args.averagedepth)
-        self.copy = args.copy
-        self.runmetadata = MetadataObject()
+        self.cutoff = float(cutoff)
+        try:
+            self.averagedepth = int(args.averagedepth)
+        except AttributeError:
+            self.averagedepth = 10
+        try:
+            self.copy = args.copy
+        except AttributeError:
+            self.copy = False
+        self.runmetadata = args.runmetadata
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
-        self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
+        try:
+            self.cpus = int(args.cpus)
+        except AttributeError:
+            self.cpus = multiprocessing.cpu_count()
         try:
             self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(self.runmetadata.samples) \
                                                                              > 1 else 1
         except TypeError:
             self.threads = self.cpus
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
-        self.analysistype = 'genesippr'
-        self.pipeline = False
+        self.analysistype = analysistype
+        self.pipeline = pipeline
         # Run the analyses
         self.runner()
 
@@ -131,14 +157,14 @@ if __name__ == '__main__':
                         help='Path of the folder containing MiSeq run data folder')
     parser.add_argument('-f', '--miseqfolder',
                         help='Name of the folder containing MiSeq run data')
-    parser.add_argument('-d', '--destinationfastq',
+    parser.add_argument('-d', '--fastqdestination',
                         help='Optional folder path to store .fastq files created using the fastqCreation module. '
                              'Defaults to path/miseqfolder')
-    parser.add_argument('-r1', '--readlengthforward',
+    parser.add_argument('-r1', '--forwardlength',
                         default='full',
                         help='Length of forward reads to use. Can specify "full" to take the full length of '
                              'forward reads specified on the SampleSheet')
-    parser.add_argument('-r2', '--readlengthreverse',
+    parser.add_argument('-r2', '--reverselength',
                         default='full',
                         help='Length of reverse reads to use. Can specify "full" to take the full length of '
                              'reverse reads specified on the SampleSheet')
@@ -165,12 +191,14 @@ if __name__ == '__main__':
                              'however, the are occasions when it is necessary to copy the files instead')
     # Get the arguments into an object
     arguments = parser.parse_args()
-
+    arguments.pipeline = False
+    arguments.runmetadata.samples = MetadataObject()
+    arguments.analysistype = 'genesippr'
     # Define the start time
     start = time.time()
 
     # Run the script
-    GeneSippr(arguments, commit, start, homepath)
+    GeneSippr(arguments, commit, start, homepath, arguments.analysistype, arguments.cutoff, arguments.pipeline)
 
     # Print a bold, green exit statement
     print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')

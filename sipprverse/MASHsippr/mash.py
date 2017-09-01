@@ -10,42 +10,40 @@ class Mash(object):
     def sketching(self):
         printtime('Indexing files for {} analysis'.format(self.analysistype), self.starttime)
         # Create the threads for the analysis
-        for sample in self.metadata:
-            if sample.general.bestassemblyfile != 'NA':
-                threads = Thread(target=self.sketch, args=())
-                threads.setDaemon(True)
-                threads.start()
+        for i in range(self.cpus):
+            threads = Thread(target=self.sketch, args=())
+            threads.setDaemon(True)
+            threads.start()
         # Populate threads for each gene, genome combination
         for sample in self.metadata:
             # Create the analysis type-specific GenObject
             setattr(sample, self.analysistype, GenObject())
-            if sample.general.bestassemblyfile != 'NA':
-                # Set attributes
-                sample[self.analysistype].reportdir = os.path.join(sample.general.outputdirectory, self.analysistype)
-                sample[self.analysistype].targetpath = self.referencefilepath if not self.pipeline else os.path.join(
-                    self.referencefilepath, self.analysistype)
-                sample[self.analysistype].refseqsketch = \
-                    sample[self.analysistype].targetpath + '/RefSeqSketchesDefaults.msh'
-                sample[self.analysistype].sketchfilenoext = '{}/{}'.format(sample[self.analysistype].reportdir,
-                                                                           sample.name)
-                sample[self.analysistype].sketchfile = sample[self.analysistype].sketchfilenoext + '.msh'
-                # Make the mash output directory if necessary
-                make_path(sample[self.analysistype].reportdir)
-                # Create a file containing the path/name of the filtered, corrected fastq files
-                sample[self.analysistype].filelist = '{}/{}_fastqfiles.txt'.format(sample[self.analysistype].reportdir,
-                                                                                   sample.name)
-                with open(sample[self.analysistype].filelist, 'w') as filelist:
-                    filelist.write('\n'.join(sample.general.trimmedcorrectedfastqfiles))
+            # Set attributes
+            sample[self.analysistype].reportdir = os.path.join(sample.general.outputdirectory, self.analysistype)
+            sample[self.analysistype].targetpath = self.referencefilepath if not self.pipeline else os.path.join(
+                self.referencefilepath, self.analysistype)
+            sample[self.analysistype].refseqsketch = \
+                sample[self.analysistype].targetpath + '/RefSeqSketchesDefaults.msh'
+            sample[self.analysistype].sketchfilenoext = '{}/{}'.format(sample[self.analysistype].reportdir,
+                                                                       sample.name)
+            sample[self.analysistype].sketchfile = sample[self.analysistype].sketchfilenoext + '.msh'
+            # Make the mash output directory if necessary
+            make_path(sample[self.analysistype].reportdir)
+            # Create a file containing the path/name of the filtered, corrected fastq files
+            sample[self.analysistype].filelist = '{}/{}_fastqfiles.txt'.format(sample[self.analysistype].reportdir,
+                                                                               sample.name)
+            with open(sample[self.analysistype].filelist, 'w') as filelist:
+                filelist.write('\n'.join(sample.general.trimmedcorrectedfastqfiles))
 
-                # Create the system call
-                sample.commands.sketch = 'mash sketch -m 2 -p {} -l {} -o {}' \
-                    .format(self.cpus, sample[self.analysistype].filelist, sample[self.analysistype].sketchfilenoext)
-                # Add each sample to the threads
-                try:
-                    self.sketchqueue.put(sample)
-                except (KeyboardInterrupt, SystemExit):
-                    printtime('Received keyboard interrupt, quitting threads', self.starttime)
-                    quit()
+            # Create the system call
+            sample.commands.sketch = 'mash sketch -m 2 -p {} -l {} -o {}' \
+                .format(self.cpus, sample[self.analysistype].filelist, sample[self.analysistype].sketchfilenoext)
+            # Add each sample to the threads
+            try:
+                self.sketchqueue.put(sample)
+            except (KeyboardInterrupt, SystemExit):
+                printtime('Received keyboard interrupt, quitting threads', self.starttime)
+                quit()
         # Join the threads
         self.sketchqueue.join()
         self.mashing()
@@ -60,28 +58,25 @@ class Mash(object):
     def mashing(self):
         printtime('Performing {} analyses'.format(self.analysistype), self.starttime)
         # Create the threads for the analysis
-        # for sample in self.metadata:
-        #     if sample.general.bestassemblyfile != 'NA':
         for i in range(self.cpus):
                 threads = Thread(target=self.mash, args=())
                 threads.setDaemon(True)
                 threads.start()
         # Populate threads for each gene, genome combination
         for sample in self.metadata:
-            if sample.general.bestassemblyfile != 'NA':
-                sample[self.analysistype].mashresults = '{}/{}.tab'.format(sample[self.analysistype].reportdir,
-                                                                           sample.name)
+            sample[self.analysistype].mashresults = '{}/{}.tab'.format(sample[self.analysistype].reportdir,
+                                                                       sample.name)
 
-                sample.commands.mash = \
-                    'mash dist -p {} {} {} | sort -gk3 > {}'.format(self.threads,
-                                                                    sample[self.analysistype].refseqsketch,
-                                                                    sample[self.analysistype].sketchfile,
-                                                                    sample[self.analysistype].mashresults)
-                try:
-                    self.mashqueue.put(sample)
-                except (KeyboardInterrupt, SystemExit):
-                    printtime('Received keyboard interrupt, quitting threads', self.starttime)
-                    quit()
+            sample.commands.mash = \
+                'mash dist -p {} {} {} | sort -gk3 > {}'.format(self.threads,
+                                                                sample[self.analysistype].refseqsketch,
+                                                                sample[self.analysistype].sketchfile,
+                                                                sample[self.analysistype].mashresults)
+            try:
+                self.mashqueue.put(sample)
+            except (KeyboardInterrupt, SystemExit):
+                printtime('Received keyboard interrupt, quitting threads', self.starttime)
+                quit()
         # Join the threads
         self.mashqueue.join()
         self.parse()
@@ -97,24 +92,22 @@ class Mash(object):
         import re
         printtime('Determining closest refseq genome', self.starttime)
         for sample in self.metadata:
-            if sample.general.bestassemblyfile != 'NA':
-                # Open the results and extract the first line of data
-                mashdata = open(sample[self.analysistype].mashresults).readline().rstrip()
-                # Split on tabs
-                data = mashdata.split('\t')
-                try:
-                    referenceid, queryid, sample[self.analysistype].mashdistance, sample[self.analysistype]. \
-                        pvalue, sample[self.analysistype].nummatches = data
-                    # The database is formatted such that the reference file name is usually preceded by '-.-'
-                    # e.g. refseq-NZ-1005511-PRJNA224116-SAMN00794588-GCF_000303935.1-.-Escherichia_coli_PA45.fna
-                    #      refseq-NZ-1639-PRJNA224116-SAMN03349770-GCF_000951975.1-p3KSM-Listeria_monocytogenes.fna
-                    sample[self.analysistype].closestrefseq = re.findall(r'.+-(.+)\.fna', referenceid)[0]
-                    sample[self.analysistype].closestrefseqgenus = sample[self.analysistype].closestrefseq.split('_')[0]
-                    sample[self.analysistype].closestrefseqspecies = sample[self.analysistype].closestrefseq.split('_')[
-                        1]
-                except ValueError:
-                    sample.general.bestassemblyfile = 'NA'
-            else:
+            # Open the results and extract the first line of data
+            mashdata = open(sample[self.analysistype].mashresults).readline().rstrip()
+            # Split on tabs
+            data = mashdata.split('\t')
+            try:
+                referenceid, queryid, sample[self.analysistype].mashdistance, sample[self.analysistype]. \
+                    pvalue, sample[self.analysistype].nummatches = data
+                # The database is formatted such that the reference file name is usually preceded by '-.-'
+                # e.g. refseq-NZ-1005511-PRJNA224116-SAMN00794588-GCF_000303935.1-.-Escherichia_coli_PA45.fna
+                #      refseq-NZ-1639-PRJNA224116-SAMN03349770-GCF_000951975.1-p3KSM-Listeria_monocytogenes.fna
+                sample[self.analysistype].closestrefseq = re.findall(r'.+-(.+)\.fna', referenceid)[0]
+                sample[self.analysistype].closestrefseqgenus = sample[self.analysistype].closestrefseq.split('_')[0]
+                sample[self.analysistype].closestrefseqspecies = sample[self.analysistype].closestrefseq.split('_')[1]
+                # Set the closest refseq genus - will be used for all typing that requires the genus to be known
+                sample.general.referencegenus = sample[self.analysistype].closestrefseqgenus
+            except ValueError:
                 # Populate the attribute with negative results
                 sample[self.analysistype].closestrefseqgenus = 'NA'
         # Create the report
@@ -125,14 +118,14 @@ class Mash(object):
         header = 'Strain,ReferenceGenus,ReferenceFile,ReferenceGenomeMashDistance,Pvalue,NumMatchingHashes\n'
         data = ''
         for sample in self.metadata:
-            if sample.general.bestassemblyfile != 'NA':
+            try:
                 data += '{},{},{},{},{},{}\n'.format(sample.name,
                                                      sample[self.analysistype].closestrefseqgenus,
                                                      sample[self.analysistype].closestrefseq,
                                                      sample[self.analysistype].mashdistance,
                                                      sample[self.analysistype].pvalue,
                                                      sample[self.analysistype].nummatches)
-            else:
+            except AttributeError:
                 data += '{}\n'.format(sample.name)
         # Create the report file
         reportfile = '{}/mash.csv'.format(self.reportpath)

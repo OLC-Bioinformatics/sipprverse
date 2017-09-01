@@ -22,7 +22,7 @@ class SixteenSBait(Sippr):
                 baitpath = os.path.join(self.targetpath, 'bait')
                 sample[self.analysistype].baitfile = glob(os.path.join(baitpath, '*.fa'))[0]
                 # Create the hash file of the baitfile
-                targetbase = sample[self.analysistype].baitfile.split('.')[0]
+                targetbase = os.path.splitext(sample[self.analysistype].baitfile)[0]
                 sample[self.analysistype].hashfile = targetbase + '.mhs.gz'
                 sample[self.analysistype].hashcall = 'cd {} && mirabait -b {} -k 19 -K {}' \
                     .format(sample[self.analysistype].targetpath,
@@ -110,7 +110,7 @@ class SixteenSSipper(Sippr):
                 sample[self.analysistype].sortedbam = '{}/{}_sorted.bam'.format(sample[self.analysistype].outputdir,
                                                                                 self.analysistype)
                 # Remove the file extension of the bait file for use in the indexing command
-                sample[self.analysistype].mappingfilenoext = sample[self.analysistype].mappingfile.split('.')[0]
+                sample[self.analysistype].mappingfilenoext = os.path.splitext(sample[self.analysistype].mappingfile)[0]
                 # Use bowtie2 wrapper to create index the target file
                 bowtie2build = Bowtie2BuildCommandLine(reference=sample[self.analysistype].mappingfile,
                                                        bt2=sample[self.analysistype].mappingfilenoext,
@@ -335,27 +335,32 @@ class SixteenS(object):
                 objects = Objectprep(self)
                 objects.objectprep()
                 self.runmetadata = objects.samples
-            self.threads = int(self.cpus / len(self.runmetadata.samples)) \
-                if self.cpus / len(self.runmetadata.samples) > 1 \
-                else 1
-            # Use a custom sippr method to use the full reference database as bait, and run mirabait against the FASTQ
-            # reads - do not perform reference mapping yet
-            SixteenSBait(self, self.cutoff)
-            # Subsample 1000 reads from the FASTQ files
-            self.subsample()
-            # Convert the subsampled FASTQ files to FASTA format
-            self.fasta()
-            # Create BLAST databases if required
-            self.makeblastdb()
-            # Run BLAST analyses of the subsampled FASTA files against the NCBI 16S reference database
-            self.blast()
-            # Parse the BLAST results
-            self.blastparse()
-            # Feed the BLAST results into a modified sippr method to perform reference mapping using the calculated
-            # genus of the sample as the mapping file
-            SixteenSSipper(self, self.cutoff)
-            # Create reports
-            self.reporter()
+
+        else:
+            for sample in self.runmetadata.samples:
+                setattr(sample, self.analysistype, GenObject())
+                sample.run.outputdirectory = sample.general.outputdirectory
+        self.threads = int(self.cpus / len(self.runmetadata.samples)) \
+            if self.cpus / len(self.runmetadata.samples) > 1 \
+            else 1
+        # Use a custom sippr method to use the full reference database as bait, and run mirabait against the FASTQ
+        # reads - do not perform reference mapping yet
+        SixteenSBait(self, self.cutoff)
+        # Subsample 1000 reads from the FASTQ files
+        self.subsample()
+        # Convert the subsampled FASTQ files to FASTA format
+        self.fasta()
+        # Create BLAST databases if required
+        self.makeblastdb()
+        # Run BLAST analyses of the subsampled FASTA files against the NCBI 16S reference database
+        self.blast()
+        # Parse the BLAST results
+        self.blastparse()
+        # Feed the BLAST results into a modified sippr method to perform reference mapping using the calculated
+        # genus of the sample as the mapping file
+        SixteenSSipper(self, self.cutoff)
+        # Create reports
+        self.reporter()
 
     def subsample(self):
         """
@@ -426,7 +431,7 @@ class SixteenS(object):
             self.baitfile = sample[self.analysistype].baitfile
             break
         # Remove the file extension
-        db = self.baitfile.split('.')[0]
+        db = os.path.splitext(self.baitfile)[0]
         # Add '.nhr' for searching below
         nhr = '{}.nhr'.format(db)
         # Check for already existing database files
@@ -545,12 +550,14 @@ class SixteenS(object):
             report.write(header)
             report.write(data)
 
-    def __init__(self, args, pipelinecommit, startingtime, scriptpath):
+    def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff):
         """
         :param args: command line arguments
         :param pipelinecommit: pipeline commit or version
         :param startingtime: time the script was started
         :param scriptpath: home path of the script
+        :param analysistype: name of the analysis being performed - allows the program to find databases
+        :param cutoff: percent identity cutoff for matches
         """
         import multiprocessing
         from queue import Queue
@@ -558,36 +565,51 @@ class SixteenS(object):
         self.commit = str(pipelinecommit)
         self.starttime = startingtime
         self.homepath = scriptpath
-        self.analysistype = args.analysistype
+        self.analysistype = analysistype
         # Define variables based on supplied arguments
         self.path = os.path.join(args.path, '')
         assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
-        self.sequencepath = os.path.join(args.sequencepath, '')
+        try:
+            self.sequencepath = os.path.join(args.sequencepath, '')
+        except AttributeError:
+            self.sequencepath = self.path
         assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
-        self.targetpath = os.path.join(args.targetpath, self.analysistype, '')
+        try:
+            self.targetpath = os.path.join(args.targetpath, self.analysistype, '')
+        except AttributeError:
+            self.targetpath = os.path.join(args.reffilepath, self.analysistype)
         try:
             self.reportpath = args.reportpath
         except AttributeError:
             self.reportpath = os.path.join(self.path, 'reports')
         assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
-        self.bcltofastq = args.bcltofastq
+        try:
+            self.bcltofastq = args.bcltofastq
+        except AttributeError:
+            self.bcltofastq = False
         self.miseqpath = args.miseqpath
-        self.miseqfolder = args.miseqfolder
+        try:
+            self.miseqfolder = args.miseqfolder
+        except AttributeError:
+            self.miseqfolder = str()
         self.fastqdestination = args.fastqdestination
         self.forwardlength = args.forwardlength
         self.reverselength = args.reverselength
         self.numreads = 2 if self.reverselength != 0 else 1
         self.customsamplesheet = args.customsamplesheet
         # Set the custom cutoff value
-        self.cutoff = args.cutoff
+        self.cutoff = cutoff
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.cpus if args.cpus else multiprocessing.cpu_count())
         self.threads = int()
         self.runmetadata = args.runmetadata
         self.pipeline = args.pipeline
-        self.copy = args.copy
+        try:
+            self.copy = args.copy
+        except AttributeError:
+            self.copy = False
         self.devnull = open(os.path.devnull, 'w')
         self.samplequeue = Queue(maxsize=self.cpus)
         self.fastaqueue = Queue(maxsize=self.cpus)
@@ -667,12 +689,12 @@ if __name__ == '__main__':
     arguments = parser.parse_args()
     arguments.pipeline = False
     arguments.runmetadata.samples = MetadataObject()
-    arguments.analysistype = '16S'
+    arguments.analysistype = 'sixteens_full'
     # Define the start time
     start = time.time()
 
     # Run the script
-    SixteenS(arguments, commit, start, homepath)
+    SixteenS(arguments, commit, start, homepath, arguments.analysistype, arguments.cutoff)
 
     # Print a bold, green exit statement
     print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')
