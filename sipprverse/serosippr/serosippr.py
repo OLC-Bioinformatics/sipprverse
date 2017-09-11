@@ -49,12 +49,15 @@ class SeroSippr(object):
             report.write(header)
             report.write(data)
 
-    def __init__(self, args, pipelinecommit, startingtime, scriptpath):
+    def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline):
         """
         :param args: command line arguments
         :param pipelinecommit: pipeline commit or version
         :param startingtime: time the script was started
         :param scriptpath: home path of the script
+        :param analysistype: name of the analysis being performed - allows the program to find databases
+        :param cutoff: percent identity cutoff for matches
+        :param pipeline: boolean of whether this script needs to run as part of a particular assembly pipeline
         """
         import multiprocessing
         # Initialise variables
@@ -64,16 +67,28 @@ class SeroSippr(object):
         # Define variables based on supplied arguments
         self.path = os.path.join(args.path, '')
         assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
-        self.sequencepath = os.path.join(args.sequencepath, '')
+        try:
+            self.sequencepath = os.path.join(args.sequencepath, '')
+        except AttributeError:
+            self.sequencepath = self.path
         assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
-        self.targetpath = os.path.join(args.targetpath, '')
+        try:
+            self.targetpath = os.path.join(args.reffilepath)
+        except AttributeError:
+            self.targetpath = os.path.join(args.targetpath)
         self.reportpath = os.path.join(self.path, 'reports')
         assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
-        self.bcltofastq = args.bcltofastq
+        try:
+            self.bcltofastq = args.bcltofastq
+        except AttributeError:
+            self.bcltofastq = False
         self.miseqpath = args.miseqpath
-        self.miseqfolder = args.miseqfolder
+        try:
+            self.miseqfolder = args.miseqfolder
+        except AttributeError:
+            self.miseqfolder = str()
         self.fastqdestination = args.fastqdestination
         self.forwardlength = args.forwardlength
         self.reverselength = args.reverselength
@@ -81,11 +96,16 @@ class SeroSippr(object):
         self.customsamplesheet = args.customsamplesheet
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
         # Set the custom cutoff value
-        self.cutoff = args.cutoff
-        # Use the argument for the number of threads to use, or default to the number of cpus in the system
-        self.cpus = int(args.cpus if args.cpus else multiprocessing.cpu_count())
-        self.analysistype = 'serosippr'
-        self.pipeline = args.pipeline
+        self.cutoff = float(cutoff)
+        try:
+            self.averagedepth = int(args.averagedepth)
+        except AttributeError:
+            self.averagedepth = 10
+        try:
+            self.copy = args.copy
+        except AttributeError:
+            self.copy = False
+        self.pipeline = pipeline
         if not self.pipeline:
             self.runmetadata = MetadataObject()
             # Create the objects to be used in the analyses
@@ -93,8 +113,18 @@ class SeroSippr(object):
             objects.objectprep()
             self.runmetadata = objects.samples
         else:
-
             self.runmetadata = args.runmetadata
+        # Use the argument for the number of threads to use, or default to the number of cpus in the system
+        try:
+            self.cpus = int(args.cpus)
+        except AttributeError:
+            self.cpus = multiprocessing.cpu_count()
+        try:
+            self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(
+                self.runmetadata.samples) > 1 else 1
+        except TypeError:
+            self.threads = self.cpus
+        self.analysistype = analysistype
         self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(self.runmetadata.samples) > 1 \
             else 1
         # Run the analyses
@@ -164,7 +194,7 @@ if __name__ == '__main__':
     start = time.time()
 
     # Run the script
-    SeroSippr(arguments, commit, start, homepath)
+    SeroSippr(arguments, commit, start, homepath, 'serosippr', arguments.cutoff, arguments.pipeline)
 
     # Print a bold, green exit statement
     print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')

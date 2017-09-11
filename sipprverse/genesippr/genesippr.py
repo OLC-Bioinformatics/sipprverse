@@ -17,12 +17,14 @@ class GeneSippr(object):
         """
         printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
         if not self.pipeline:
-            # Create the objects to be used in the analyses
-            objects = Objectprep(self)
-            objects.objectprep()
-            self.runmetadata = objects.samples
-        else:
-            self.targetpath = os.path.join(self.targetpath, self.analysistype)
+            general = None
+            for sample in self.runmetadata.samples:
+                general = getattr(sample, 'general')
+            if general is None:
+                # Create the objects to be used in the analyses
+                objects = Objectprep(self)
+                objects.objectprep()
+                self.runmetadata = objects.samples
         # Run the analyses
         Sippr(self, self.cutoff)
         # Create the reports
@@ -37,22 +39,19 @@ class GeneSippr(object):
         """
         # Create the path in which the reports are stored
         make_path(self.reportpath)
-        header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
-        data = ''
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'w') as report:
+        data = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
+        with open(os.path.join(self.reportpath, '{}.csv'.format(self.analysistype)), 'w') as report:
             for sample in self.runmetadata.samples:
                 data += sample.name + ','
                 if sample[self.analysistype].results:
                     multiple = False
                     for name, identity in sample[self.analysistype].results.items():
-                        if not multiple:
-                            data += '{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
-                        else:
-                            data += ',{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
+                        if multiple:
+                            data += ','
+                        data += '{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
                         multiple = True
                 else:
                     data += '\n'
-            report.write(header)
             report.write(data)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline):
@@ -63,6 +62,7 @@ class GeneSippr(object):
         :param scriptpath: home path of the script
         :param analysistype: name of the analysis being performed - allows the program to find databases
         :param cutoff: percent identity cutoff for matches
+        :param pipeline: boolean of whether this script needs to run as part of a particular assembly pipeline
         """
         import multiprocessing
         # Initialise variables

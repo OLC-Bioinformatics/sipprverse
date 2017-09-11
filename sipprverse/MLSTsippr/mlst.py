@@ -5,7 +5,8 @@ from geneSipprV2.sipprverse.MLSTsippr.sipprmlst import MLSTmap
 from sipprCommon.objectprep import Objectprep
 from accessoryFunctions.accessoryFunctions import *
 from accessoryFunctions.metadataprinter import MetadataPrinter
-
+from collections import defaultdict
+import operator
 __author__ = 'adamkoziol'
 
 
@@ -16,12 +17,17 @@ class GeneSippr(object):
         Run the necessary methods in the correct order
         """
         printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
-        # Create the objects to be used in the analyses
-        objects = Objectprep(self)
-        objects.objectprep()
-        self.runmetadata = objects.samples
+        # Create the objects to be used in the analyses (if required)
+        general = None
+        for sample in self.runmetadata.samples:
+            general = getattr(sample, 'general')
+        if general is None:
+            # Create the objects to be used in the analyses
+            objects = Objectprep(self)
+            objects.objectprep()
+            self.runmetadata = objects.samples
         # Run the analyses
-        MLSTmap(self, self.analysistype)
+        MLSTmap(self, self.analysistype, self.cutoff)
         # Create the reports
         self.reporter()
         # Print the metadata to a .json file
@@ -29,34 +35,318 @@ class GeneSippr(object):
 
     def reporter(self):
         """
-        Creates a report of the results
+        Runs the necessary methods to parse raw read outputs
         """
-        # Create the path in which the reports are stored
-        make_path(self.reportpath)
-        header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
-        data = ''
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'w') as report:
-            for sample in self.runmetadata.samples:
-                data += sample.name + ','
-                if sample[self.analysistype].results:
-                    multiple = False
-                    for name, identity in sample[self.analysistype].results.items():
-                        if not multiple:
-                            data += '{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
-                        else:
-                            data += ',{},{},{}\n'.format(name, identity.items()[0][0], identity.items()[0][1])
-                        multiple = True
-                else:
-                    data += '\n'
-            report.write(header)
-            report.write(data)
+        # Populate self.plusdict in order to reuse parsing code from an assembly-based method
+        for sample in self.runmetadata.samples:
+            for gene in sample[self.analysistype].allelenames:
+                for allele, percentidentity in sample[self.analysistype].results.items():
+                    if gene in allele:
+                        self.plusdict[sample.name][gene][allele.split('-')[1]][percentidentity] \
+                            = sample[self.analysistype].avgdepth[allele]
+        self.profiler()
+        self.sequencetyper()
+        self.mlstreporter()
 
-    def __init__(self, args, pipelinecommit, startingtime, scriptpath):
+    def profiler(self):
+        """Creates a dictionary from the profile scheme(s)"""
+        from csv import DictReader
+        # Initialise variables
+        profiledata = defaultdict(make_dict)
+        profileset = set()
+        genedict = dict()
+        # Find all the unique profiles to use with a set
+        for sample in self.runmetadata.samples:
+            if sample[self.analysistype].profile != 'NA':
+                profileset.add(sample[self.analysistype].profile)
+
+        # Extract the profiles for each set
+        for sequenceprofile in profileset:
+            # Clear the list of genes
+            genelist = list()
+            for sample in self.runmetadata.samples:
+                if sequenceprofile == sample[self.analysistype].profile:
+                    genelist = [allele for allele in sample[self.analysistype].alleles]
+            try:
+                # Open the sequence profile file as a dictionary
+                profile = DictReader(open(sequenceprofile), dialect='excel-tab')
+            # Revert to standard comma separated values
+            except KeyError:
+                # Open the sequence profile file as a dictionary
+                profile = DictReader(open(sequenceprofile))
+            # Iterate through the rows
+            for row in profile:
+                # Iterate through the genes
+                for gene in genelist:
+                    # Add the sequence profile, and type, the gene name and the allele number to the dictionary
+                    try:
+                        profiledata[sequenceprofile][row['ST']][gene] = row[gene]
+                    except KeyError:
+                        try:
+                            profiledata[sequenceprofile][row['rST']][gene] = row[gene]
+                        except KeyError:
+                            raise
+            # Add the gene list to a dictionary
+            genedict[sequenceprofile] = sorted(genelist)
+            # Add the profile data, and gene list to each sample
+            for sample in self.runmetadata.samples:
+                if sample.general.bestassemblyfile != 'NA':
+                    if sequenceprofile == sample[self.analysistype].profile:
+                        # Populate the metadata with the profile data
+                        sample[self.analysistype].profiledata = profiledata[sample[self.analysistype].profile]
+                        dotter()
+
+    def sequencetyper(self):
+        """Determines the sequence type of each strain based on comparisons to sequence type profiles"""
+        for sample in self.runmetadata.samples:
+            if sample.general.bestassemblyfile != 'NA':
+                if type(sample[self.analysistype].allelenames) == list:
+                    # Initialise variables
+                    header = 0
+                    # Iterate through the genomes
+                    # for sample in self.runmetadata.samples:
+                    genome = sample.name
+                    # Initialise self.bestmatch[genome] with an int that will eventually be replaced by the # of matches
+                    self.bestmatch[genome] = defaultdict(int)
+                    if sample[self.analysistype].profile != 'NA':
+                        # Create the profiledata variable to avoid writing self.profiledata[self.analysistype]
+                        profiledata = sample[self.analysistype].profiledata
+                        # For each gene in plusdict[genome]
+                        for gene in sample[self.analysistype].allelenames:
+                            # Clear the appropriate count and lists
+                            multiallele = []
+                            multipercent = []
+                            # Go through the alleles in plusdict
+                            for allele in self.plusdict[genome][gene]:
+                                percentid = list(self.plusdict[genome][gene][allele].keys())[0]
+                                # "N" alleles screw up the allele splitter function
+                                if allele != "N":
+                                    # Use the alleleSplitter function to get the allele number
+                                    # allelenumber, alleleprenumber = allelesplitter(allele)
+                                    # Append as appropriate - alleleNumber is treated as an integer for proper sorting
+                                    multiallele.append(int(allele))
+                                    multipercent.append(percentid)
+                                # If the allele is "N"
+                                else:
+                                    # Append "N" and a percent identity of 0
+                                    multiallele.append("N")
+                                    multipercent.append(0)
+                                if not multiallele:
+                                    multiallele.append("N")
+                                    multipercent.append(0)
+                            if self.analysistype == 'rmlst':
+                                # For whatever reason, the rMLST profile scheme treat multiple allele hits as 'N's.
+                                multiallele = multiallele if len(multiallele) == 1 else ['N']
+                                if multipercent:
+                                    multipercent = multipercent if len(multiallele) == 1 else [0, 0]
+                                else:
+                                    multipercent = [0]
+                            # Populate self.bestdict with genome, gene, alleles joined with a space (this was made like
+                            # this because allele is a list generated by the .iteritems() above
+                            self.bestdict[genome][gene][" ".join(str(allele)
+                                                                 for allele in sorted(multiallele))] = multipercent[0]
+                            # Find the profile with the most alleles in common with the query genome
+                            for sequencetype in profiledata:
+                                # The number of genes in the analysis
+                                header = len(profiledata[sequencetype])
+                                # refallele is the allele number of the sequence type
+                                refallele = profiledata[sequencetype][gene]
+                                # If there are multiple allele matches for a gene in the reference profile e.g. 10 692
+                                if len(refallele.split(" ")) > 1:
+                                    # Map the split (on a space) alleles as integers - if they are treated as integers,
+                                    # the alleles will sort properly
+                                    intrefallele = map(int, refallele.split(" "))
+                                    # Create a string of the joined, sorted alleles
+                                    sortedrefallele = " ".join(str(allele) for allele in sorted(intrefallele))
+                                else:
+                                    # Use the reference allele as the sortedRefAllele
+                                    sortedrefallele = refallele
+                                for allele, percentid in self.bestdict[genome][gene].items():
+                                    # If the allele in the query genome matches the allele in the reference profile, add
+                                    # the result to the bestmatch dictionary. Genes with multiple alleles were sorted
+                                    # the same, strings with multiple alleles will match: 10 692 will never be 692 10
+                                    if allele == sortedrefallele and float(percentid) == 100.00:
+                                        # Increment the number of matches to each profile
+                                        self.bestmatch[genome][sequencetype] += 1
+                                    # Special handling of BACT000060 and BACT000065 genes. When the reference profile
+                                    # has an allele of 'N', and the query allele doesn't, set the allele to 'N', and
+                                    # count it as a match
+                                    elif gene == 'BACT000060' or gene == 'BACT000065':
+                                        if sortedrefallele == 'N' and allele != 'N':
+                                            # Increment the number of matches to each profile
+                                            self.bestmatch[genome][sequencetype] += 1
+                                    elif allele == sortedrefallele and sortedrefallele == 'N':
+                                        # Increment the number of matches to each profile
+                                        self.bestmatch[genome][sequencetype] += 1
+                        # Get the best number of matches
+                        # From: https://stackoverflow.com/questions/613183/sort-a-python-dictionary-by-value
+                        try:
+                            sortedmatches = sorted(self.bestmatch[genome].items(), key=operator.itemgetter(1),
+                                                   reverse=True)[0][1]
+                        # If there are no matches, set :sortedmatches to zero
+                        except IndexError:
+                            sortedmatches = 0
+                        # Otherwise, the query profile matches the reference profile
+                        if int(sortedmatches) == header:
+                            # Iterate through best match
+                            for sequencetype, matches in self.bestmatch[genome].items():
+                                if matches == sortedmatches:
+                                    for gene in profiledata[sequencetype]:
+                                        # Populate resultProfile with the genome, best match to profile, # of matches
+                                        # to the profile, gene, query allele(s), reference allele(s), and % identity
+                                        self.resultprofile[genome][sequencetype][sortedmatches][gene][
+                                            list(self.bestdict[genome][gene]
+                                                 .keys())[0]] = str(list(self.bestdict[genome][gene].values())[0])
+                                    sample[self.analysistype].sequencetype = sequencetype
+                                    sample[self.analysistype].matchestosequencetype = matches
+                        # If there are fewer matches than the total number of genes in the typing scheme
+                        elif 0 < int(sortedmatches) < header:
+                            mismatches = []
+                            # Iterate through the sequence types and the number of matches in bestDict for each genome
+                            for sequencetype, matches in self.bestmatch[genome].items():
+                                # If the number of matches for a profile matches the best number of matches
+                                if matches == sortedmatches:
+                                    # Iterate through the gene in the analysis
+                                    for gene in profiledata[sequencetype]:
+                                        # Get the reference allele as above
+                                        refallele = profiledata[sequencetype][gene]
+                                        # As above get the reference allele split and ordered as necessary
+                                        if len(refallele.split(" ")) > 1:
+                                            intrefallele = map(int, refallele.split(" "))
+                                            sortedrefallele = " ".join(str(allele) for allele in sorted(intrefallele))
+                                        else:
+                                            sortedrefallele = refallele
+                                        # Populate self.mlstseqtype with the genome, best match to profile, # of matches
+                                        # to the profile, gene, query allele(s), reference allele(s), and % identity
+                                        if self.analysistype == 'mlst':
+                                            self.resultprofile[genome][sequencetype][sortedmatches][gene][
+                                                list(self.bestdict[genome][gene]
+                                                     .keys())[0]] = str(list(self.bestdict[genome][gene].values())[0])
+                                            sample[self.analysistype].mismatchestosequencetype = mismatches
+                                            sample[self.analysistype].sequencetype = sequencetype
+                                            sample[self.analysistype].matchestosequencetype = matches
+                                        else:
+                                            self.resultprofile[genome][sequencetype][sortedmatches][gene][
+                                                list(self.bestdict[genome][gene].keys())[0]] \
+                                                = str(list(self.bestdict[genome][gene])[0])
+                                            # = str(list(self.bestdict[genome][gene].values())[0])
+                                            if sortedrefallele != list(self.bestdict[sample.name][gene].keys())[0]:
+                                                mismatches.append(
+                                                    ({gene: ('{} ({})'.format(list(self.bestdict[sample.name][gene]
+                                                                                   .keys())[0], sortedrefallele))}))
+                        elif sortedmatches == 0:
+                            for gene in sample[self.analysistype].allelenames:
+                                # Populate the results profile with negative values for sequence type and sorted matches
+                                self.resultprofile[genome]['NA'][sortedmatches][gene]['NA'] = 0
+                            # Add the new profile to the profile file (if the option is enabled)
+                            sample[self.analysistype].sequencetype = 'NA'
+                            sample[self.analysistype].matchestosequencetype = 'NA'
+                            sample[self.analysistype].mismatchestosequencetype = 'NA'
+                        else:
+                            sample[self.analysistype].matchestosequencetype = 'NA'
+                            sample[self.analysistype].mismatchestosequencetype = 'NA'
+                            sample[self.analysistype].sequencetype = 'NA'
+                        dotter()
+                else:
+                    sample[self.analysistype].matchestosequencetype = 'NA'
+                    sample[self.analysistype].mismatchestosequencetype = 'NA'
+                    sample[self.analysistype].sequencetype = 'NA'
+
+            else:
+                sample[self.analysistype].matchestosequencetype = 'NA'
+                sample[self.analysistype].mismatchestosequencetype = 'NA'
+                sample[self.analysistype].sequencetype = 'NA'
+
+    def mlstreporter(self):
+        """ Parse the results into a report"""
+        # Initialise variables
+        combinedrow = ''
+        reportdirset = set()
+        # Populate a set of all the report directories to use. A standard analysis will only have a single report
+        # directory, while pipeline analyses will have as many report directories as there are assembled samples
+        for sample in self.runmetadata.samples:
+            # Ignore samples that lack a populated reportdir attribute
+            if sample[self.analysistype].reportdir != 'NA':
+                make_path(sample[self.analysistype].reportdir)
+                # Add to the set - I probably could have used a counter here, but I decided against it
+                reportdirset.add(sample[self.analysistype].reportdir)
+        # Create a report for each sample from :self.resultprofile
+        for sample in self.runmetadata.samples:
+            if sample[self.analysistype].reportdir != 'NA':
+                if type(sample[self.analysistype].allelenames) == list:
+                    # Populate the header with the appropriate data, including all the genes in the list of targets
+                    row = 'Strain,Genus,SequenceType,Matches,{},\n' \
+                        .format(','.join(sorted(sample[self.analysistype].allelenames)))
+                    # Set the sequence counter to 0. This will be used when a sample has multiple best sequence types.
+                    # The name of the sample will not be written on subsequent rows in order to make the report clearer
+                    seqcount = 0
+                    # Iterate through the best sequence types for the sample (only occurs if update profile is disabled)
+                    for seqtype in self.resultprofile[sample.name]:
+                        sample[self.analysistype].sequencetype = seqtype
+                        # The number of matches to the profile
+                        matches = list(self.resultprofile[sample.name][seqtype].keys())[0]
+                        # If this is the first of one or more sequence types, include the sample name
+                        if seqcount == 0:
+                            row += '{},{},{},{},'.format(sample.name, sample.general.referencegenus, seqtype, matches)
+                        # Otherwise, skip the sample name
+                        else:
+                            row += ',,{},{},'.format(seqtype, matches)
+                        # Iterate through all the genes present in the analyses for the sample
+                        for gene in sorted(sample[self.analysistype].allelenames):
+                            # refallele = self.profiledata[self.analysistype][seqtype][gene]
+                            refallele = sample[self.analysistype].profiledata[seqtype][gene]
+                            # Set the allele and percent id from the dictionary's keys and values, respectively
+                            allele = list(self.resultprofile[sample.name][seqtype][matches][gene].keys())[0]
+                            percentid = list(self.resultprofile[sample.name][seqtype][matches][gene].values())[0]
+                            if refallele and refallele != allele:
+                                if 0 < float(percentid) < 100:
+                                    row += '{} ({:.2f}%),'.format(allele, float(percentid))
+                                else:
+                                    row += '{} ({}),'.format(allele, refallele)
+                            else:
+                                # Add the allele and % id to the row (only add the percent identity if it is not 100%)
+                                if 0 < float(percentid) < 100:
+                                    row += '{} ({:.2f}%),'.format(allele, float(percentid))
+                                else:
+                                    row += '{},'.format(allele)
+                            self.referenceprofile[sample.name][gene] = allele
+                        # Add a newline
+                        row += '\n'
+                        # Increment the number of sequence types observed for the sample
+                        seqcount += 1
+                    combinedrow += row
+                    # If the length of the # of report directories is greater than 1 (script is being run as part of
+                    # the assembly pipeline) make a report for each sample
+                    if self.pipeline:
+                        # Open the report
+                        with open(os.path.join(sample[self.analysistype].reportdir, sample.name,
+                                               self.analysistype + '.csv'), 'w') as report:
+                            # Write the row to the report
+                            report.write(row)
+                dotter()
+            # Create the report folder
+            make_path(self.reportpath)
+            # Create the report containing all the data from all samples
+            if self.pipeline:
+                with open(os.path.join(self.reportpath, self.analysistype + '.csv'), 'w') \
+                        as combinedreport:
+                    # Write the results to this report
+                    combinedreport.write(combinedrow)
+            else:
+                with open(os.path.join(self.reportpath, self.analysistype + '_{:}.csv'.format(
+                        time.strftime("%Y.%m.%d.%H.%M.%S"))), 'w') as combinedreport:
+                    # Write the results to this report
+                    combinedreport.write(combinedrow)
+
+    def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline):
         """
         :param args: command line arguments
         :param pipelinecommit: pipeline commit or version
         :param startingtime: time the script was started
         :param scriptpath: home path of the script
+        :param analysistype: name of the analysis being performed - allows the program to find databases
+        :param cutoff: percent identity cutoff for matches
+        :param pipeline: boolean of whether this script needs to run as part of a particular assembly pipeline
         """
         import multiprocessing
         # Initialise variables
@@ -66,41 +356,75 @@ class GeneSippr(object):
         # Define variables based on supplied arguments
         self.path = os.path.join(args.path, '')
         assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
-        self.sequencepath = os.path.join(args.sequencepath, '')
+        try:
+            self.sequencepath = os.path.join(args.sequencepath, '')
+        except AttributeError:
+            self.sequencepath = self.path
         assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
-        self.targetpath = os.path.join(args.targetpath, '')
-        self.reportpath = os.path.join(self.path, 'reports')
+        try:
+            self.targetpath = os.path.join(args.reffilepath, analysistype)
+        except AttributeError:
+            self.targetpath = os.path.join(args.targetpath, '')
         assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
-        self.bcltofastq = args.bcl2fastq
+        self.reportpath = os.path.join(self.path, 'reports')
+        try:
+            self.bcltofastq = args.bcltofastq
+        except AttributeError:
+            self.bcltofastq = False
         self.miseqpath = args.miseqpath
-        self.miseqfolder = args.miseqfolder
-        self.fastqdestination = args.destinationfastq
-        self.forwardlength = args.readlengthforward
-        self.reverselength = args.readlengthreverse
+        try:
+            self.miseqfolder = args.miseqfolder
+        except AttributeError:
+            self.miseqfolder = str()
+        self.fastqdestination = args.fastqdestination
+        self.forwardlength = args.forwardlength
+        self.reverselength = args.reverselength
         self.numreads = 2 if self.reverselength != 0 else 1
         self.customsamplesheet = args.customsamplesheet
         # Set the custom cutoff value
-        self.cutoff = args.customcutoffs
+        self.cutoff = float(cutoff)
+        try:
+            self.averagedepth = int(args.averagedepth)
+        except AttributeError:
+            self.averagedepth = 10
+        try:
+            self.copy = args.copy
+        except AttributeError:
+            self.copy = False
+        self.runmetadata = args.runmetadata
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
-        self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
-        self.copy = args.copy
+        try:
+            self.cpus = int(args.cpus)
+        except AttributeError:
+            self.cpus = multiprocessing.cpu_count()
+        try:
+            self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(self.runmetadata.samples) \
+                                                                             > 1 else 1
+        except TypeError:
+            self.threads = self.cpus
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
-        self.runmetadata = MetadataObject()
         #
-        self.pipeline = args.pipeline
-        if args.analysistype.lower() == 'mlst':
+        self.pipeline = pipeline
+        if analysistype.lower() == 'mlst':
             self.analysistype = 'mlst'
-        elif args.analysistype.lower() == 'rmlst':
+        elif analysistype.lower() == 'rmlst':
             self.analysistype = 'rmlst'
         else:
             import sys
             sys.stderr.write('Please ensure that you specified a valid option for the analysis type. You entered {}. '
                              'The only acceptable options currently are mlst and rmlst.'.format(args.analysistype))
             quit()
+        self.plusdict = defaultdict(make_dict)
+        self.bestdict = defaultdict(make_dict)
+        self.bestmatch = defaultdict(int)
+        self.mlstseqtype = defaultdict(make_dict)
+        self.resultprofile = defaultdict(make_dict)
+        self.referenceprofile = defaultdict(make_dict)
         # Run the analyses
         self.runner()
+
 
 if __name__ == '__main__':
     # Argument parser for user-inputted values, and a nifty help menu
@@ -133,14 +457,14 @@ if __name__ == '__main__':
                         help='Path of the folder containing MiSeq run data folder')
     parser.add_argument('-f', '--miseqfolder',
                         help='Name of the folder containing MiSeq run data')
-    parser.add_argument('-d', '--destinationfastq',
+    parser.add_argument('-d', '--fastqdestination',
                         help='Optional folder path to store .fastq files created using the fastqCreation module. '
                              'Defaults to path/miseqfolder')
-    parser.add_argument('-r1', '--readlengthforward',
+    parser.add_argument('-r1', '--forwardlength',
                         default='full',
                         help='Length of forward reads to use. Can specify "full" to take the full length of '
                              'forward reads specified on the SampleSheet')
-    parser.add_argument('-r2', '--readlengthreverse',
+    parser.add_argument('-r2', '--reverselength',
                         default='full',
                         help='Length of reverse reads to use. Can specify "full" to take the full length of '
                              'reverse reads specified on the SampleSheet')
@@ -174,7 +498,7 @@ if __name__ == '__main__':
     start = time.time()
 
     # Run the script
-    GeneSippr(arguments, commit, start, homepath)
+    GeneSippr(arguments, commit, start, homepath, arguments.analysistype, arguments.customcutoffs, arguments.pipeline)
 
     # Print a bold, green exit statement
     print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')
