@@ -98,5 +98,8 @@ RUN git clone https://github.com/OLC-LOC-Bioinformatics/geneSipprV2.git --recurs
 # Edit the path
 ENV PATH /geneSipprV2/sipprverse:$PATH
 
+# Install psutil
+RUN pip install psutil
+
 # TO RUN
 # docker rm genesipprmethod && docker run -it -v /nas0:/nas0 --name genesipprmethod 192.168.1.5:5000/genesipprmethod method.py /genesipprrun -t /targets -s /sequences

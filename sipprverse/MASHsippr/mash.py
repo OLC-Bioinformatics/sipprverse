@@ -20,6 +20,7 @@ class Mash(object):
             setattr(sample, self.analysistype, GenObject())
             # Set attributes
             sample[self.analysistype].reportdir = os.path.join(sample.general.outputdirectory, self.analysistype)
+            make_path(sample[self.analysistype].reportdir)
             sample[self.analysistype].targetpath = self.referencefilepath if not self.pipeline else os.path.join(
                 self.referencefilepath, self.analysistype)
             sample[self.analysistype].refseqsketch = \

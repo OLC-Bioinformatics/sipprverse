@@ -319,8 +319,8 @@ class GeneSippr(object):
                     # the assembly pipeline) make a report for each sample
                     if self.pipeline:
                         # Open the report
-                        with open(os.path.join(sample[self.analysistype].reportdir, sample.name,
-                                               self.analysistype + '.csv'), 'w') as report:
+                        with open(os.path.join(sample[self.analysistype].reportdir,
+                                               '{}_{}.csv'.format(sample.name, self.analysistype)), 'w') as report:
                             # Write the row to the report
                             report.write(row)
                 dotter()
@@ -328,13 +328,13 @@ class GeneSippr(object):
             make_path(self.reportpath)
             # Create the report containing all the data from all samples
             if self.pipeline:
-                with open(os.path.join(self.reportpath, self.analysistype + '.csv'), 'w') \
+                with open(os.path.join(self.reportpath,  '{}.csv'.format(self.analysistype)), 'w') \
                         as combinedreport:
                     # Write the results to this report
                     combinedreport.write(combinedrow)
             else:
-                with open(os.path.join(self.reportpath, self.analysistype + '_{:}.csv'.format(
-                        time.strftime("%Y.%m.%d.%H.%M.%S"))), 'w') as combinedreport:
+                with open(os.path.join(self.reportpath, '{}_{:}.csv'.format(
+                        self.analysistype, time.strftime("%Y.%m.%d.%H.%M.%S"))), 'w') as combinedreport:
                     # Write the results to this report
                     combinedreport.write(combinedrow)
 

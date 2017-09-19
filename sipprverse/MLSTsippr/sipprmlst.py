@@ -25,7 +25,10 @@ class MLSTmap(Sippr):
             else:
 
                 try:
-                    targetdir = os.path.join(self.targetpath, sample.general.closestrefseqgenus)
+                    if self.analysistype.lower() == 'rmlst':
+                        targetdir = self.targetpath
+                    else:
+                        targetdir = os.path.join(self.targetpath, sample.general.closestrefseqgenus)
                     sample[self.analysistype].profile = glob(os.path.join(targetdir, '*.txt'))[0]
                     sample[self.analysistype].combinedalleles = glob(os.path.join(targetdir, '*.fasta'))[0]
                     sample[self.analysistype].targetpath = targetdir

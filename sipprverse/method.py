@@ -191,12 +191,10 @@ class Method(object):
         # Create the reports
         self.reporter()
         # Run the 16S analyses using the filtered database
-        # self.analysistype = 'sixteens'
-        self.cutoff = 0.985
         self.targetpath = self.reffilepath
         # Run the 16S analyses
         self.analysistype = 'sixteens_full'
-        SixteensFull(self, self.commit, self.starttime, self.homepath)
+        SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
         # Run the GDCS analysis
         self.analysistype = 'GDCS'
         self.pipeline = True
@@ -219,9 +217,7 @@ class Method(object):
             else:
                 sample.mash.closestrefseqgenus = 'NA'
                 sample.mash.closestrefseqspecies = 'NA'
-        self.cutoff = 0.9
-        self.analysistype = 'serosippr'
-        SeroSippr(self, self.commit, self.starttime, self.homepath)
+        SeroSippr(self, self.commit, self.starttime, self.homepath, 'serosippr', 0.95, True)
         # '''
         # Print the metadata
         printer = MetadataPrinter(self)
@@ -557,6 +553,7 @@ class Method(object):
             assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
                 .format(self.sequencepath)
             self.runner()
+
 
 if __name__ == '__main__':
     # Argument parser for user-inputted values, and a nifty help menu

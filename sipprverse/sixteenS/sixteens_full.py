@@ -418,8 +418,8 @@ class SixteenS(object):
             sample = self.fastaqueue.get()
             # Check to see if the FASTA file already exists
             if not os.path.isfile(sample[self.analysistype].fasta):
-                # Run the system call
-                call(sample[self.analysistype].fastxcall, shell=True, stdout=self.devnull, stderr=self.devnull)
+                # Run the system call , stdout=self.devnull, stderr=self.devnull
+                call(sample[self.analysistype].fastxcall, shell=True)
             self.fastaqueue.task_done()
 
     def makeblastdb(self):
