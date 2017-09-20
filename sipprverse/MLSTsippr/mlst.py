@@ -37,13 +37,22 @@ class GeneSippr(object):
         """
         Runs the necessary methods to parse raw read outputs
         """
+        printtime('Preparing reports', self.starttime)
         # Populate self.plusdict in order to reuse parsing code from an assembly-based method
         for sample in self.runmetadata.samples:
             for gene in sample[self.analysistype].allelenames:
                 for allele, percentidentity in sample[self.analysistype].results.items():
                     if gene in allele:
-                        self.plusdict[sample.name][gene][allele.split('-')[1]][percentidentity] \
-                            = sample[self.analysistype].avgdepth[allele]
+                        if self.analysistype == 'rmlst':
+                            splitter = '_'
+                        else:
+                            splitter = '-'
+                        try:
+                            self.plusdict[sample.name][gene][allele.split(splitter)[1]][percentidentity] \
+                                = sample[self.analysistype].avgdepth[allele]
+                        except IndexError:
+                            print('missing')
+                            pass
         self.profiler()
         self.sequencetyper()
         self.mlstreporter()
@@ -229,6 +238,10 @@ class GeneSippr(object):
                                             self.resultprofile[genome][sequencetype][sortedmatches][gene][
                                                 list(self.bestdict[genome][gene].keys())[0]] \
                                                 = str(list(self.bestdict[genome][gene])[0])
+                                            refallele = list(self.bestdict[genome][gene].keys())[0]
+                                            percentid = str(list(self.bestdict[genome][gene].values())[0])
+                                            print(sample.name, genome, sequencetype, sortedmatches, gene, refallele,
+                                                  percentid)
                                             # = str(list(self.bestdict[genome][gene].values())[0])
                                             if sortedrefallele != list(self.bestdict[sample.name][gene].keys())[0]:
                                                 mismatches.append(
@@ -298,7 +311,9 @@ class GeneSippr(object):
                             # Set the allele and percent id from the dictionary's keys and values, respectively
                             allele = list(self.resultprofile[sample.name][seqtype][matches][gene].keys())[0]
                             percentid = list(self.resultprofile[sample.name][seqtype][matches][gene].values())[0]
+                            print('report', sample.name, allele, percentid)
                             if refallele and refallele != allele:
+                                print('!')
                                 if 0 < float(percentid) < 100:
                                     row += '{} ({:.2f}%),'.format(allele, float(percentid))
                                 else:

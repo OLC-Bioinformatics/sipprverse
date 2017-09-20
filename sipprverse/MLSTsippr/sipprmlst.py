@@ -64,21 +64,21 @@ class MLSTmap(Sippr):
         for sample in self.runmetadata:
             if sample.general.bestassemblyfile != 'NA':
                 # Create the hash file of the baitfile
-                targetbase = os.path.splitext(sample[self.analysistype].combinedalleles)[0]
-                hashcall = 'cd {} && mirabait -b {} -k 31 -K {}.mhs.gz'\
-                    .format(sample[self.analysistype].targetpath,
-                            sample[self.analysistype].combinedalleles,
-                            targetbase)
-                hashfile = targetbase + '.mhs.gz'
-                if not os.path.isfile(hashfile):
-                    call(hashcall, shell=True, stdout=self.devnull, stderr=self.devnull)
-
-                sample[self.analysistype].hashcall = hashcall
-                sample[self.analysistype].hashfile = hashfile
+                # targetbase = os.path.splitext(sample[self.analysistype].combinedalleles)[0]
+                # hashcall = 'cd {} && mirabait -b {} -k 31 -K {}.mhs.gz'\
+                #     .format(sample[self.analysistype].targetpath,
+                #             sample[self.analysistype].combinedalleles,
+                #             targetbase)
+                # hashfile = targetbase + '.mhs.gz'
+                # if not os.path.isfile(hashfile):
+                #     call(hashcall, shell=True, stdout=self.devnull, stderr=self.devnull)
+                #
+                # sample[self.analysistype].hashcall = hashcall
+                # sample[self.analysistype].hashfile = hashfile
                 # sample[self.analysistype].targetpath = self.targetpath
                 sample[self.analysistype].outputdir = os.path.join(sample.run.outputdirectory,
                                                                    self.analysistype)
-                sample[self.analysistype].baitedfastq = '{}/{}_targetMatches.fastq'\
+                sample[self.analysistype].baitedfastq = '{}/{}_targetMatches.fastq.gz'\
                     .format(sample[self.analysistype].outputdir, self.analysistype)
         # Run the baiting method in the Sippr class
         self.baiting()

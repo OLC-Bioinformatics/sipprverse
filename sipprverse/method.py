@@ -5,8 +5,10 @@ from sipprCommon.sippingmethods import *
 from sipprCommon.objectprep import Objectprep
 from accessoryFunctions.accessoryFunctions import *
 from accessoryFunctions.metadataprinter import *
-from sixteenS.sixteenS import SixteenS
-from sixteenS.sixteens_full import SixteenS as SixteensFull
+# from sixteenS.sixteenS import SixteenS
+# from sixteenS.sixteens_full import SixteenS as SixteensFull
+from geneSipprV2.sipprverse.sixteenS.sixteenS import SixteenS
+from geneSipprV2.sipprverse.sixteenS.sixteens_full import SixteenS as SixteensFull
 
 
 __author__ = 'adamkoziol'
@@ -190,6 +192,7 @@ class Method(object):
         Sippr(self, self.cutoff)
         # Create the reports
         self.reporter()
+        quit()
         # Run the 16S analyses using the filtered database
         self.targetpath = self.reffilepath
         # Run the 16S analyses
