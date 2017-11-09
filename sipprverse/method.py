@@ -1,16 +1,15 @@
 #!/usr/bin/python3
-import subprocess
-import time
-from sipprCommon.sippingmethods import *
+from sipprCommon.sippingmethods import Sippr
 from sipprCommon.objectprep import Objectprep
-from accessoryFunctions.accessoryFunctions import *
+from accessoryFunctions.accessoryFunctions import GenObject, MetadataObject, make_path, printtime
 from accessoryFunctions.metadataprinter import *
-# from sixteenS.sixteenS import SixteenS
-# from sixteenS.sixteens_full import SixteenS as SixteensFull
 from geneSipprV2.sipprverse.sixteenS.sixteenS import SixteenS
 from geneSipprV2.sipprverse.sixteenS.sixteens_full import SixteenS as SixteensFull
-
-
+from argparse import ArgumentParser
+from glob import glob
+import subprocess
+import time
+import os
 __author__ = 'adamkoziol'
 
 
@@ -558,8 +557,6 @@ class Method(object):
 
 
 if __name__ == '__main__':
-    # Argument parser for user-inputted values, and a nifty help menu
-    from argparse import ArgumentParser
     # Get the current commit of the pipeline from git
     # Extract the path of the current script from the full path + file name
     homepath = os.path.split(os.path.abspath(__file__))[0]
