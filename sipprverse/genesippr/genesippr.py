@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 import subprocess
-import time
-from sipprCommon.sippingmethods import *
+from sipprCommon.sippingmethods import Sippr
 from sipprCommon.objectprep import Objectprep
-from accessoryFunctions.accessoryFunctions import *
-from accessoryFunctions.metadataprinter import *
-
+from accessoryFunctions.accessoryFunctions import printtime, make_path, MetadataObject
+from accessoryFunctions.metadataprinter import MetadataPrinter
+# Argument parser for user-inputted values, and a nifty help menu
+from argparse import ArgumentParser
+import multiprocessing
+import os
+import time
 __author__ = 'adamkoziol'
 
 
@@ -38,23 +41,27 @@ class GeneSippr(object):
         Creates a report of the results
         """
         # Create the path in which the reports are stored
+        printtime('Creating reports', self.starttime)
         make_path(self.reportpath)
         data = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
         with open(os.path.join(self.reportpath, '{}.csv'.format(self.analysistype)), 'w') as report:
             for sample in self.runmetadata.samples:
                 data += sample.name + ','
-                if sample[self.analysistype].results:
-                    multiple = False
-                    for name, identity in sample[self.analysistype].results.items():
-                        if multiple:
-                            data += ','
-                        data += '{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
-                        multiple = True
-                else:
+                try:
+                    if sample[self.analysistype].results:
+                        multiple = False
+                        for name, identity in sample[self.analysistype].results.items():
+                            if multiple:
+                                data += ','
+                            data += '{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
+                            multiple = True
+                    else:
+                        data += '\n'
+                except KeyError:
                     data += '\n'
             report.write(data)
 
-    def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline):
+    def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline, revbait):
         """
         :param args: command line arguments
         :param pipelinecommit: pipeline commit or version
@@ -64,7 +71,6 @@ class GeneSippr(object):
         :param cutoff: percent identity cutoff for matches
         :param pipeline: boolean of whether this script needs to run as part of a particular assembly pipeline
         """
-        import multiprocessing
         # Initialise variables
         self.commit = str(pipelinecommit)
         self.starttime = startingtime
@@ -99,6 +105,7 @@ class GeneSippr(object):
         self.reverselength = args.reverselength
         self.numreads = 2 if self.reverselength != 0 else 1
         self.customsamplesheet = args.customsamplesheet
+        self.logfile = args.logfile
         # Set the custom cutoff value
         self.cutoff = float(cutoff)
         try:
@@ -123,12 +130,12 @@ class GeneSippr(object):
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
         self.analysistype = analysistype
         self.pipeline = pipeline
+        self.revbait = revbait
         # Run the analyses
         self.runner()
 
+
 if __name__ == '__main__':
-    # Argument parser for user-inputted values, and a nifty help menu
-    from argparse import ArgumentParser
     # Get the current commit of the pipeline from git
     # Extract the path of the current script from the full path + file name
     homepath = os.path.split(os.path.abspath(__file__))[0]
@@ -194,11 +201,12 @@ if __name__ == '__main__':
     arguments.pipeline = False
     arguments.runmetadata.samples = MetadataObject()
     arguments.analysistype = 'genesippr'
+    arguments.logfile = os.path.join(arguments.path, 'logfile')
     # Define the start time
     start = time.time()
 
     # Run the script
-    GeneSippr(arguments, commit, start, homepath, arguments.analysistype, arguments.cutoff, arguments.pipeline)
+    GeneSippr(arguments, commit, start, homepath, arguments.analysistype, arguments.cutoff, arguments.pipeline, False)
 
     # Print a bold, green exit statement
     print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')

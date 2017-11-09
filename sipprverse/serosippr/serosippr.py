@@ -1,11 +1,12 @@
 #!/usr/bin/env python
+import operator
 import subprocess
-import time
-from sipprCommon.sippingmethods import *
+from sipprCommon.sippingmethods import Sippr
 from sipprCommon.objectprep import Objectprep
-from accessoryFunctions.accessoryFunctions import *
-from accessoryFunctions.metadataprinter import *
-
+from accessoryFunctions.accessoryFunctions import printtime, MetadataObject, make_path
+from accessoryFunctions.metadataprinter import MetadataPrinter
+import time
+import os
 __author__ = 'adamkoziol'
 
 
@@ -48,6 +49,47 @@ class SeroSippr(object):
                         data += '\n'
             report.write(header)
             report.write(data)
+        # Calculate the serotype of the sample from the results
+        self.serotype()
+
+    def serotype(self):
+        """
+        Create attributes storing the best results for the O and H types
+        """
+        for sample in self.runmetadata.samples:
+            if sample.general.bestassemblyfile != 'NA':
+                o = dict()
+                h = dict()
+                for result, percentid in sample[self.analysistype].results.items():
+                    if 'O' in result.split('_')[-1]:
+                        o.update({result: float(percentid)})
+                    if 'H' in result.split('_')[-1]:
+                        h.update({result: float(percentid)})
+                # O
+                try:
+                    sorted_o = sorted(o.items(), key=operator.itemgetter(1), reverse=True)
+                    sample[self.analysistype].best_o_pid = str(sorted_o[0][1])
+
+                    sample[self.analysistype].o_genes = [gene for gene, pid in o.items()
+                                                         if str(pid) == sample[self.analysistype].best_o_pid]
+                    sample[self.analysistype].o_set = \
+                        list(set(gene.split('_')[-1] for gene in sample[self.analysistype].o_genes))
+                except (KeyError, IndexError):
+                    sample[self.analysistype].best_o_pid = '-'
+                    sample[self.analysistype].o_genes = ['-']
+                    sample[self.analysistype].o_set = ['-']
+                # H
+                try:
+                    sorted_h = sorted(h.items(), key=operator.itemgetter(1), reverse=True)
+                    sample[self.analysistype].best_h_pid = str(sorted_h[0][1])
+                    sample[self.analysistype].h_genes = [gene for gene, pid in h.items()
+                                                         if str(pid) == sample[self.analysistype].best_h_pid]
+                    sample[self.analysistype].h_set = \
+                        list(set(gene.split('_')[-1] for gene in sample[self.analysistype].h_genes))
+                except (KeyError, IndexError):
+                    sample[self.analysistype].best_h_pid = '-'
+                    sample[self.analysistype].h_genes = ['-']
+                    sample[self.analysistype].h_set = ['-']
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline):
         """
@@ -95,6 +137,7 @@ class SeroSippr(object):
         self.numreads = 2 if self.reverselength != 0 else 1
         self.customsamplesheet = args.customsamplesheet
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
+        self.logfile = args.logfile
         # Set the custom cutoff value
         self.cutoff = float(cutoff)
         try:
@@ -129,6 +172,7 @@ class SeroSippr(object):
             else 1
         # Run the analyses
         self.runner()
+
 
 if __name__ == '__main__':
     # Argument parser for user-inputted values, and a nifty help menu
@@ -189,7 +233,7 @@ if __name__ == '__main__':
     # Get the arguments into an object
     arguments = parser.parse_args()
     arguments.pipeline = False
-
+    arguments.logfile = os.path.join(arguments.path, 'logfile')
     # Define the start time
     start = time.time()
 

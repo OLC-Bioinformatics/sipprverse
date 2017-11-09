@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 from subprocess import call
 from threading import Thread
-from accessoryFunctions.accessoryFunctions import *
-
+from queue import Queue
+from accessoryFunctions.accessoryFunctions import printtime, make_path, GenObject
+import os
+import re
 __author__ = 'adamkoziol'
 
 
@@ -85,13 +87,27 @@ class Mash(object):
     def mash(self):
         while True:
             sample = self.mashqueue.get()
+            # , stdout=self.fnull, stderr=self.fnull
             if not os.path.isfile(sample[self.analysistype].mashresults):
-                call(sample.commands.mash, shell=True, stdout=self.fnull, stderr=self.fnull)
+                call(sample.commands.mash, shell=True)
             self.mashqueue.task_done()
 
     def parse(self):
-        import re
         printtime('Determining closest refseq genome', self.starttime)
+        # Create a dictionary to store the accession: taxonomy id of refseq genomes
+        refdict = dict()
+        # Set the name of the file storing the assembly summaries
+        referencefile = os.path.join(self.referencefilepath, self.analysistype, 'assembly_summary_refseq.txt')
+        with open(referencefile) as reffile:
+            for line in reffile:
+                # Ignore the first couple of lines
+                if line.startswith('# assembly_accession'):
+                    # Iterate through all the lines with data
+                    for accessionline in reffile:
+                        # Split the lines on tabs
+                        data = accessionline.split('\t')
+                        # Populate the dictionary with the accession: tax id e.g. GCF_001298055.1 Helicobacter pullorum
+                        refdict[data[0]] = data[7]
         for sample in self.metadata:
             # Open the results and extract the first line of data
             mashdata = open(sample[self.analysistype].mashresults).readline().rstrip()
@@ -100,12 +116,14 @@ class Mash(object):
             try:
                 referenceid, queryid, sample[self.analysistype].mashdistance, sample[self.analysistype]. \
                     pvalue, sample[self.analysistype].nummatches = data
-                # The database is formatted such that the reference file name is usually preceded by '-.-'
-                # e.g. refseq-NZ-1005511-PRJNA224116-SAMN00794588-GCF_000303935.1-.-Escherichia_coli_PA45.fna
-                #      refseq-NZ-1639-PRJNA224116-SAMN03349770-GCF_000951975.1-p3KSM-Listeria_monocytogenes.fna
-                sample[self.analysistype].closestrefseq = re.findall(r'.+-(.+)\.fna', referenceid)[0]
-                sample[self.analysistype].closestrefseqgenus = sample[self.analysistype].closestrefseq.split('_')[0]
-                sample[self.analysistype].closestrefseqspecies = sample[self.analysistype].closestrefseq.split('_')[1]
+                # Extract the name of the refseq assembly from the mash outputs, and split as necessary e.g.
+                # GCF_000008865.1_ASM886v1_genomic.fna.gz becomes '_' joined [GCF, 000267645.2]
+                sample[self.analysistype].closestrefseq = \
+                    '_'.join([referenceid.split('_')[0], referenceid.split('_')[1]])
+                sample[self.analysistype].closestrefseqgenus = \
+                    refdict[sample[self.analysistype].closestrefseq].split()[0]
+                sample[self.analysistype].closestrefseqspecies = \
+                    refdict[sample[self.analysistype].closestrefseq].split()[1]
                 # Set the closest refseq genus - will be used for all typing that requires the genus to be known
                 sample.general.referencegenus = sample[self.analysistype].closestrefseqgenus
             except ValueError:
@@ -135,7 +153,6 @@ class Mash(object):
             report.write(data)
 
     def __init__(self, inputobject, analysistype):
-        from queue import Queue
         self.metadata = inputobject.runmetadata.samples
         self.referencefilepath = inputobject.reffilepath
         self.starttime = inputobject.starttime

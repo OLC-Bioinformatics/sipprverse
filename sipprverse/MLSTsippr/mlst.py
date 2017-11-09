@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import subprocess
 import time
-from geneSipprV2.sipprverse.MLSTsippr.sipprmlst import MLSTmap
+import os
+from MLSTsippr.sipprmlst import MLSTmap
 from sipprCommon.objectprep import Objectprep
-from accessoryFunctions.accessoryFunctions import *
+from accessoryFunctions.accessoryFunctions import printtime, make_dict, dotter, make_path
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from collections import defaultdict
 import operator
@@ -30,6 +31,23 @@ class GeneSippr(object):
         MLSTmap(self, self.analysistype, self.cutoff)
         # Create the reports
         self.reporter()
+        for sample in self.runmetadata.samples:
+            # Remove large attributes from the object
+            try:
+                delattr(sample[self.analysistype], 'profiledata')
+                delattr(sample[self.analysistype], 'allelenames')
+                delattr(sample[self.analysistype], 'alleles')
+                delattr(sample[self.analysistype], 'faidict')
+                delattr(sample[self.analysistype], 'gaplocations')
+                delattr(sample[self.analysistype], 'maxcoverage')
+                delattr(sample[self.analysistype], 'mincoverage')
+                delattr(sample[self.analysistype], 'resultsgap')
+                delattr(sample[self.analysistype], 'resultssnp')
+                delattr(sample[self.analysistype], 'snplocations')
+                delattr(sample[self.analysistype], 'standarddev')
+                delattr(sample[self.analysistype], 'avgdepth')
+            except KeyError:
+                pass
         # Print the metadata to a .json file
         MetadataPrinter(self)
 
@@ -43,15 +61,19 @@ class GeneSippr(object):
             for gene in sample[self.analysistype].allelenames:
                 for allele, percentidentity in sample[self.analysistype].results.items():
                     if gene in allele:
-                        if self.analysistype == 'rmlst':
+                        # Split the allele number from the gene name using the appropriate delimiter
+                        if '_' in allele:
                             splitter = '_'
-                        else:
+                        elif '-' in allele:
                             splitter = '-'
+                        else:
+                            splitter = ''
+                        # Create the plusdict dictionary as in the assembly-based (r)MLST method. Allows all the
+                        # parsing and sequence typing code to be reused.
                         try:
                             self.plusdict[sample.name][gene][allele.split(splitter)[1]][percentidentity] \
                                 = sample[self.analysistype].avgdepth[allele]
                         except IndexError:
-                            print('missing')
                             pass
         self.profiler()
         self.sequencetyper()
@@ -59,6 +81,7 @@ class GeneSippr(object):
 
     def profiler(self):
         """Creates a dictionary from the profile scheme(s)"""
+        printtime('Loading profiles', self.starttime)
         from csv import DictReader
         # Initialise variables
         profiledata = defaultdict(make_dict)
@@ -107,6 +130,7 @@ class GeneSippr(object):
 
     def sequencetyper(self):
         """Determines the sequence type of each strain based on comparisons to sequence type profiles"""
+        printtime('Performing sequence typing', self.starttime)
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
                 if type(sample[self.analysistype].allelenames) == list:
@@ -123,8 +147,8 @@ class GeneSippr(object):
                         # For each gene in plusdict[genome]
                         for gene in sample[self.analysistype].allelenames:
                             # Clear the appropriate count and lists
-                            multiallele = []
-                            multipercent = []
+                            multiallele = list()
+                            multipercent = list()
                             # Go through the alleles in plusdict
                             for allele in self.plusdict[genome][gene]:
                                 percentid = list(self.plusdict[genome][gene][allele].keys())[0]
@@ -140,20 +164,14 @@ class GeneSippr(object):
                                     # Append "N" and a percent identity of 0
                                     multiallele.append("N")
                                     multipercent.append(0)
-                                if not multiallele:
-                                    multiallele.append("N")
-                                    multipercent.append(0)
-                            if self.analysistype == 'rmlst':
-                                # For whatever reason, the rMLST profile scheme treat multiple allele hits as 'N's.
-                                multiallele = multiallele if len(multiallele) == 1 else ['N']
-                                if multipercent:
-                                    multipercent = multipercent if len(multiallele) == 1 else [0, 0]
-                                else:
-                                    multipercent = [0]
                             # Populate self.bestdict with genome, gene, alleles joined with a space (this was made like
                             # this because allele is a list generated by the .iteritems() above
-                            self.bestdict[genome][gene][" ".join(str(allele)
-                                                                 for allele in sorted(multiallele))] = multipercent[0]
+                            try:
+                                self.bestdict[genome][gene][" ".join(str(allele)
+                                                                     for allele in sorted(multiallele))] = \
+                                    multipercent[0]
+                            except IndexError:
+                                self.bestdict[genome][gene]['NA'] = 0
                             # Find the profile with the most alleles in common with the query genome
                             for sequencetype in profiledata:
                                 # The number of genes in the analysis
@@ -177,10 +195,10 @@ class GeneSippr(object):
                                     if allele == sortedrefallele and float(percentid) == 100.00:
                                         # Increment the number of matches to each profile
                                         self.bestmatch[genome][sequencetype] += 1
-                                    # Special handling of BACT000060 and BACT000065 genes. When the reference profile
-                                    # has an allele of 'N', and the query allele doesn't, set the allele to 'N', and
-                                    # count it as a match
-                                    elif gene == 'BACT000060' or gene == 'BACT000065':
+                                    # Special handling of BACT000060 and BACT000065 genes for E. coli and BACT000014
+                                    # for Listeria. When the reference profile has an allele of 'N', and the query
+                                    # allele doesn't, set the allele to 'N', and count it as a match
+                                    elif gene == 'BACT000060' or gene == 'BACT000065' or gene == 'BACT000014':
                                         if sortedrefallele == 'N' and allele != 'N':
                                             # Increment the number of matches to each profile
                                             self.bestmatch[genome][sequencetype] += 1
@@ -237,12 +255,8 @@ class GeneSippr(object):
                                         else:
                                             self.resultprofile[genome][sequencetype][sortedmatches][gene][
                                                 list(self.bestdict[genome][gene].keys())[0]] \
-                                                = str(list(self.bestdict[genome][gene])[0])
-                                            refallele = list(self.bestdict[genome][gene].keys())[0]
-                                            percentid = str(list(self.bestdict[genome][gene].values())[0])
-                                            print(sample.name, genome, sequencetype, sortedmatches, gene, refallele,
-                                                  percentid)
-                                            # = str(list(self.bestdict[genome][gene].values())[0])
+                                                = str(list(self.bestdict[genome][gene].values())[0])
+                                            #
                                             if sortedrefallele != list(self.bestdict[sample.name][gene].keys())[0]:
                                                 mismatches.append(
                                                     ({gene: ('{} ({})'.format(list(self.bestdict[sample.name][gene]
@@ -272,8 +286,9 @@ class GeneSippr(object):
 
     def mlstreporter(self):
         """ Parse the results into a report"""
+        printtime('Writing reports', self.starttime)
         # Initialise variables
-        combinedrow = ''
+        combinedrow = str()
         reportdirset = set()
         # Populate a set of all the report directories to use. A standard analysis will only have a single report
         # directory, while pipeline analyses will have as many report directories as there are assembled samples
@@ -297,34 +312,38 @@ class GeneSippr(object):
                     for seqtype in self.resultprofile[sample.name]:
                         sample[self.analysistype].sequencetype = seqtype
                         # The number of matches to the profile
-                        matches = list(self.resultprofile[sample.name][seqtype].keys())[0]
+                        sample[self.analysistype].matches = list(self.resultprofile[sample.name][seqtype].keys())[0]
                         # If this is the first of one or more sequence types, include the sample name
                         if seqcount == 0:
-                            row += '{},{},{},{},'.format(sample.name, sample.general.referencegenus, seqtype, matches)
+                            row += '{},{},{},{},'.format(sample.name, sample.general.referencegenus, seqtype,
+                                                         sample[self.analysistype].matches)
                         # Otherwise, skip the sample name
                         else:
-                            row += ',,{},{},'.format(seqtype, matches)
+                            row += ',,{},{},'.format(seqtype, sample[self.analysistype].matches)
                         # Iterate through all the genes present in the analyses for the sample
                         for gene in sorted(sample[self.analysistype].allelenames):
                             # refallele = self.profiledata[self.analysistype][seqtype][gene]
                             refallele = sample[self.analysistype].profiledata[seqtype][gene]
                             # Set the allele and percent id from the dictionary's keys and values, respectively
-                            allele = list(self.resultprofile[sample.name][seqtype][matches][gene].keys())[0]
-                            percentid = list(self.resultprofile[sample.name][seqtype][matches][gene].values())[0]
-                            print('report', sample.name, allele, percentid)
-                            if refallele and refallele != allele:
-                                print('!')
-                                if 0 < float(percentid) < 100:
-                                    row += '{} ({:.2f}%),'.format(allele, float(percentid))
+                            allele = list(self.resultprofile[sample.name][seqtype][sample[self.analysistype].matches]
+                                          [gene].keys())[0]
+                            percentid = list(self.resultprofile[sample.name][seqtype][sample[self.analysistype].matches]
+                                             [gene].values())[0]
+                            try:
+                                if refallele and refallele != allele:
+                                    if 0 < float(percentid) < 100:
+                                        row += '{} ({:.2f}%),'.format(allele, float(percentid))
+                                    else:
+                                        row += '{} ({}),'.format(allele, refallele)
                                 else:
-                                    row += '{} ({}),'.format(allele, refallele)
-                            else:
-                                # Add the allele and % id to the row (only add the percent identity if it is not 100%)
-                                if 0 < float(percentid) < 100:
-                                    row += '{} ({:.2f}%),'.format(allele, float(percentid))
-                                else:
-                                    row += '{},'.format(allele)
-                            self.referenceprofile[sample.name][gene] = allele
+                                    # Add the allele and % id to the row (only add the % identity if it is not 100%)
+                                    if 0 < float(percentid) < 100:
+                                        row += '{} ({:.2f}%),'.format(allele, float(percentid))
+                                    else:
+                                        row += '{},'.format(allele)
+                                self.referenceprofile[sample.name][gene] = allele
+                            except ValueError:
+                                pass
                         # Add a newline
                         row += '\n'
                         # Increment the number of sequence types observed for the sample
@@ -400,6 +419,7 @@ class GeneSippr(object):
         self.customsamplesheet = args.customsamplesheet
         # Set the custom cutoff value
         self.cutoff = float(cutoff)
+        self.logfile = args.logfile
         try:
             self.averagedepth = int(args.averagedepth)
         except AttributeError:
@@ -508,7 +528,7 @@ if __name__ == '__main__':
     # Get the arguments into an object
     arguments = parser.parse_args()
     arguments.pipeline = False
-
+    arguments.logfile = os.path.join(arguments.path, 'logfile')
     # Define the start time
     start = time.time()
 

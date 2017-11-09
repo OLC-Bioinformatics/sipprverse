@@ -1,10 +1,16 @@
 #!/usr/bin/env python 3
 from Bio import SeqIO
+from glob import glob
 import operator
 import time
-from sipprCommon.sippingmethods import *
+import os
+# from subprocess import call
+from threading import Thread
+from sipprCommon.sippingmethods import Sippr
 from sipprCommon.objectprep import Objectprep
-from accessoryFunctions.accessoryFunctions import *
+from accessoryFunctions.accessoryFunctions import MetadataObject, GenObject, printtime, make_path, write_to_logfile, \
+    run_subprocess
+from subprocess import PIPE
 
 __author__ = 'adamkoziol'
 
@@ -18,47 +24,119 @@ class SixteenSBait(Sippr):
         for sample in self.runmetadata:
             if sample.general.bestassemblyfile != 'NA':
                 setattr(sample, self.analysistype, GenObject())
+                sample[self.analysistype].runanalysis = True
                 sample[self.analysistype].targetpath = self.targetpath
                 baitpath = os.path.join(self.targetpath, 'bait')
                 sample[self.analysistype].baitfile = glob(os.path.join(baitpath, '*.fa'))[0]
-                # Create the hash file of the baitfile
-                targetbase = os.path.splitext(sample[self.analysistype].baitfile)[0]
-                sample[self.analysistype].hashfile = targetbase + '.mhs.gz'
-                sample[self.analysistype].hashcall = 'cd {} && mirabait -b {} -k 19 -K {}' \
-                    .format(sample[self.analysistype].targetpath,
-                            sample[self.analysistype].baitfile,
-                            sample[self.analysistype].hashfile)
-                if not os.path.isfile(sample[self.analysistype].hashfile):
-                    call(sample[self.analysistype].hashcall, shell=True, stdout=self.devnull, stderr=self.devnull)
-                # Ensure that the hash file was successfully created
-                assert os.path.isfile(sample[self.analysistype].hashfile), \
-                    'Hashfile could not be created for the target file {0!r:s}'.format(
-                        sample[self.analysistype].baitfile)
                 sample[self.analysistype].outputdir = os.path.join(sample.run.outputdirectory, self.analysistype)
+                sample[self.analysistype].logout = os.path.join(sample[self.analysistype].outputdir, 'logout.txt')
+                sample[self.analysistype].logerr = os.path.join(sample[self.analysistype].outputdir, 'logerr.txt')
                 sample[self.analysistype].baitedfastq = \
                     '{}/{}_targetMatches.fastq'.format(sample[self.analysistype].outputdir, self.analysistype)
                 sample[self.analysistype].complete = False
         # Run the baiting method
-        self.baiting()
+        self.bait()
 
-    def baiting(self):
+    def bait(self):
         """
-        Perform baiting of FASTQ files with mirabait
+        Use bbduk to perform baiting
         """
         printtime('Performing kmer baiting of fastq files with {} targets'.format(self.analysistype), self.start)
-        # Create and start threads for each fasta file in the list
-        for i in range(len(self.runmetadata)):
-            # Send the threads to the bait method
-            threads = Thread(target=self.bait, args=())
-            # Set the daemon to true - something to do with thread management
-            threads.setDaemon(True)
-            # Start the threading
-            threads.start()
         for sample in self.runmetadata:
             if sample.general.bestassemblyfile != 'NA':
-                # Add the sample to the queue
-                self.baitqueue.put(sample)
-        self.baitqueue.join()
+                # Create the folder (if necessary)
+                make_path(sample[self.analysistype].outputdir)
+                # Make the system call
+                if len(sample.general.fastqfiles) == 2:
+                    # Create the command to run the baiting - paired inputs and a single, zipped output
+                    sample[self.analysistype].bbdukcmd = \
+                        'bbduk.sh ref={} in1={} in2={} k=51 mincovfraction=0.5 threads={} outm={}' \
+                        .format(sample[self.analysistype].baitfile,
+                                sample.general.trimmedcorrectedfastqfiles[0],
+                                sample.general.trimmedcorrectedfastqfiles[1],
+                                str(self.threads),
+                                sample[self.analysistype].baitedfastq)
+                else:
+                    sample[self.analysistype].bbdukcmd = 'bbduk.sh ref={} in={} threads={} outm={}' \
+                        .format(sample[self.analysistype].baitfile,
+                                sample.general.trimmedcorrectedfastqfiles[0],
+                                str(self.threads),
+                                sample[self.analysistype].baitedfastq)
+                # Run the system call (if necessary) , stdout=self.devnull, stderr=self.devnull
+                if not os.path.isfile(sample[self.analysistype].baitedfastq):
+                    # call(sample[self.analysistype].bbdukcmd, shell=True)
+                    out, err = run_subprocess(sample[self.analysistype].bbdukcmd)
+                    write_to_logfile(sample[self.analysistype].bbdukcmd,
+                                     sample[self.analysistype].bbdukcmd,
+                                     self.logfile, sample.general.logout, sample.general.logerr,
+                                     sample[self.analysistype].logout, sample[self.analysistype].logerr)
+                    write_to_logfile(out,
+                                     err,
+                                     self.logfile, sample.general.logout, sample.general.logerr,
+                                     sample[self.analysistype].logout, sample[self.analysistype].logerr)
+        self.reversebait()
+
+    def reversebait(self):
+        """
+
+        """
+        printtime('Performing reverse kmer baiting of targets with fastq files', self.start)
+        for sample in self.runmetadata:
+            if sample.general.bestassemblyfile != 'NA':
+                outfile = os.path.join(sample[self.analysistype].outputdir, 'baitedtargets.fa')
+                sample[self.analysistype].revbbdukcmd = \
+                    'bbduk.sh ref={} in={} threads={} mincovfraction={} maskmiddle=f outm={}'\
+                    .format(sample[self.analysistype].baitedfastq,
+                            sample[self.analysistype].baitfile,
+                            str(self.threads),
+                            self.cutoff,
+                            outfile)
+                # Run the system call (if necessary) , stdout=self.devnull, stderr=self.devnull
+                if not os.path.isfile(outfile):
+                    # call(sample[self.analysistype].revbbdukcmd, shell=True)
+                    out, err = run_subprocess(sample[self.analysistype].revbbdukcmd)
+                    write_to_logfile(sample[self.analysistype].bbdukcmd,
+                                     sample[self.analysistype].bbdukcmd,
+                                     self.logfile, sample.general.logout, sample.general.logerr,
+                                     sample[self.analysistype].logout, sample[self.analysistype].logerr)
+                    write_to_logfile(out,
+                                     err,
+                                     self.logfile, sample.general.logout, sample.general.logerr,
+                                     sample[self.analysistype].logout, sample[self.analysistype].logerr)
+                # Set the baitfile to use in the mapping steps as the newly created outfile
+                sample[self.analysistype].baitfile = outfile
+        self.subsample_reads()
+
+    def subsample_reads(self):
+        """
+        Subsampling of reads to 20X coverage of rMLST genes (roughly).
+        To be called after rMLST extraction and read trimming, in that order.
+        """
+        printtime('Subsampling {} reads'.format(self.analysistype), self.start)
+        for sample in self.runmetadata:
+            # Create the name of the subsampled read file
+            sample[self.analysistype].subsampledreads = os.path.join(
+                sample[self.analysistype].outputdir, '{}_targetMatches_subsampled.fastq.gz'.format(self.analysistype))
+            # Set the reformat.sh command - as this command will be run multiple times, overwrite previous iterations
+            # each time. Use samplebasestarget to provide an approximation of the number of bases to include in the
+            # subsampled reads e.g. for rMLST: 700000 (approx. 35000 bp total length of genes x 20X coverage)
+            sample[self.analysistype].subsamplecmd = 'reformat.sh in={} out={} overwrite samplebasestarget=700000' \
+                .format(sample[self.analysistype].baitedfastq,
+                        sample[self.analysistype].subsampledreads)
+            if not os.path.isfile(sample[self.analysistype].subsampledreads):
+                # Run the call
+                # call(sample[self.analysistype].subsamplecmd, shell=True, stdout=self.devnull, stderr=self.devnull)
+                out, err = run_subprocess(sample[self.analysistype].subsamplecmd)
+                write_to_logfile(sample[self.analysistype].subsamplecmd,
+                                 sample[self.analysistype].subsamplecmd,
+                                 self.logfile, sample.general.logout, sample.general.logerr,
+                                 sample[self.analysistype].logout, sample[self.analysistype].logerr)
+                write_to_logfile(out,
+                                 err,
+                                 self.logfile, sample.general.logout, sample.general.logerr,
+                                 sample[self.analysistype].logout, sample[self.analysistype].logerr)
+            # Update the variable to store the baited reads
+            sample[self.analysistype].baitedfastq = sample[self.analysistype].subsampledreads
 
 
 class SixteenSSipper(Sippr):
@@ -89,233 +167,7 @@ class SixteenSSipper(Sippr):
                     else:
                         sample.general.bestassemblyfile = 'NA'
         # Run the reference mapping using the mapping file
-        self.mapping()
-
-    def mapping(self):
-        """
-        Perform reference mapping - this method overrides the default method in sipping methods. The major difference
-        is the use of 'mapping file' instead of 'bait file'
-        """
-        printtime('Performing reference mapping', self.start)
-        for i in range(len(self.runmetadata)):
-            # Send the threads to
-            threads = Thread(target=self.map, args=())
-            # Set the daemon to True - something to do with thread management
-            threads.setDaemon(True)
-            # Start the threading
-            threads.start()
-        for sample in self.runmetadata:
-            if sample.general.bestassemblyfile != 'NA':
-                # Set the path/name for the sorted bam file to be created
-                sample[self.analysistype].sortedbam = '{}/{}_sorted.bam'.format(sample[self.analysistype].outputdir,
-                                                                                self.analysistype)
-                # Remove the file extension of the bait file for use in the indexing command
-                sample[self.analysistype].mappingfilenoext = os.path.splitext(sample[self.analysistype].mappingfile)[0]
-                # Use bowtie2 wrapper to create index the target file
-                bowtie2build = Bowtie2BuildCommandLine(reference=sample[self.analysistype].mappingfile,
-                                                       bt2=sample[self.analysistype].mappingfilenoext,
-                                                       **self.builddict)
-                # Use samtools wrapper to set up the bam sorting command
-                samsort = SamtoolsSortCommandline(input=sample[self.analysistype].sortedbam,
-                                                  o=True,
-                                                  out_prefix="-")
-                # Determine the location of the SAM header editing script
-                import sipprCommon.editsamheaders
-                scriptlocation = sipprCommon.editsamheaders.__file__
-                samtools = [
-                    # When bowtie2 maps reads to all possible locations rather than choosing a 'best' placement, the
-                    # SAM header for that read is set to 'secondary alignment', or 256. Please see:
-                    # http://davetang.org/muse/2014/03/06/understanding-bam-flags/ The script below reads in the stdin
-                    # and subtracts 256 from headers which include 256
-                    'python3 {}'.format(scriptlocation),
-                    # Use samtools wrapper to set up the samtools view
-                    SamtoolsViewCommandline(b=True,
-                                            S=True,
-                                            h=True,
-                                            input_file="-"),
-                    samsort]
-                # Add custom parameters to a dictionary to be used in the bowtie2 alignment wrapper
-                indict = {'--very-sensitive-local': True,
-                          # For short targets, the match bonus can be increased
-                          '--ma': self.matchbonus,
-                          '-U': sample[self.analysistype].baitedfastq,
-                          '-a': True,
-                          '--threads': self.threads,
-                          '--local': True}
-                # Create the bowtie2 reference mapping command
-                bowtie2align = Bowtie2CommandLine(bt2=sample[self.analysistype].mappingfilenoext,
-                                                  threads=self.threads,
-                                                  samtools=samtools,
-                                                  **indict)
-                # Create the command to faidx index the bait file
-                sample[self.analysistype].faifile = sample[self.analysistype].mappingfile + '.fai'
-                samindex = SamtoolsFaidxCommandline(reference=sample[self.analysistype].mappingfile)
-                # Add the samindex command (as a string) to the metadata - other commands don't seem to work properly,
-                # and have been omitted
-                sample[self.analysistype].samindex = str(samindex)
-                # Add the commands to the queue. Note that the commands would usually be set as attributes of the sample
-                # but there was an issue with their serialization when printing out the metadata
-                if not os.path.isfile(sample[self.analysistype].mappingfilenoext + '.1' + self.bowtiebuildextension):
-                    stdoutbowtieindex, stderrbowtieindex = map(StringIO,
-                                                               bowtie2build(cwd=sample[self.analysistype].targetpath))
-                    # Write any error to a log file
-                    if stderrbowtieindex:
-                        # Write the standard error to log, bowtie2 puts alignment summary here
-                        with open(os.path.join(sample[self.analysistype].targetpath,
-                                               '{}_bowtie_index.log'.format(self.analysistype)), 'a+') as log:
-                            log.writelines(logstr(bowtie2build, stderrbowtieindex.getvalue(),
-                                                  stdoutbowtieindex.getvalue()))
-                    # Close the stdout and stderr streams
-                    stdoutbowtieindex.close()
-                    stderrbowtieindex.close()
-                self.mapqueue.put((sample, bowtie2build, bowtie2align, samindex))
-        self.mapqueue.join()
-        # Use samtools to index the sorted bam file
-        self.indexing()
-
-    def map(self):
-        while True:
-            # Get the necessary values from the queue
-            sample, bowtie2build, bowtie2align, samindex = self.mapqueue.get()
-            # Use samtools faidx to index the bait file - this will be used in the sample parsing
-            if not os.path.isfile(sample[self.analysistype].faifile):
-                stdoutindex, stderrindex = map(StringIO, samindex(cwd=sample[self.analysistype].targetpath))
-                # Write any error to a log file
-                if stderrindex:
-                    # Write the standard error to log, bowtie2 puts alignment summary here
-                    with open(os.path.join(sample[self.analysistype].targetpath,
-                                           '{}_samtools_index.log'.format(self.analysistype)), 'a+') as log:
-                        log.writelines(logstr(samindex, stderrindex.getvalue(), stdoutindex.getvalue()))
-                # Close the stdout and stderr streams
-                stdoutindex.close()
-                stderrindex.close()
-            # Only run the functions if the sorted bam files and the indexed bait file do not exist
-            if not os.path.isfile(sample[self.analysistype].sortedbam):
-                # Set stdout to a stringIO stream
-                stdout, stderr = map(StringIO, bowtie2align(cwd=sample[self.analysistype].outputdir))
-                if stderr:
-                    # Write the standard error to log, bowtie2 puts alignment summary here
-                    with open(os.path.join(sample[self.analysistype].outputdir,
-                                           '{}_bowtie_samtools.log'.format(self.analysistype)), 'a+') as log:
-                        log.writelines(logstr([bowtie2align], stderr.getvalue(), stdout.getvalue()))
-                stdout.close()
-                stderr.close()
-            self.mapqueue.task_done()
-
-    def parse(self):
-        import pysamstats
-        import numpy
-        while True:
-            sample = self.parsequeue.get()
-            # Initialise dictionaries to store parsed data
-            matchdict = dict()
-            depthdict = dict()
-            seqdict = dict()
-            snpdict = dict()
-            gapdict = dict()
-            maxdict = dict()
-            mindict = dict()
-            deviationdict = dict()
-            sample[self.analysistype].results = dict()
-            sample[self.analysistype].avgdepth = dict()
-            sample[self.analysistype].resultssnp = dict()
-            sample[self.analysistype].resultsgap = dict()
-            sample[self.analysistype].sequences = dict()
-            sample[self.analysistype].maxcoverage = dict()
-            sample[self.analysistype].mincoverage = dict()
-            sample[self.analysistype].standarddev = dict()
-            # Variable to store the expected position in gene/allele
-            pos = 0
-            try:
-                # Use the stat_variation function of pysam stats to return records parsed from sorted bam files
-                # Values of interest can be retrieved using the appropriate keys
-                for rec in pysamstats.stat_variation(alignmentfile=sample[self.analysistype].sortedbam,
-                                                     fafile=sample[self.analysistype].mappingfile,
-                                                     max_depth=1000000):
-                    # Initialise seqdict with the current gene/allele if necessary with an empty string
-                    if rec['chrom'] not in seqdict:
-                        seqdict[rec['chrom']] = str()
-                        # Since this is the first position in a "new" gene/allele, reset the pos variable to 0
-                        pos = 0
-                    # Initialise gap dict with 0 gaps
-                    if rec['chrom'] not in gapdict:
-                        gapdict[rec['chrom']] = 0
-                    # If there is a gap in the alignment, record the size of the gap in gapdict
-                    if int(rec['pos']) > pos:
-                        # Add the gap size to gap dict
-                        gapdict[rec['chrom']] += rec['pos'] - pos
-                        # Set the expected position to the current position
-                        pos = int(rec['pos'])
-                    # Increment pos in preparation for the next iteration
-                    pos += 1
-                    # Initialise snpdict if necessary
-                    if rec['chrom'] not in snpdict:
-                        snpdict[rec['chrom']] = 0
-                    # Initialise the current gene/allele in depthdict with the depth (reads_all) if necessary,
-                    # otherwise add the current depth to the running total
-                    if rec['chrom'] not in depthdict:
-                        depthdict[rec['chrom']] = int(rec['reads_all'])
-                    else:
-                        depthdict[rec['chrom']] += int(rec['reads_all'])
-                    # Dictionary of bases and the number of times each base was observed per position
-                    bases = {'A': rec['A'], 'C': rec['C'], 'G': rec['G'], 'T': rec['T']}
-                    # If the most prevalent base (calculated with max() and operator.itemgetter()) does not match the
-                    # reference base, add this prevalent base to seqdict
-                    if max(bases.items(), key=operator.itemgetter(1))[0] != rec['ref']:
-                        seqdict[rec['chrom']] += max(bases.items(), key=operator.itemgetter(1))[0]
-                        # Increment the running total of the number of SNPs
-                        snpdict[rec['chrom']] += 1
-                    else:
-                        # If the bases match, add the reference base to seqdict
-                        seqdict[rec['chrom']] += (rec['ref'])
-                        # Initialise posdict if necessary, otherwise, increment the running total of matches
-                        if rec['chrom'] not in matchdict:
-                            matchdict[rec['chrom']] = 1
-                        else:
-                            matchdict[rec['chrom']] += 1
-                    # Find the max and min coverage for each strain/gene combo
-                    try:
-                        maxdict[rec['chrom']] = int(rec['reads_all']) if \
-                            int(rec['reads_all']) >= maxdict[rec['chrom']] else maxdict[rec['chrom']]
-                    except KeyError:
-                        maxdict[rec['chrom']] = int(rec['reads_all'])
-                    try:
-                        mindict[rec['chrom']] = int(rec['reads_all']) if \
-                            int(rec['reads_all']) <= mindict[rec['chrom']] else mindict[rec['chrom']]
-                    except KeyError:
-                        mindict[rec['chrom']] = int(rec['reads_all'])
-                    # Create a list of all the depths in order to calculate the standard deviation
-                    try:
-                        deviationdict[rec['chrom']].append(int(rec['reads_all']))
-                    except KeyError:
-                        deviationdict[rec['chrom']] = list()
-                        deviationdict[rec['chrom']].append(int(rec['reads_all']))
-            # If there are no results in the bam file, then pass over the strain
-            except ValueError:
-                pass
-            # Iterate through all the genes/alleles with results above
-            for allele in sorted(matchdict):
-                # If the length of the match is greater or equal to the length of the gene/allele (multiplied by the
-                # cutoff value) as determined using faidx indexing, then proceed
-                if matchdict[allele] >= sample[self.analysistype].faidict[allele] * self.cutoff:
-                    # Calculate the average depth by dividing the total number of reads observed by the
-                    # length of the gene
-                    averagedepth = float(depthdict[allele]) / float(matchdict[allele])
-                    percentidentity = float(matchdict[allele]) / float(sample[self.analysistype].faidict[allele]) * 100
-                    # Only report a positive result if this average depth is greater than 10X
-                    if averagedepth > 10:
-                        # Populate resultsdict with the gene/allele name, the percent identity, and the average depth
-                        sample[self.analysistype].results.update({allele: '{:.2f}'.format(percentidentity)})
-                        sample[self.analysistype].avgdepth.update({allele: '{:.2f}'.format(averagedepth)})
-                        # Add the SNP and gap results to dictionaries
-                        sample[self.analysistype].resultssnp.update({allele: snpdict[allele]})
-                        sample[self.analysistype].resultsgap.update({allele: gapdict[allele]})
-                        sample[self.analysistype].sequences.update({allele: seqdict[allele]})
-                        sample[self.analysistype].maxcoverage.update({allele: maxdict[allele]})
-                        sample[self.analysistype].mincoverage.update({allele: mindict[allele]})
-                        sample[self.analysistype]\
-                            .standarddev.update({allele: '{:.2f}'.format(numpy.std(deviationdict[allele], ddof=1))})
-            self.parsequeue.task_done()
+        self.bait()
 
 
 class SixteenS(object):
@@ -390,7 +242,16 @@ class SixteenS(object):
             # Check to see if the subsampled FASTQ file has already been created
             if not os.path.isfile(sample[self.analysistype].subsampledfastq):
                 # Run the system call
-                call(sample[self.analysistype].seqtkcall, shell=True, stdout=self.devnull, stderr=self.devnull)
+                # call(sample[self.analysistype].seqtkcall, shell=True, stdout=self.devnull, stderr=self.devnull)
+                out, err = run_subprocess(sample[self.analysistype].seqtkcall)
+                write_to_logfile(sample[self.analysistype].seqtkcall,
+                                 sample[self.analysistype].seqtkcall,
+                                 self.logfile, sample.general.logout, sample.general.logerr,
+                                 sample[self.analysistype].logout, sample[self.analysistype].logerr)
+                write_to_logfile(out,
+                                 err,
+                                 self.logfile, sample.general.logout, sample.general.logerr,
+                                 sample[self.analysistype].logout, sample[self.analysistype].logerr)
             self.samplequeue.task_done()
 
     def fasta(self):
@@ -419,26 +280,42 @@ class SixteenS(object):
             # Check to see if the FASTA file already exists
             if not os.path.isfile(sample[self.analysistype].fasta):
                 # Run the system call , stdout=self.devnull, stderr=self.devnull
-                call(sample[self.analysistype].fastxcall, shell=True)
+                # call(sample[self.analysistype].fastxcall, shell=True)
+                out, err = run_subprocess(sample[self.analysistype].fastxcall)
+                write_to_logfile(sample[self.analysistype].fastxcall,
+                                 sample[self.analysistype].fastxcall,
+                                 self.logfile, sample.general.logout, sample.general.logerr,
+                                 sample[self.analysistype].logout, sample[self.analysistype].logerr)
+                write_to_logfile(out,
+                                 err,
+                                 self.logfile, sample.general.logout, sample.general.logerr,
+                                 sample[self.analysistype].logout, sample[self.analysistype].logerr)
             self.fastaqueue.task_done()
 
     def makeblastdb(self):
         """
         Makes blast database files from targets as necessary
         """
-        # Iterate through the samples to set the bait file. Break after the first entry, as all entries will be the same
+        # Iterate through the samples to set the bait file.
         for sample in self.runmetadata.samples:
-            self.baitfile = sample[self.analysistype].baitfile
-            break
-        # Remove the file extension
-        db = os.path.splitext(self.baitfile)[0]
-        # Add '.nhr' for searching below
-        nhr = '{}.nhr'.format(db)
-        # Check for already existing database files
-        if not os.path.isfile(str(nhr)):
-            # Create the databases
-            call('makeblastdb -in {} -parse_seqids -max_file_sz 2GB -dbtype nucl -out {}'.format(self.baitfile, db),
-                 shell=True, stdout=self.devnull, stderr=self.devnull)
+            # Remove the file extension
+            db = os.path.splitext(sample[self.analysistype].baitfile)[0]
+            # Add '.nhr' for searching below
+            nhr = '{}.nhr'.format(db)
+            # Check for already existing database files
+            if not os.path.isfile(str(nhr)):
+                # Create the databases
+                command = 'makeblastdb -in {} -parse_seqids -max_file_sz 2GB -dbtype nucl -out {}'\
+                    .format(sample[self.analysistype].baitfile, db)
+                out, err = run_subprocess(command)
+                write_to_logfile(command,
+                                 command,
+                                 self.logfile, sample.general.logout, sample.general.logerr,
+                                 sample[self.analysistype].logout, sample[self.analysistype].logerr)
+                write_to_logfile(out,
+                                 err,
+                                 self.logfile, sample.general.logout, sample.general.logerr,
+                                 sample[self.analysistype].logout, sample[self.analysistype].logerr)
 
     def blast(self):
         """
@@ -485,8 +362,10 @@ class SixteenS(object):
         printtime('Parsing BLAST results', self.starttime)
         from csv import DictReader
         # Load the NCBI 16S reference database as a dictionary
-        dbrecords = SeqIO.to_dict(SeqIO.parse(self.baitfile, 'fasta'))
+        # dbrecords = SeqIO.to_dict(SeqIO.parse(self.baitfile, 'fasta'))
         for sample in self.runmetadata.samples:
+            # Load the NCBI 16S reference database as a dictionary
+            dbrecords = SeqIO.to_dict(SeqIO.parse(sample[self.analysistype].baitfile, 'fasta'))
             # Allow for no BLAST results
             if os.path.isfile(sample[self.analysistype].blastreport):
                 # Initialise a dictionary to store the number of times a genus is the best hit
@@ -511,10 +390,16 @@ class SixteenS(object):
                 # Sort the dictionary based on the number of times a genus is seen
                 sample[self.analysistype].sortedgenera = sorted(sample[self.analysistype].frequency.items(),
                                                                 key=operator.itemgetter(1), reverse=True)
-                # Extract the top result, and set it as the genus of the sample
-                sample[self.analysistype].genus = sample[self.analysistype].sortedgenera[0][0]
-                # Previous code relies on having the closest refseq genus, so set this as above
-                sample.general.closestrefseqgenus = sample[self.analysistype].genus
+                try:
+                    # Extract the top result, and set it as the genus of the sample
+                    sample[self.analysistype].genus = sample[self.analysistype].sortedgenera[0][0]
+                    # Previous code relies on having the closest refseq genus, so set this as above
+                    sample.general.closestrefseqgenus = sample[self.analysistype].genus
+                except IndexError:
+                    # Populate attributes with 'NA'
+                    sample[self.analysistype].sortedgenera = 'NA'
+                    sample[self.analysistype].genus = 'NA'
+                    sample.general.closestrefseqgenus = 'NA'
             else:
                 # Populate attributes with 'NA'
                 sample[self.analysistype].sortedgenera = 'NA'
@@ -525,27 +410,37 @@ class SixteenS(object):
         """
         Creates a report of the results
         """
+        from Bio.Seq import Seq
+        from Bio.SeqRecord import SeqRecord
+        from Bio.Alphabet import IUPAC
         # Create the path in which the reports are stored
         make_path(self.reportpath)
         # Initialise the header and data strings
         header = 'Strain,Gene,PercentIdentity,Genus,FoldCoverage\n'
         data = ''
         with open(os.path.join(self.reportpath, self.analysistype + '.csv'), 'w') as report:
-            for sample in self.runmetadata.samples:
-                try:
-                    # Select the best hit of all the full-length 16S genes mapped
-                    sample[self.analysistype].besthit = sorted(sample[self.analysistype].results.items(),
-                                                               key=operator.itemgetter(1), reverse=True)[0][0]
-                    # Add the sample name to the data string
-                    data += sample.name + ','
-                    # Find the record that matches the best hit, and extract the necessary values to be place in the
-                    # data string
-                    for name, identity in sample[self.analysistype].results.items():
-                        if name == sample[self.analysistype].besthit:
-                            data += '{},{},{},{}\n'.format(name, identity, sample[self.analysistype].genus,
-                                                           sample[self.analysistype].avgdepth[name])
-                except (KeyError, IndexError):
-                    data += '\n'
+            with open(os.path.join(self.reportpath, self.analysistype + '_sequences.fa'), 'w') as sequences:
+                for sample in self.runmetadata.samples:
+                    try:
+                        # Select the best hit of all the full-length 16S genes mapped
+                        sample[self.analysistype].besthit = sorted(sample[self.analysistype].results.items(),
+                                                                   key=operator.itemgetter(1), reverse=True)[0][0]
+                        # Add the sample name to the data string
+                        data += sample.name + ','
+                        # Find the record that matches the best hit, and extract the necessary values to be place in the
+                        # data string
+                        for name, identity in sample[self.analysistype].results.items():
+                            if name == sample[self.analysistype].besthit:
+                                data += '{},{},{},{}\n'.format(name, identity, sample[self.analysistype].genus,
+                                                               sample[self.analysistype].avgdepth[name])
+                                # Create a FASTA-formatted sequence output of the 16S sequence
+                                record = SeqRecord(Seq(sample[self.analysistype].sequences[name],
+                                                       IUPAC.unambiguous_dna),
+                                                   id='{}_{}'.format(sample.name, '16S'),
+                                                   description='')
+                                SeqIO.write(record, sequences, 'fasta')
+                    except (KeyError, IndexError):
+                        data += '\n'
             # Write the results to the report
             report.write(header)
             report.write(data)
@@ -595,6 +490,7 @@ class SixteenS(object):
         except AttributeError:
             self.miseqfolder = str()
         self.fastqdestination = args.fastqdestination
+        self.logfile = args.logfile
         self.forwardlength = args.forwardlength
         self.reverselength = args.reverselength
         self.numreads = 2 if self.reverselength != 0 else 1
@@ -610,6 +506,7 @@ class SixteenS(object):
             self.copy = args.copy
         except AttributeError:
             self.copy = False
+        self.revbait = True
         self.devnull = open(os.path.devnull, 'w')
         self.samplequeue = Queue(maxsize=self.cpus)
         self.fastaqueue = Queue(maxsize=self.cpus)
@@ -623,6 +520,7 @@ class SixteenS(object):
                            'subject_start', 'subject_end', 'subject_sequence']
         # Run the analyses
         self.runner()
+
 
 if __name__ == '__main__':
     # Argument parser for user-inputted values, and a nifty help menu
@@ -689,6 +587,7 @@ if __name__ == '__main__':
     arguments = parser.parse_args()
     arguments.pipeline = False
     arguments.runmetadata.samples = MetadataObject()
+    arguments.logfile = os.path.join(arguments.path, 'logfile')
     arguments.analysistype = 'sixteens_full'
     # Define the start time
     start = time.time()

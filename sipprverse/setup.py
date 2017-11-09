@@ -12,5 +12,5 @@ setup(
     author_email='adam.koziol@inspection.gc.ca',
     description='Object oriented raw read typing software',
     url='https://github.com/OLC-LOC-Bioinformatics/geneSipprV2/sipprverse',
-    long_description=open('README.md').read(), install_requires=['psutil']
+    long_description=open('README.md').read(), install_requires=['psutil', 'pysam', 'BioTools', 'xlsxwriter']
 )

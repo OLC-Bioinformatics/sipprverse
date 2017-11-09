@@ -192,7 +192,6 @@ class Method(object):
         Sippr(self, self.cutoff)
         # Create the reports
         self.reporter()
-        quit()
         # Run the 16S analyses using the filtered database
         self.targetpath = self.reffilepath
         # Run the 16S analyses
