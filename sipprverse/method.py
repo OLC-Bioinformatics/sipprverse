@@ -546,6 +546,7 @@ class Method(object):
         self.completemetadata = list()
         self.samplesheetpath = str()
         self.samples = list()
+        self.logfile = os.path.join(self.path, 'log')
         if self.bcltofastq:
             make_path(self.sequencepath)
             self.method()
