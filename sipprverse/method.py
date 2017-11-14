@@ -3,7 +3,6 @@ from sipprCommon.sippingmethods import Sippr
 from sipprCommon.objectprep import Objectprep
 from accessoryFunctions.accessoryFunctions import GenObject, MetadataObject, make_path, printtime
 from accessoryFunctions.metadataprinter import *
-from geneSipprV2.sipprverse.sixteenS.sixteenS import SixteenS
 from geneSipprV2.sipprverse.sixteenS.sixteens_full import SixteenS as SixteensFull
 from argparse import ArgumentParser
 from glob import glob
@@ -157,13 +156,8 @@ class Method(object):
         # Create the reports
         self.reporter()
         # Run the 16S analyses using the filtered database
-        self.analysistype = 'sixteens'
-        self.cutoff = 0.985
         self.targetpath = self.reffilepath
-        SixteenS(self, self.commit, self.starttime, self.homepath)
-        # Run the 16S analyses on strains that were not classified using the filtered database
-        # self.analysistype = '16S_full'
-        # SixteenS(self, self.commit, self.starttime, self.homepath)
+        SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
         # Run the GDCS analysis
         self.analysistype = 'GDCS'
         self.pipeline = True
