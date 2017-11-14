@@ -8,6 +8,7 @@ from geneSipprV2.sipprverse.sixteenS.sixteens_full import SixteenS as SixteensFu
 from argparse import ArgumentParser
 from glob import glob
 import subprocess
+import numpy
 import time
 import os
 __author__ = 'adamkoziol'
@@ -306,23 +307,31 @@ class Method(object):
         genera = list()
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
+                sample[self.analysistype].createreport = True
                 # Determine which genera are present in the analysis
                 if sample.general.closestrefseqgenus not in genera:
                     genera.append(sample.general.closestrefseqgenus)
-                # Add all the GDCS genes to the list
-                for gene in sorted(sample[self.analysistype].faidict):
-                    if gene not in gdcs:
-                        gdcs.append(gene)
-        header = 'Strain,Genus,Matches,{},\n'.format(','.join(gdcs))
+                try:
+                    # Add all the GDCS genes to the list
+                    for gene in sorted(sample[self.analysistype].faidict):
+                        if gene not in gdcs:
+                            gdcs.append(gene)
+                except KeyError:
+                    sample[self.analysistype].createreport = False
+            else:
+                sample[self.analysistype].createreport = False
+        header = 'Strain,Genus,Matches,MeanCoverage,Pass/Fail,{},\n'.format(','.join(gdcs))
         data = str()
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'w') as report:
+        with open(os.path.join(self.reportpath, '{}.csv'.format(self.analysistype)), 'w') as report:
             # Sort the samples in the report based on the closest refseq genus e.g. all samples with the same genus
             # will be grouped together in the report
             for genus in genera:
                 for sample in self.runmetadata.samples:
-                    if sample.general.bestassemblyfile != 'NA':
-                        # Add the sample to the report if it matches the current genus
-                        if genus == sample.general.closestrefseqgenus:
+                    if sample.general.closestrefseqgenus == genus:
+                        if sample[self.analysistype].createreport:
+                            sample[self.analysistype].totaldepth = list()
+                            # Add the sample to the report if it matches the current genus
+                            # if genus == sample.general.closestrefseqgenus:
                             data += '{},{},'.format(sample.name, genus)
                             # Initialise a variable to store the number of GDCS genes were matched
                             count = 0
@@ -342,18 +351,40 @@ class Method(object):
                                         specific += '{}% ({} +/- {}),'\
                                             .format(identity, sample[self.analysistype].avgdepth[gene],
                                                     sample[self.analysistype].standarddev[gene])
+                                        sample[self.analysistype].totaldepth.append(
+                                            float(sample[self.analysistype].avgdepth[gene]))
                                         count += 1
                                     # If the gene was missing from the results attribute, add a - to the cell
                                     except KeyError:
                                         sample.general.incomplete = True
                                         specific += '-,'
-                            # Add the count and the total number of GDCS genes as well as the results
-                            data += '{}/{},{}\n'.format(str(count), len(sample[self.analysistype].faidict),
-                                                        specific)
-                    # Any samples with a best assembly of 'NA' are considered incomplete.
-                    else:
-                        data += '{},{}\n'.format(sample.name, sample.general.closestrefseqgenus)
-                        sample.general.incomplete = True
+                            # Calculate the mean depth of the genes and the standard deviation
+                            sample[self.analysistype].mean = numpy.mean(sample[self.analysistype].totaldepth)
+                            sample[self.analysistype].stddev = numpy.std(sample[self.analysistype].totaldepth)
+                            # Determine whether the sample pass the necessary quality criteria:
+                            # Pass, all GDCS, mean coverage greater than 20X coverage;
+                            # ?: Indeterminate value;
+                            # -: Fail value
+                            if count == len(sample[self.analysistype].faidict):
+                                if sample[self.analysistype].mean > 20:
+                                    quality = '+'
+                                else:
+                                    quality = '?'
+                            else:
+                                quality = '-'
+                            # Add the count, mean depth with standard deviation, the pass/fail determination,
+                            #  and the total number of GDCS genes as well as the results
+                            data += '{hits}/{total},{mean} += {std},{fail},{gdcs}\n'\
+                                .format(hits=str(count),
+                                        total=len(sample[self.analysistype].faidict),
+                                        mean='{:.2f}'.format(sample[self.analysistype].mean),
+                                        std='{:.2f}'.format(sample[self.analysistype].stddev),
+                                        fail=quality,
+                                        gdcs=specific)
+                        # Any samples with a best assembly of 'NA' are considered incomplete.
+                        else:
+                            data += '{},{}\n'.format(sample.name, sample.general.closestrefseqgenus)
+                            sample.general.incomplete = True
             # Write the header and data to file
             report.write(header)
             report.write(data)
