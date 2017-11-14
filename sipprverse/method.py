@@ -377,7 +377,7 @@ class Method(object):
                                         gdcs=specific)
                         # Any samples with a best assembly of 'NA' are considered incomplete.
                         else:
-                            data += '{},{},,-\n'.format(sample.name, sample.general.closestrefseqgenus)
+                            data += '{},{},,,-\n'.format(sample.name, sample.general.closestrefseqgenus)
                             sample.general.incomplete = True
             # Write the header and data to file
             report.write(header)
