@@ -3,7 +3,7 @@ from sipprCommon.sippingmethods import Sippr
 from sipprCommon.objectprep import Objectprep
 from accessoryFunctions.accessoryFunctions import GenObject, MetadataObject, make_path, printtime
 from accessoryFunctions.metadataprinter import *
-from geneSipprV2.sipprverse.sixteenS.sixteens_full import SixteenS as SixteensFull
+from sixteenS.sixteens_full import SixteenS as SixteensFull
 from argparse import ArgumentParser
 from glob import glob
 import subprocess
