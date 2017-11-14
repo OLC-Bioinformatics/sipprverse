@@ -368,7 +368,7 @@ class Method(object):
                                 quality = '-'
                             # Add the count, mean depth with standard deviation, the pass/fail determination,
                             #  and the total number of GDCS genes as well as the results
-                            data += '{hits}/{total},{mean} += {std},{fail},{gdcs}\n'\
+                            data += '{hits}/{total},{mean} +/- {std},{fail},{gdcs}\n'\
                                 .format(hits=str(count),
                                         total=len(sample[self.analysistype].faidict),
                                         mean='{:.2f}'.format(sample[self.analysistype].mean),
