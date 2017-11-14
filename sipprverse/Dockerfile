@@ -65,6 +65,9 @@ RUN conda install -c bioconda seqtk
 # Install psutil
 RUN conda install -c anaconda psutil
 
+# Install bbmap 
+RUN conda install -c bioconda bbmap 
+
 # Install bowtie2 version 2.2.9
 RUN curl -L https://downloads.sourceforge.net/project/bowtie-bio/bowtie2/2.2.9/bowtie2-2.2.9-linux-x86_64.zip -o bowtie2.zip
 RUN unzip bowtie2.zip && rm bowtie2.zip
@@ -74,11 +77,11 @@ ENV PATH /bowtie2:$PATH
 # Install OLCTools
 RUN pip3 install OLCTools==0.3.6
 
+# Install latest genesippr package
+RUN pip3 install sipprverse
+
 # Install the pipeline
 RUN git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git
-
-# Install genesippr package
-RUN pip3 install sipprverse
 
 # Edit the path
 ENV PATH /geneSipprV2/sipprverse:$PATH

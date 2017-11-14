@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from sipprCommon.sippingmethods import Sippr
 from sipprCommon.objectprep import Objectprep
-from accessoryFunctions.accessoryFunctions import GenObject, MetadataObject, make_path, printtime
+from accessoryFunctions.accessoryFunctions import MetadataObject, make_path, printtime
 from accessoryFunctions.metadataprinter import *
 from sixteenS.sixteens_full import SixteenS as SixteensFull
 from argparse import ArgumentParser
@@ -197,7 +197,7 @@ class Method(object):
         Sippr(self, 0.95)
         # Create the reports
         self.gdcsreporter()
-        # '''
+        '''
         from serosippr.serosippr import SeroSippr
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
@@ -214,7 +214,7 @@ class Method(object):
                 sample.mash.closestrefseqgenus = 'NA'
                 sample.mash.closestrefseqspecies = 'NA'
         SeroSippr(self, self.commit, self.starttime, self.homepath, 'serosippr', 0.95, True)
-        # '''
+        '''
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
@@ -377,7 +377,7 @@ class Method(object):
                                         gdcs=specific)
                         # Any samples with a best assembly of 'NA' are considered incomplete.
                         else:
-                            data += '{},{}\n'.format(sample.name, sample.general.closestrefseqgenus)
+                            data += '{},{},,-\n'.format(sample.name, sample.general.closestrefseqgenus)
                             sample.general.incomplete = True
             # Write the header and data to file
             report.write(header)

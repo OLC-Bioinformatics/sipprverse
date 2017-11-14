@@ -24,4 +24,4 @@ tqdm==4.15.0
 twine==1.9.1
 urllib3==1.222
 wheel==0.30.0a0
-XlsxWriter==0.9.8
+xlsxwriter==0.9.8
