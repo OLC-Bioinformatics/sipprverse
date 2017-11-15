@@ -78,7 +78,8 @@ class SixteenSBait(Sippr):
 
     def reversebait(self):
         """
-
+        Use the baited FASTQ files to bait out the targets from the database to create a (hopefully) smaller
+        database to use for the reference mapping step
         """
         printtime('Performing reverse kmer baiting of targets with fastq files', self.start)
         for sample in self.runmetadata:
