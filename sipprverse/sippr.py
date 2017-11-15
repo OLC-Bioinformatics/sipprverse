@@ -1,10 +1,23 @@
 #!/usr/bin/env python 3
+from accessoryFunctions.accessoryFunctions import GenObject, make_path, MetadataObject, printtime
+from accessoryFunctions.metadataprinter import MetadataPrinter
+from sixteenS.sixteens_full import SixteenS as SixteensFull
+from sipprCommon.objectprep import Objectprep
+from sipprCommon.sippingmethods import Sippr
+from serosippr.serosippr import SeroSippr
+from reporter.reports import Reports
+from argparse import ArgumentParser
+import multiprocessing
+import subprocess
+import time
+import os
+
 __author__ = 'adamkoziol'
 
 
-class Sippr(object):
+class Sipprverse(object):
 
-    def runner(self):
+    def main(self):
         """
         Run the necessary methods in the correct order
         """
@@ -20,7 +33,8 @@ class Sippr(object):
         self.targetpath = os.path.join(self.reffilepath, self.analysistype, '')
         Sippr(self, self.cutoff)
         # Create the reports
-        self.reporter()
+        self.reports = Reports(self)
+        Reports.reporter(self.reports)
         # Run the 16S analyses using the filtered database
         self.targetpath = self.reffilepath
         # Run the 16S analyses
@@ -31,9 +45,8 @@ class Sippr(object):
         self.pipeline = True
         Sippr(self, 0.95)
         # Create the reports
-        self.gdcsreporter()
-        '''
-        from serosippr.serosippr import SeroSippr
+        Reports.gdcsreporter(self.reports)
+        # Perform serotyping for samples classified as Escherichia
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
                 sample.mash = GenObject()
@@ -49,13 +62,68 @@ class Sippr(object):
                 sample.mash.closestrefseqgenus = 'NA'
                 sample.mash.closestrefseqspecies = 'NA'
         SeroSippr(self, self.commit, self.starttime, self.homepath, 'serosippr', 0.95, True)
-        '''
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
 
-    def __init__(self, args):
-        pass
+    def __init__(self, args, pipelinecommit, startingtime, scriptpath):
+        """
+        :param args: command line arguments
+        :param pipelinecommit: pipeline commit or version
+        :param startingtime: time the script was started
+        :param scriptpath: home path of the script
+        """
+        # Initialise variables
+        self.commit = str(pipelinecommit)
+        self.starttime = startingtime
+        self.homepath = scriptpath
+        # Define variables based on supplied arguments
+        self.path = os.path.join(args.path, '')
+        assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
+        self.sequencepath = os.path.join(args.sequencepath, '')
+        self.seqpath = self.sequencepath
+        self.targetpath = os.path.join(args.targetpath, '')
+        # ref file path is used to work with sub module code with a different naming scheme
+        self.reffilepath = self.targetpath
+        self.reportpath = os.path.join(self.path, 'reports')
+        make_path(self.reportpath)
+        assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
+            .format(self.targetpath)
+        self.bcltofastq = args.bcl2fastq
+        self.miseqpath = args.miseqpath
+        self.miseqfolder = args.miseqfolder
+        self.fastqdestination = args.destinationfastq
+        self.forwardlength = args.readlengthforward
+        self.reverselength = args.readlengthreverse
+        self.numreads = 2 if self.reverselength != 0 else 1
+        self.customsamplesheet = args.customsamplesheet
+        # Set the custom cutoff value
+        self.cutoff = float()
+        # Use the argument for the number of threads to use, or default to the number of cpus in the system
+        self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
+        self.threads = int()
+        self.runmetadata = MetadataObject()
+        self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
+        self.analysistype = 'GeneSippr'
+        self.copy = args.copy
+        self.pipeline = False
+        self.forward = str()
+        self.reverse = str()
+        self.index = str()
+        self.header = dict()
+        self.rundata = dict()
+        self.completed = list()
+        self.incomplete = list()
+        self.analysescomplete = False
+        self.final = False
+        self.sum = int()
+        self.completemetadata = list()
+        self.samplesheetpath = str()
+        self.samples = list()
+        self.logfile = os.path.join(self.path, 'log')
+        self.reports = str()
+        # Run the method
+        self.main()
 
 
 if __name__ == '__main__':
@@ -123,7 +191,7 @@ if __name__ == '__main__':
     start = time.time()
 
     # Run the script
-    Method(arguments, commit, start, homepath)
+    Sipprverse(arguments, commit, start, homepath)
 
     # Print a bold, green exit statement
     print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')

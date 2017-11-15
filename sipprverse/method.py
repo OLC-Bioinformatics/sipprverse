@@ -4,7 +4,9 @@ from sipprCommon.objectprep import Objectprep
 from accessoryFunctions.accessoryFunctions import MetadataObject, make_path, printtime
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from sixteenS.sixteens_full import SixteenS as SixteensFull
+from reporter.reports import Reports
 from argparse import ArgumentParser
+import multiprocessing
 from glob import glob
 import subprocess
 import time
@@ -34,6 +36,8 @@ class Method(object):
         objects.objectprep()
         # Set the metadata
         self.runmetadata = objects.samples
+        #
+        self.reports = Reports(self)
         self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(self.runmetadata.samples) > 1 \
             else 1
         # Pull the full length of the forward and reverse reads, as well as the indices
@@ -138,7 +142,7 @@ class Method(object):
                 # however long it takes to run the analyses before trying again
                 sleep(1500)
         # Once all the analyses are complete, create reports for each sample
-        self.methodreporter()
+        Reports.methodreporter(self.reports)
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
@@ -147,13 +151,15 @@ class Method(object):
         """
         Method to allow the analyses to be called in a repeatable fashion 
         """
+        # Update the reports object
+        self.reports = Reports(self)
         # Run the genesippr analyses
         self.cutoff = 0.8
         self.analysistype = 'genesippr'
         self.targetpath = os.path.join(self.reffilepath, self.analysistype, '')
         Sippr(self, self.cutoff)
         # Create the reports
-        self.reporter()
+        Reports.reporter(self.reports)
         # Run the 16S analyses using the filtered database
         self.targetpath = self.reffilepath
         SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
@@ -162,7 +168,7 @@ class Method(object):
         self.pipeline = True
         Sippr(self, 0.95)
         # Create the reports
-        self.gdcsreporter()
+        Reports.gdcsreporter(self.reports)
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
@@ -252,7 +258,6 @@ class Method(object):
         :param startingtime: time the script was started
         :param scriptpath: home path of the script
         """
-        import multiprocessing
         # Initialise variables
         self.commit = str(pipelinecommit)
         self.starttime = startingtime
@@ -301,6 +306,7 @@ class Method(object):
         self.samplesheetpath = str()
         self.samples = list()
         self.logfile = os.path.join(self.path, 'log')
+        self.reports = str()
         # Run the method
         self.method()
 

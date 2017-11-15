@@ -78,7 +78,7 @@ ENV PATH /bowtie2:$PATH
 RUN pip3 install OLCTools==0.3.6
 
 # Install latest genesippr package
-RUN pip3 install sipprverse==0.0.8
+RUN pip3 install sipprverse==0.0.10
 
 # Install the pipeline
 RUN git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git
