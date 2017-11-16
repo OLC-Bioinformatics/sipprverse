@@ -28,6 +28,7 @@ RUN apt-get update -y -qq && apt-get install -y \
 	unzip \
         ncbi-blast+ \
 	fastx-toolkit \
+	alien \
 	bzip2 \
 	nano && \
 	curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh \
@@ -37,6 +38,20 @@ RUN apt-get update -y -qq && apt-get install -y \
 	    && conda update conda && \
     	apt-get clean  && \
     	rm -rf /var/lib/apt/lists/*
+
+# Add the bcl2fastq RPM
+ADD accessoryfiles/ /accessoryfiles
+
+# Install bcl2fastq
+RUN alien -i /accessoryfiles/bcl2fastq-1.8.4-Linux-x86_64.rpm
+# Remove the rpm
+RUN rm /accessoryfiles/bcl2fastq-1.8.4-Linux-x86_64.rpm
+# Edited Config.pm supplied with bcl2fastq to comment out sub _validateEland subroutine that was causing bcl2fastq to fail with compilation errors
+COPY Config.pm /usr/local/lib/bcl2fastq-1.8.4/perl/Casava/Alignment/Config.pm
+
+# Install cpan minus, XML:Simple and dependencies for bcl2fastq 
+RUN curl -L http://cpanmin.us | perl - App::cpanminus
+RUN cpanm XML::Simple@2.24 --mirror-only --force
 
 # Upgrade pip
 RUN pip3 install --upgrade pip
@@ -75,10 +90,10 @@ RUN mv bowtie2* /bowtie2
 ENV PATH /bowtie2:$PATH
 
 # Install OLCTools
-RUN pip3 install OLCTools==0.3.6
+RUN pip3 install OLCTools==0.3.7
 
 # Install latest genesippr package
-RUN pip3 install sipprverse==0.0.10
+RUN pip3 install sipprverse==0.0.11
 
 # Install the pipeline
 RUN git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git

@@ -1,6 +1,11 @@
 #!/usr/bin/env python 3
 from accessoryFunctions.accessoryFunctions import make_path, MetadataObject, printtime
+from Bio.SeqRecord import SeqRecord
+from Bio.Alphabet import IUPAC
+from Bio.Seq import Seq
+from Bio import SeqIO
 from glob import glob
+import operator
 import numpy
 import os
 __author__ = 'adamkoziol'
@@ -11,8 +16,8 @@ class Reports(object):
     def reporter(self, analysistype='genesippr'):
         """
         Creates a report of the genesippr results
+        :param analysistype: The variable to use when accessing attributes in the metadata object
         """
-        from Bio import SeqIO
         printtime('Creating {} report'.format(analysistype), self.starttime)
         # Create a dictionary to link all the genera with their genes
         genusgenes = dict()
@@ -80,9 +85,54 @@ class Reports(object):
             report.write(header)
             report.write(data)
 
+    def genusspecific(self, analysistype='genesippr'):
+        """
+        Creates simplified genus-specific reports. Instead of the % ID and the fold coverage, a simple +/- scheme is
+        used for presence/absence
+        :param analysistype: The variable to use when accessing attributes in the metadata object
+        """
+        # Dictionary containing genera of interest, and the probes in the database
+        genedict = {'Escherichia': ['eae', 'eae_1', 'O26', 'O45', 'O103', 'O111', "O121", 'O145', 'O157', 'VT1', 'VT2',
+                                    'VT2f', 'uidA'],
+                    'Listeria': ['hlyA', 'IGS', 'inlJ'],
+                    'Salmonella': ['invA', 'stn']}
+        # Dictionary to store all the output strings
+        results = dict()
+        for genus, genelist in genedict.items():
+            # Initialise the dictionary with the appropriate genus
+            results[genus] = str()
+            for sample in self.runmetadata.samples:
+                try:
+                    # Find the samples that match the current genus - note that samples with multiple hits will be
+                    # represented in multiple outputs
+                    if genus in sample[analysistype].targetgenera:
+                        # Populate the results string with the sample name
+                        results[genus] += '{},'.format(sample.name)
+                        # Iterate through all the genes associated with this genus. If the gene is in the current
+                        # sample, add a + to the string, otherwise, add a -
+                        for gene in genelist:
+                            if gene.lower() in [target[0].lower() for target in sample[analysistype].results.items()]:
+                                results[genus] += '+,'
+                            else:
+                                results[genus] += '-,'
+                        results[genus] += '\n'
+                # If the sample is missing the targetgenera attribute, then it is ignored for these reports
+                except KeyError:
+                    pass
+        # Create and populate the genus-specific reports
+        for genus, resultstring in results.items():
+            # Only create the report if there are results for the current genus
+            if resultstring:
+                with open(os.path.join(self.reportpath, '{}_genesippr.csv'.format(genus)), 'w') as genusreport:
+                    # Write the header to the report - Strain plus add the genes associated with the genus
+                    genusreport.write('Strain,{}\n'.format(','.join(genedict[genus])))
+                    # Write the results to the report
+                    genusreport.write(resultstring)
+
     def gdcsreporter(self, analysistype='GDCS'):
         """
         Creates a report of the GDCS results
+        :param analysistype: The variable to use when accessing attributes in the metadata object
         """
         printtime('Creating {} report'.format(analysistype), self.starttime)
         # Initialise list to store all the GDCS genes, and genera in the analysis
@@ -153,8 +203,10 @@ class Reports(object):
                                     quality = '+'
                                 else:
                                     quality = '?'
+                                    sample.general.incomplete = True
                             else:
                                 quality = '-'
+                                sample.general.incomplete = True
                             # Add the count, mean depth with standard deviation, the pass/fail determination,
                             #  and the total number of GDCS genes as well as the results
                             data += '{hits}/{total},{mean} +/- {std},{fail},{gdcs}\n'\
@@ -168,6 +220,9 @@ class Reports(object):
                         else:
                             data += '{},{},,,-\n'.format(sample.name, sample.general.closestrefseqgenus)
                             sample.general.incomplete = True
+                    elif sample.general.closestrefseqgenus == 'NA':
+                        data += '{}\n'.format(sample.name)
+                        sample.general.incomplete = True
             # Write the header and data to file
             report.write(header)
             report.write(data)
@@ -175,27 +230,37 @@ class Reports(object):
     def sixteensreporter(self, analysistype='sixteens_full'):
         """
         Creates a report of the results
+        :param analysistype: The variable to use when accessing attributes in the metadata object
         """
-        printtime('Creating {} report'.format(analysistype), self.starttime)
         # Create the path in which the reports are stored
         make_path(self.reportpath)
+        # Initialise the header and data strings
         header = 'Strain,Gene,PercentIdentity,Genus,FoldCoverage\n'
         data = ''
         with open(os.path.join(self.reportpath, analysistype + '.csv'), 'w') as report:
-            for sample in self.runmetadata.samples:
-                data += sample.name + ','
-                if sample[analysistype].results:
-                    if not sample[analysistype].multiple:
+            with open(os.path.join(self.reportpath, analysistype + '_sequences.fa'), 'w') as sequences:
+                for sample in self.runmetadata.samples:
+                    try:
+                        # Select the best hit of all the full-length 16S genes mapped
+                        sample[analysistype].besthit = sorted(sample[analysistype].results.items(),
+                                                              key=operator.itemgetter(1), reverse=True)[0][0]
+                        # Add the sample name to the data string
+                        data += sample.name + ','
+                        # Find the record that matches the best hit, and extract the necessary values to be place in the
+                        # data string
                         for name, identity in sample[analysistype].results.items():
-                            if name == sample[analysistype].besthit[0]:
-                                data += '{},{},{},{}\n'.format(name, identity,
-                                                               sample[analysistype].genera[name],
+                            if name == sample[analysistype].besthit:
+                                data += '{},{},{},{}\n'.format(name, identity, sample[analysistype].genus,
                                                                sample[analysistype].avgdepth[name])
-                    else:
-                        data += '{},{},{},{}\n'.format('multiple', 'NA',
-                                                       ';'.join(sample[analysistype].classification), 'NA')
-                else:
-                    data += '\n'
+                                # Create a FASTA-formatted sequence output of the 16S sequence
+                                record = SeqRecord(Seq(sample[analysistype].sequences[name],
+                                                       IUPAC.unambiguous_dna),
+                                                   id='{}_{}'.format(sample.name, '16S'),
+                                                   description='')
+                                SeqIO.write(record, sequences, 'fasta')
+                    except (KeyError, IndexError):
+                        data += '{}\n'.format(sample.name)
+            # Write the results to the report
             report.write(header)
             report.write(data)
 
@@ -219,6 +284,7 @@ class Reports(object):
                     self.runmetadata.samples.append(sample)
         # Create the reports
         self.reporter()
+        self.genusspecific()
         self.sixteensreporter()
         self.gdcsreporter()
 

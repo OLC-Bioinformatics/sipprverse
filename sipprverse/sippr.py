@@ -1,4 +1,4 @@
-#!/usr/bin/env python 3
+#!/usr/bin/python3
 from accessoryFunctions.accessoryFunctions import GenObject, make_path, MetadataObject, printtime
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from sixteenS.sixteens_full import SixteenS as SixteensFull

@@ -11,6 +11,7 @@ from sipprCommon.objectprep import Objectprep
 from accessoryFunctions.accessoryFunctions import MetadataObject, GenObject, printtime, make_path, write_to_logfile, \
     run_subprocess
 from subprocess import PIPE
+import Bio.Application
 
 __author__ = 'adamkoziol'
 
@@ -353,7 +354,10 @@ class SixteenS(object):
                 # Ensure that the query file exists; this can happen with very small .fastq files
                 if os.path.isfile(sample[self.analysistype].fasta):
                     # Perform the BLAST analysis
-                    blastn()
+                    try:
+                        blastn()
+                    except Bio.Application.ApplicationError:
+                       sample[self.analysistype].blastreport = str()
             self.blastqueue.task_done()
 
     def blastparse(self):
@@ -441,7 +445,7 @@ class SixteenS(object):
                                                    description='')
                                 SeqIO.write(record, sequences, 'fasta')
                     except (KeyError, IndexError):
-                        data += '\n'
+                        data += '{}\n'.format(sample.name)
             # Write the results to the report
             report.write(header)
             report.write(data)

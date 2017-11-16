@@ -36,8 +36,6 @@ class Method(object):
         objects.objectprep()
         # Set the metadata
         self.runmetadata = objects.samples
-        #
-        self.reports = Reports(self)
         self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(self.runmetadata.samples) > 1 \
             else 1
         # Pull the full length of the forward and reverse reads, as well as the indices
@@ -141,6 +139,8 @@ class Method(object):
                 # Allow the sequencer to complete approximately five cycles (~300 seconds per cycle) plus
                 # however long it takes to run the analyses before trying again
                 sleep(1500)
+        # Update the report object
+        self.reports = Reports(self)
         # Once all the analyses are complete, create reports for each sample
         Reports.methodreporter(self.reports)
         # Print the metadata
@@ -151,15 +151,16 @@ class Method(object):
         """
         Method to allow the analyses to be called in a repeatable fashion 
         """
-        # Update the reports object
-        self.reports = Reports(self)
         # Run the genesippr analyses
         self.cutoff = 0.8
         self.analysistype = 'genesippr'
         self.targetpath = os.path.join(self.reffilepath, self.analysistype, '')
         Sippr(self, self.cutoff)
+        # Update the reports object
+        self.reports = Reports(self)
         # Create the reports
         Reports.reporter(self.reports)
+        Reports.genusspecific(self.reports)
         # Run the 16S analyses using the filtered database
         self.targetpath = self.reffilepath
         SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
@@ -263,16 +264,16 @@ class Method(object):
         self.starttime = startingtime
         self.homepath = scriptpath
         # Define variables based on supplied arguments
-        self.path = os.path.join(args.path, '')
-        assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
+        self.path = os.path.join(args.path)
+        assert os.path.isdir(self.path), 'Supplied path is not a valid directory {0!r:s}'.format(self.path)
         self.sequencepath = os.path.join(self.path, 'sequences')
         self.seqpath = self.sequencepath
-        self.targetpath = os.path.join(args.targetpath, '')
+        self.targetpath = os.path.join(args.targetpath)
         # ref file path is used to work with sub module code with a different naming scheme
         self.reffilepath = self.targetpath
         self.reportpath = os.path.join(self.path, 'reports')
         make_path(self.reportpath)
-        assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
+        assert os.path.isdir(self.targetpath), 'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
         self.bcltofastq = True
         self.miseqpath = args.miseqpath
@@ -334,8 +335,10 @@ if __name__ == '__main__':
                              'miseqpath, and miseqfolder arguments, and optionally readlengthforward, '
                              'readlengthreverse, and projectName arguments.')
     parser.add_argument('-m', '--miseqpath',
+                        required=True,
                         help='Path of the folder containing MiSeq run data folder')
     parser.add_argument('-f', '--miseqfolder',
+                        required=True,
                         help='Name of the folder containing MiSeq run data')
     parser.add_argument('-d', '--destinationfastq',
                         help='Optional folder path to store .fastq files created using the fastqCreation module. '
@@ -355,10 +358,6 @@ if __name__ == '__main__':
                              'in the provided sample sheet will be used. Please note that bcl2fastq creates '
                              'subfolders using the project name, so if multiple names are provided, the results '
                              'will be split as into multiple projects')
-    parser.add_argument('-D', '--detailedReports',
-                        action='store_true',
-                        help='Provide detailed reports with percent identity and depth of coverage values '
-                             'rather than just "+" for positive results')
     parser.add_argument('-C', '--copy',
                         action='store_true',
                         help='Normally, the program will create symbolic links of the files into the sequence path, '
