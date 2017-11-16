@@ -49,6 +49,9 @@ RUN rm /accessoryfiles/bcl2fastq-1.8.4-Linux-x86_64.rpm
 # Edited Config.pm supplied with bcl2fastq to comment out sub _validateEland subroutine that was causing bcl2fastq to fail with compilation errors
 COPY Config.pm /usr/local/lib/bcl2fastq-1.8.4/perl/Casava/Alignment/Config.pm
 
+# Extract the databases
+RUN tar xf /accessoryfiles/targets.tar.gz -C / && rm /accessoryfiles/targets.tar.gz
+
 # Install cpan minus, XML:Simple and dependencies for bcl2fastq 
 RUN curl -L http://cpanmin.us | perl - App::cpanminus
 RUN cpanm XML::Simple@2.24 --mirror-only --force
@@ -93,7 +96,7 @@ ENV PATH /bowtie2:$PATH
 RUN pip3 install OLCTools==0.3.7
 
 # Install latest genesippr package
-RUN pip3 install sipprverse==0.0.11
+RUN pip3 install sipprverse==0.0.12
 
 # Install the pipeline
 RUN git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git

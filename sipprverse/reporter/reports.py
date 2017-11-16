@@ -92,7 +92,7 @@ class Reports(object):
         :param analysistype: The variable to use when accessing attributes in the metadata object
         """
         # Dictionary containing genera of interest, and the probes in the database
-        genedict = {'Escherichia': ['eae', 'eae_1', 'O26', 'O45', 'O103', 'O111', "O121", 'O145', 'O157', 'VT1', 'VT2',
+        genedict = {'Escherichia': ['eae', 'O26', 'O45', 'O103', 'O111', "O121", 'O145', 'O157', 'VT1', 'VT2',
                                     'VT2f', 'uidA'],
                     'Listeria': ['hlyA', 'IGS', 'inlJ'],
                     'Salmonella': ['invA', 'stn']}
@@ -112,6 +112,10 @@ class Reports(object):
                         # sample, add a + to the string, otherwise, add a -
                         for gene in genelist:
                             if gene.lower() in [target[0].lower() for target in sample[analysistype].results.items()]:
+                                results[genus] += '+,'
+                            # Special case for eae: if either eae or eae_1 are present, add a +
+                            elif gene.lower() + '_1' in [target[0].lower() for target in
+                                                         sample[analysistype].results.items()]:
                                 results[genus] += '+,'
                             else:
                                 results[genus] += '-,'
