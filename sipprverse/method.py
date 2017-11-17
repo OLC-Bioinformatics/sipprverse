@@ -155,7 +155,7 @@ class Method(object):
         self.cutoff = 0.8
         self.analysistype = 'genesippr'
         self.targetpath = os.path.join(self.reffilepath, self.analysistype, '')
-        Sippr(self, self.cutoff)
+        Sippr(self, self.cutoff, 5)
         # Update the reports object
         self.reports = Reports(self)
         # Create the reports
