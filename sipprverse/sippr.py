@@ -77,13 +77,14 @@ class Sipprverse(object):
         self.commit = str(pipelinecommit)
         self.starttime = startingtime
         self.homepath = scriptpath
+        self.args = args
         # Define variables based on supplied arguments
         self.path = os.path.join(args.path, '')
         assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
         self.sequencepath = os.path.join(args.sequencepath, '')
         self.seqpath = self.sequencepath
         self.targetpath = os.path.join(args.targetpath, '')
-        # ref file path is used to work with sub module code with a different naming scheme
+        # ref file path is used to work with submodule code with a different naming scheme
         self.reffilepath = self.targetpath
         self.reportpath = os.path.join(self.path, 'reports')
         make_path(self.reportpath)

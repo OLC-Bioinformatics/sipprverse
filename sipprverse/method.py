@@ -7,6 +7,7 @@ from sixteenS.sixteens_full import SixteenS as SixteensFull
 from reporter.reports import Reports
 from argparse import ArgumentParser
 import multiprocessing
+from time import sleep
 from glob import glob
 import subprocess
 import time
@@ -90,7 +91,7 @@ class Method(object):
                 self.fastqdestination = os.path.join(self.path, self.miseqfolder, reads)
                 make_path(self.fastqdestination)
                 self.sequencepath = os.path.join(self.seqpath, reads)
-                make_path(self.seqpath)
+                make_path(self.sequencepath)
                 self.reportpath = os.path.join(self.path, 'reports', reads)
                 make_path(self.reportpath)
                 self.samplesheetpath = os.path.join(self.path, 'SampleSheets', reads)
@@ -110,13 +111,12 @@ class Method(object):
                 self.complete()
             # If the sequencing run is not yet complete, continue to pull data from the MiSeq as it is created
             else:
-                from time import sleep
+                # Determine the length of reverse reads that can be used
+                self.reverselength = str(len(cycles) - self.forward - sum(count.isalpha() for count in self.index))
                 printtime(
-                    'Certain strains did not pass the quality thresholds. Attempting the pipeline with the following'
+                    'Certain strains did not pass the quality thresholds. Attempting the pipeline with the following '
                     'read lengths: forward {}, reverse {}'.format(self.forwardlength, self.reverselength),
                     self.starttime)
-                # Determine the length of reverse reads that can be used
-                self.reverselength = self.sum - len(cycles)
                 # Set the name of the folders in which to store the current analysis based on the length of reads
                 reads = '{}_{}'.format(self.forwardlength, self.reverselength)
                 # Update the necessary variables to allow for the custom naming of folders based on the length forward
@@ -124,11 +124,12 @@ class Method(object):
                 self.fastqdestination = os.path.join(self.path, self.miseqfolder, reads)
                 make_path(self.fastqdestination)
                 self.sequencepath = os.path.join(self.seqpath, reads)
-                make_path(self.seqpath)
+                make_path(self.sequencepath)
                 self.reportpath = os.path.join(self.path, 'reports', reads)
                 make_path(self.reportpath)
                 self.samplesheetpath = os.path.join(self.path, 'SampleSheets', reads)
                 self.samplesheet()
+                self.bcltofastq = True
                 # Create the objects to be used in the analyses
                 objects = Objectprep(self)
                 objects.objectprep()

@@ -19,8 +19,13 @@ class SeroSippr(object):
         printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
         # Run the analyses
         Sippr(self, self.cutoff)
+        printer = MetadataPrinter(self)
+        printer.printmetadata()
+        self.serotype_escherichia()
+        self.serotype_salmonella()
+        quit()
         # Create the reports
-        self.reporter()
+        # self.reporter()
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
@@ -49,47 +54,55 @@ class SeroSippr(object):
                         data += '\n'
             report.write(header)
             report.write(data)
-        # Calculate the serotype of the sample from the results
-        self.serotype()
 
-    def serotype(self):
+    def serotype_escherichia(self):
         """
         Create attributes storing the best results for the O and H types
         """
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
-                o = dict()
-                h = dict()
-                for result, percentid in sample[self.analysistype].results.items():
-                    if 'O' in result.split('_')[-1]:
-                        o.update({result: float(percentid)})
-                    if 'H' in result.split('_')[-1]:
-                        h.update({result: float(percentid)})
-                # O
-                try:
-                    sorted_o = sorted(o.items(), key=operator.itemgetter(1), reverse=True)
-                    sample[self.analysistype].best_o_pid = str(sorted_o[0][1])
+                if sample.general.closestrefseqgenus == 'Escherichia':
+                    o = dict()
+                    h = dict()
+                    for result, percentid in sample[self.analysistype].results.items():
+                        if 'O' in result.split('_')[-1]:
+                            o.update({result: float(percentid)})
+                        if 'H' in result.split('_')[-1]:
+                            h.update({result: float(percentid)})
+                    # O
+                    try:
+                        sorted_o = sorted(o.items(), key=operator.itemgetter(1), reverse=True)
+                        sample[self.analysistype].best_o_pid = str(sorted_o[0][1])
 
-                    sample[self.analysistype].o_genes = [gene for gene, pid in o.items()
-                                                         if str(pid) == sample[self.analysistype].best_o_pid]
-                    sample[self.analysistype].o_set = \
-                        list(set(gene.split('_')[-1] for gene in sample[self.analysistype].o_genes))
-                except (KeyError, IndexError):
-                    sample[self.analysistype].best_o_pid = '-'
-                    sample[self.analysistype].o_genes = ['-']
-                    sample[self.analysistype].o_set = ['-']
-                # H
-                try:
-                    sorted_h = sorted(h.items(), key=operator.itemgetter(1), reverse=True)
-                    sample[self.analysistype].best_h_pid = str(sorted_h[0][1])
-                    sample[self.analysistype].h_genes = [gene for gene, pid in h.items()
-                                                         if str(pid) == sample[self.analysistype].best_h_pid]
-                    sample[self.analysistype].h_set = \
-                        list(set(gene.split('_')[-1] for gene in sample[self.analysistype].h_genes))
-                except (KeyError, IndexError):
-                    sample[self.analysistype].best_h_pid = '-'
-                    sample[self.analysistype].h_genes = ['-']
-                    sample[self.analysistype].h_set = ['-']
+                        sample[self.analysistype].o_genes = [gene for gene, pid in o.items()
+                                                             if str(pid) == sample[self.analysistype].best_o_pid]
+                        sample[self.analysistype].o_set = \
+                            list(set(gene.split('_')[-1] for gene in sample[self.analysistype].o_genes))
+                    except (KeyError, IndexError):
+                        sample[self.analysistype].best_o_pid = '-'
+                        sample[self.analysistype].o_genes = ['-']
+                        sample[self.analysistype].o_set = ['-']
+                    # H
+                    try:
+                        sorted_h = sorted(h.items(), key=operator.itemgetter(1), reverse=True)
+                        sample[self.analysistype].best_h_pid = str(sorted_h[0][1])
+                        sample[self.analysistype].h_genes = [gene for gene, pid in h.items()
+                                                             if str(pid) == sample[self.analysistype].best_h_pid]
+                        sample[self.analysistype].h_set = \
+                            list(set(gene.split('_')[-1] for gene in sample[self.analysistype].h_genes))
+                    except (KeyError, IndexError):
+                        sample[self.analysistype].best_h_pid = '-'
+                        sample[self.analysistype].h_genes = ['-']
+                        sample[self.analysistype].h_set = ['-']
+
+    def serotype_salmonella(self):
+        """
+
+        """
+        for sample in self.runmetadata.samples:
+            if sample.general.bestassemblyfile != 'NA':
+                if sample.general.closestrefseqgenus == 'Salmonella':
+                    print(sample.name, sample[self.analysistype].datastore)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline):
         """
