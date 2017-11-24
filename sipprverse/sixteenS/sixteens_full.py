@@ -1,17 +1,17 @@
 #!/usr/bin/env python 3
+from accessoryFunctions.accessoryFunctions import MetadataObject, GenObject, printtime, make_path, write_to_logfile, \
+    run_subprocess
+from sipprCommon.objectprep import Objectprep
+from sipprCommon.sippingmethods import Sippr
 from Bio import SeqIO
+import Bio.Application
+from threading import Thread
+from subprocess import PIPE
+from csv import DictReader
 from glob import glob
 import operator
 import time
 import os
-# from subprocess import call
-from threading import Thread
-from sipprCommon.sippingmethods import Sippr
-from sipprCommon.objectprep import Objectprep
-from accessoryFunctions.accessoryFunctions import MetadataObject, GenObject, printtime, make_path, write_to_logfile, \
-    run_subprocess
-from subprocess import PIPE
-import Bio.Application
 
 __author__ = 'adamkoziol'
 
@@ -42,7 +42,8 @@ class SixteenSBait(Sippr):
         """
         Use bbduk to perform baiting
         """
-        printtime('Performing kmer baiting of fastq files with {} targets'.format(self.analysistype), self.start)
+        printtime('Performing kmer baiting of fastq files with {} targets'.format(self.analysistype), self.start,
+                  output=self.portallog)
         for sample in self.runmetadata:
             if sample.general.bestassemblyfile != 'NA':
                 # Create the folder (if necessary)
@@ -82,7 +83,7 @@ class SixteenSBait(Sippr):
         Use the baited FASTQ files to bait out the targets from the database to create a (hopefully) smaller
         database to use for the reference mapping step
         """
-        printtime('Performing reverse kmer baiting of targets with fastq files', self.start)
+        printtime('Performing reverse kmer baiting of targets with fastq files', self.start, output=self.portallog)
         for sample in self.runmetadata:
             if sample.general.bestassemblyfile != 'NA':
                 outfile = os.path.join(sample[self.analysistype].outputdir, 'baitedtargets.fa')
@@ -114,7 +115,7 @@ class SixteenSBait(Sippr):
         Subsampling of reads to 20X coverage of rMLST genes (roughly).
         To be called after rMLST extraction and read trimming, in that order.
         """
-        printtime('Subsampling {} reads'.format(self.analysistype), self.start)
+        printtime('Subsampling {} reads'.format(self.analysistype), self.start, output=self.portallog)
         for sample in self.runmetadata:
             # Create the name of the subsampled read file
             sample[self.analysistype].subsampledreads = os.path.join(
@@ -149,7 +150,8 @@ class SixteenSSipper(Sippr):
         genera-specific FASTA file that will be used for all the reference mapping; it replaces the 'bait file' in the
         code
         """
-        printtime('Performing analysis with {} targets folder'.format(self.analysistype), self.start)
+        printtime('Performing analysis with {} targets folder'.format(self.analysistype), self.start,
+                  output=self.portallog)
         for sample in self.runmetadata:
             if sample.general.bestassemblyfile != 'NA':
                 sample[self.analysistype].targetpath = \
@@ -178,7 +180,7 @@ class SixteenS(object):
         """
         Run the necessary methods in the correct order
         """
-        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
+        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime, output=self.portallog)
         if not self.pipeline:
             # If the metadata has been passed from the method script, self.pipeline must still be false in order to
             # get Sippr() to function correctly, but the metadata shouldn't be recreated
@@ -221,7 +223,7 @@ class SixteenS(object):
         Subsample 1000 reads from the baited files
         """
         # Create the threads for the analysis
-        printtime('Subsampling FASTQ reads', self.starttime)
+        printtime('Subsampling FASTQ reads', self.starttime, output=self.portallog)
         for _ in range(self.cpus):
             threads = Thread(target=self.subsamplethreads, args=())
             threads.setDaemon(True)
@@ -260,7 +262,7 @@ class SixteenS(object):
         """
         Convert the subsampled reads to FASTA format using fastq_to_fasta from the FASTX toolkit
         """
-        printtime('Converting FASTQ files to FASTA format', self.starttime)
+        printtime('Converting FASTQ files to FASTA format', self.starttime, output=self.portallog)
         # Create the threads for the analysis
         for _ in range(self.cpus):
             threads = Thread(target=self.fastathreads, args=())
@@ -324,7 +326,8 @@ class SixteenS(object):
         Run BLAST analyses of the subsampled FASTQ reads against the NCBI 16S reference database
         """
         from Bio.Blast.Applications import NcbiblastnCommandline
-        printtime('BLASTing FASTA files against {} database'.format(self.analysistype), self.starttime)
+        printtime('BLASTing FASTA files against {} database'.format(self.analysistype), self.starttime,
+                  output=self.portallog)
         for _ in range(self.cpus):
             threads = Thread(target=self.blastthreads, args=())
             threads.setDaemon(True)
@@ -364,8 +367,7 @@ class SixteenS(object):
         """
         Parse the blast results, and store necessary data in dictionaries in sample object
         """
-        printtime('Parsing BLAST results', self.starttime)
-        from csv import DictReader
+        printtime('Parsing BLAST results', self.starttime, output=self.portallog)
         # Load the NCBI 16S reference database as a dictionary
         # dbrecords = SeqIO.to_dict(SeqIO.parse(self.baitfile, 'fasta'))
         for sample in self.runmetadata.samples:
@@ -494,6 +496,10 @@ class SixteenS(object):
             self.miseqfolder = args.miseqfolder
         except AttributeError:
             self.miseqfolder = str()
+        try:
+            self.portallog = args.portallog
+        except AttributeError:
+            self.portallog = os.path.join(self.path, 'portal.log')
         self.fastqdestination = args.fastqdestination
         self.logfile = args.logfile
         self.forwardlength = args.forwardlength

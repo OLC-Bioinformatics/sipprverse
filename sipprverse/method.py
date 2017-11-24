@@ -23,7 +23,7 @@ class Method(object):
         pass the quality thresholds, continue to periodically run the analyses on these incomplete strains until either
         all strains are complete, or the sequencing run is finished
         """
-        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
+        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime, output=self.portallog)
         # Set the name of the folders in which to store the current analysis based on the length of reads
         reads = '{}_{}'.format(self.forwardlength, self.reverselength)
         # Update the necessary variables to allow for the custom naming of folders based on the length forward and
@@ -77,8 +77,8 @@ class Method(object):
             if len(cycles) == self.sum:
                 printtime(
                     'Certain strains did not pass the quality thresholds. Final attempt of the pipeline. Using '
-                    'the full reads'.format(self.forwardlength, self.reverselength),
-                    self.starttime)
+                    'the full reads'.format(self.forwardlength, self.reverselength, ),
+                    self.starttime, output=self.portallog)
                 # Set the boolean for the final iteration of the pipeline to true - this will allow all samples - even
                 # ones considered incomplete to be entered into the final reports
                 self.final = True
@@ -116,7 +116,8 @@ class Method(object):
                 printtime(
                     'Certain strains did not pass the quality thresholds. Attempting the pipeline with the following '
                     'read lengths: forward {}, reverse {}'.format(self.forwardlength, self.reverselength),
-                    self.starttime)
+                    self.starttime,
+                    output=self.portallog)
                 # Set the name of the folders in which to store the current analysis based on the length of reads
                 reads = '{}_{}'.format(self.forwardlength, self.reverselength)
                 # Update the necessary variables to allow for the custom naming of folders based on the length forward
@@ -267,6 +268,14 @@ class Method(object):
         # Define variables based on supplied arguments
         self.path = os.path.join(args.path)
         assert os.path.isdir(self.path), 'Supplied path is not a valid directory {0!r:s}'.format(self.path)
+        try:
+            self.portallog = args.portallog
+        except AttributeError:
+            self.portallog = os.path.join(self.path, 'portal.log')
+        try:
+            os.remove(self.portallog)
+        except FileNotFoundError:
+            pass
         self.sequencepath = os.path.join(self.path, 'sequences')
         self.seqpath = self.sequencepath
         self.targetpath = os.path.join(args.targetpath)
@@ -365,7 +374,7 @@ if __name__ == '__main__':
                              'however, the are occasions when it is necessary to copy the files instead')
     # Get the arguments into an object
     arguments = parser.parse_args()
-
+    arguments.portallog = os.path.join(arguments.path, 'portal.log')
     # Define the start time
     start = time.time()
 
@@ -373,7 +382,7 @@ if __name__ == '__main__':
     Method(arguments, commit, start, homepath)
 
     # Print a bold, green exit statement
-    print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')
+    printtime('Analyses complete', start, option='\033[1;92m', output=arguments.portallog)
 
 """
 -b

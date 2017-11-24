@@ -18,7 +18,7 @@ class Reports(object):
         Creates a report of the genesippr results
         :param analysistype: The variable to use when accessing attributes in the metadata object
         """
-        printtime('Creating {} report'.format(analysistype), self.starttime)
+        printtime('Creating {} report'.format(analysistype), self.starttime, output=self.portallog)
         # Create a dictionary to link all the genera with their genes
         genusgenes = dict()
         # A list to store all the unique gene names
@@ -138,7 +138,7 @@ class Reports(object):
         Creates a report of the GDCS results
         :param analysistype: The variable to use when accessing attributes in the metadata object
         """
-        printtime('Creating {} report'.format(analysistype), self.starttime)
+        printtime('Creating {} report'.format(analysistype), self.starttime, output=self.portallog)
         # Initialise list to store all the GDCS genes, and genera in the analysis
         gdcs = list()
         genera = list()
@@ -300,3 +300,4 @@ class Reports(object):
         self.analysescomplete = inputobject.analysescomplete
         self.reportpath = inputobject.reportpath
         self.runmetadata = inputobject.runmetadata
+        self.portallog = inputobject.portallog
