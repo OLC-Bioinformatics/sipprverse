@@ -17,13 +17,28 @@ __author__ = 'adamkoziol'
 
 class Method(object):
 
-    def method(self):
+    def main(self):
         """
         Run the analyses using the inputted values for forward and reverse read length. However, if not all strains
         pass the quality thresholds, continue to periodically run the analyses on these incomplete strains until either
         all strains are complete, or the sequencing run is finished
         """
         printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime, output=self.portallog)
+        self.createobjects()
+        # Run the genesipping analyses
+        self.methods()
+        # Determine if the analyses are complete
+        self.complete()
+        self.additionalsipping()
+        # Update the report object
+        self.reports = Reports(self)
+        # Once all the analyses are complete, create reports for each sample
+        Reports.methodreporter(self.reports)
+        # Print the metadata
+        printer = MetadataPrinter(self)
+        printer.printmetadata()
+
+    def createobjects(self):
         # Set the name of the folders in which to store the current analysis based on the length of reads
         reads = '{}_{}'.format(self.forwardlength, self.reverselength)
         # Update the necessary variables to allow for the custom naming of folders based on the length forward and
@@ -56,17 +71,15 @@ class Method(object):
             self.samplesheet()
         # Set self.bcltofastq to False, as the call to Sippr() in self.methods will attempt to create the files again
         self.bcltofastq = False
-        # Run the genesipping analyses
-        self.methods()
-        # Determine if the analyses are complete
-        self.complete()
-        # Calculate the total number of reads required for the run (forward + index1 + index2 + reverse). As the index
-        # is the modified index used for the bcl2fastq its format is something like: AGGCAGAA-GCGTAAGA. Count only
-        # the alphanumeric characters.
-        self.sum = self.forward + sum(count.isalpha() for count in self.index) + self.reverse
+
+    def additionalsipping(self):
         # If the analyses are not complete, continue to run the analyses until either all the strains pass the quality
         # thresholds, or until the sequencing run is complete
         while not self.analysescomplete:
+            # Calculate the total number of reads needed for the run (forward + index1 + index2 + reverse). As the index
+            # is the modified index used for the bcl2fastq its format is something like: AGGCAGAA-GCGTAAGA. Count only
+            # the alphanumeric characters.
+            self.sum = self.forward + sum(count.isalpha() for count in self.index) + self.reverse
             # Ensuring that the forward length is set to full - for testing only. In a real analysis, the forward length
             # has to be full due to the way that the sequencing is performed
             self.forwardlength = 'full'
@@ -141,18 +154,16 @@ class Method(object):
                 # Allow the sequencer to complete approximately five cycles (~300 seconds per cycle) plus
                 # however long it takes to run the analyses before trying again
                 sleep(1500)
-        # Update the report object
-        self.reports = Reports(self)
-        # Once all the analyses are complete, create reports for each sample
-        Reports.methodreporter(self.reports)
+
+    def methods(self):
+        self.run_genesippr()
+        self.run_sixteens()
+        self.run_gdcs()
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
 
-    def methods(self):
-        """
-        Method to allow the analyses to be called in a repeatable fashion 
-        """
+    def run_genesippr(self):
         # Run the genesippr analyses
         self.cutoff = 0.8
         self.analysistype = 'genesippr'
@@ -163,18 +174,22 @@ class Method(object):
         # Create the reports
         Reports.reporter(self.reports)
         Reports.genusspecific(self.reports)
+
+    def run_sixteens(self):
         # Run the 16S analyses using the filtered database
         self.targetpath = self.reffilepath
         SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
+
+    def run_gdcs(self):
+        """
+
+        """
         # Run the GDCS analysis
         self.analysistype = 'GDCS'
         self.pipeline = True
         Sippr(self, 0.95)
         # Create the reports
         Reports.gdcsreporter(self.reports)
-        # Print the metadata
-        printer = MetadataPrinter(self)
-        printer.printmetadata()
         self.pipeline = False
 
     def complete(self):
@@ -267,6 +282,7 @@ class Method(object):
         self.homepath = scriptpath
         # Define variables based on supplied arguments
         self.path = os.path.join(args.path)
+        make_path(self.path)
         assert os.path.isdir(self.path), 'Supplied path is not a valid directory {0!r:s}'.format(self.path)
         try:
             self.portallog = args.portallog
@@ -288,7 +304,8 @@ class Method(object):
         self.bcltofastq = True
         self.miseqpath = args.miseqpath
         self.miseqfolder = args.miseqfolder
-        self.fastqdestination = args.destinationfastq
+        # self.fastqdestination = args.destinationfastq
+        self.fastqdestination = str()
         self.forwardlength = args.readlengthforward
         self.reverselength = args.readlengthreverse
         self.numreads = 2 if self.reverselength != 0 else 1
@@ -296,12 +313,19 @@ class Method(object):
         # Set the custom cutoff value
         self.cutoff = float()
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
-        self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
+        try:
+            self.cpus = int(args.numthreads)
+        except (AttributeError, TypeError):
+            self.cpus = multiprocessing.cpu_count()
         self.threads = int()
         self.runmetadata = MetadataObject()
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
         self.analysistype = 'GeneSipprMethod'
         self.copy = args.copy
+        try:
+            self.debug = args.debug
+        except AttributeError:
+            self.debug = False
         self.pipeline = False
         self.forward = str()
         self.reverse = str()
@@ -318,8 +342,6 @@ class Method(object):
         self.samples = list()
         self.logfile = os.path.join(self.path, 'log')
         self.reports = str()
-        # Run the method
-        self.method()
 
 
 if __name__ == '__main__':
@@ -379,7 +401,8 @@ if __name__ == '__main__':
     start = time.time()
 
     # Run the script
-    Method(arguments, commit, start, homepath)
+    method = Method(arguments, commit, start, homepath)
+    method.main()
 
     # Print a bold, green exit statement
     printtime('Analyses complete', start, option='\033[1;92m', output=arguments.portallog)
@@ -395,5 +418,22 @@ if __name__ == '__main__':
 -r2
 0
 -C
+
+
+/home/adamkoziol/Bioinformatics/sippr/method
+-t
+/mnt/nas/bio_requests/8312/newsixteens/targets
+-b
+-m
+/home/adamkoziol/Bioinformatics/
+-f
+161104_M02466_0002_000000000-AV4G5
+-r1
+20
+-r2
+0
+-C
+-c
+/home/adamkoziol/Bioinformatics/sippr/method/SampleSheet.csv
 
 """

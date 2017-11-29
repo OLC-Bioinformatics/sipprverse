@@ -300,4 +300,7 @@ class Reports(object):
         self.analysescomplete = inputobject.analysescomplete
         self.reportpath = inputobject.reportpath
         self.runmetadata = inputobject.runmetadata
-        self.portallog = inputobject.portallog
+        try:
+            self.portallog = inputobject.portallog
+        except AttributeError:
+            self.portallog = ''

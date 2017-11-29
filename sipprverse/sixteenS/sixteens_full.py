@@ -3,8 +3,9 @@ from accessoryFunctions.accessoryFunctions import MetadataObject, GenObject, pri
     run_subprocess
 from sipprCommon.objectprep import Objectprep
 from sipprCommon.sippingmethods import Sippr
-from Bio import SeqIO
+from Bio.Blast.Applications import NcbiblastnCommandline
 import Bio.Application
+from Bio import SeqIO
 from threading import Thread
 from subprocess import PIPE
 from csv import DictReader
@@ -17,6 +18,15 @@ __author__ = 'adamkoziol'
 
 
 class SixteenSBait(Sippr):
+
+    def main(self):
+        """
+
+        """
+        self.targets()
+        self.bait()
+        self.reversebait()
+        self.subsample_reads()
 
     def targets(self):
         """
@@ -35,8 +45,6 @@ class SixteenSBait(Sippr):
                 sample[self.analysistype].baitedfastq = \
                     '{}/{}_targetMatches.fastq'.format(sample[self.analysistype].outputdir, self.analysistype)
                 sample[self.analysistype].complete = False
-        # Run the baiting method
-        self.bait()
 
     def bait(self):
         """
@@ -76,7 +84,6 @@ class SixteenSBait(Sippr):
                                      err,
                                      self.logfile, sample.general.logout, sample.general.logerr,
                                      sample[self.analysistype].logout, sample[self.analysistype].logerr)
-        self.reversebait()
 
     def reversebait(self):
         """
@@ -108,7 +115,6 @@ class SixteenSBait(Sippr):
                                      sample[self.analysistype].logout, sample[self.analysistype].logerr)
                 # Set the baitfile to use in the mapping steps as the newly created outfile
                 sample[self.analysistype].baitfile = outfile
-        self.subsample_reads()
 
     def subsample_reads(self):
         """
@@ -144,6 +150,26 @@ class SixteenSBait(Sippr):
 
 class SixteenSSipper(Sippr):
 
+    def main(self):
+        """
+
+        """
+        self.targets()
+        self.bait()
+        # If desired, use bbduk to bait the target sequences with the previously baited FASTQ files
+        if self.revbait:
+            self.reversebait()
+        # Run the bowtie2 read mapping module
+        self.mapping()
+        # Use samtools to index the sorted bam file
+        self.indexing()
+        # Parse the results
+        self.parsing()
+        # Clear out the large attributes that will difficult to handle objects
+        self.clear()
+        # Filter out any sequences with cigar features such as internal soft-clipping from the results
+        self.clipper()
+
     def targets(self):
         """
         Using the data from the BLAST analyses, set the targets folder, and create the 'mapping file'. This is the
@@ -170,8 +196,6 @@ class SixteenSSipper(Sippr):
                         raise
                     else:
                         sample.general.bestassemblyfile = 'NA'
-        # Run the reference mapping using the mapping file
-        self.bait()
 
 
 class SixteenS(object):
@@ -325,7 +349,6 @@ class SixteenS(object):
         """
         Run BLAST analyses of the subsampled FASTQ reads against the NCBI 16S reference database
         """
-        from Bio.Blast.Applications import NcbiblastnCommandline
         printtime('BLASTing FASTA files against {} database'.format(self.analysistype), self.starttime,
                   output=self.portallog)
         for _ in range(self.cpus):
