@@ -1,13 +1,17 @@
+[![Build Status](https://travis-ci.org/OLC-Bioinformatics/geneSipprV2.svg?branch=master)](https://travis-ci.org/OLC-Bioinformatics/geneSipprV2)
+
 # geneSipprV2
+
 ==============
-#Introduction
+
+# Introduction
 
 This pipeline searches for gene targets in FASTQ files. These files may be previously generated, or created from BCL 
 files from a run of an Illumina MiSeq as part of the pipeline. The latter functionality is to allow for the creation
 of FASTQ files from an in progress MiSeq run.
 
 
-#Contents
+# Contents
 This pipeline includes a main script (geneSipprV2, and several helper modules located in helper scripts, including
 
 * fastqCreator
@@ -38,7 +42,7 @@ This pipeline includes a main script (geneSipprV2, and several helper modules lo
 * custom target analysis
     * Analysis of custom targets
 
-#Arguments
+# Arguments
 -p, --path, Required. Path in which to place the reports folder. It is also used to find sequences and targets folders if arguments for these folders are not provided
 
 -s, --sequencepath, Path of .fastq(.gz) files to process. If not provided, the default path of "path/sequences" will be used
@@ -77,10 +81,10 @@ This pipeline includes a main script (geneSipprV2, and several helper modules lo
 
 -C, --customTargetPath, Provide the path for a folder of custom targets .fasta format. Does not support multifasta files
 
-#Use
+# Use
 Run geneSipprV2.py from the console with the desired arguments.
 
-#Requirements
+# Requirements
 * Linux
 * Python
 * BioPython
