@@ -4,6 +4,9 @@
 
 ==============
 
+
+#### [Read the Docs](http://olc-bioinformatics.github.io/geneSipprV2/)
+
 # Introduction
 
 This pipeline searches for gene targets in FASTQ files. These files may be previously generated, or created from BCL 
