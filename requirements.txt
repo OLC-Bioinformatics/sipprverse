@@ -20,6 +20,6 @@ scipy==0.19.1
 six==1.10.0
 tqdm==4.15.0
 twine==1.9.1
-urllib3==1.222
+urllib3==1.22
 wheel==0.30.0a0
 xlsxwriter==0.9.8
