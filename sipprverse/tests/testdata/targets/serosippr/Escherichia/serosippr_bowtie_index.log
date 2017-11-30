@@ -1,0 +1,2790 @@
+bowtie2-build /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+------------------------------------------------------------Building a SMALL index
+
+------------------------------------------------------------Settings:
+  Output files: "/home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.*.bt2"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 4 (one in 16)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 40683 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 40683 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 40684 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 0
+Total time for call to driver() for forward index: 00:00:00
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+  Time to reverse reference sequence: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 40683 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 40683 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 40684 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 1
+Total time for backward call to driver() for mirror index: 00:00:01
+
+------------------------------------------------------------bowtie2-build /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+------------------------------------------------------------Building a SMALL index
+
+------------------------------------------------------------Settings:
+  Output files: "/home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.*.bt2"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 4 (one in 16)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 40683 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 40683 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 40684 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 0
+Total time for call to driver() for forward index: 00:00:00
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+  Time to reverse reference sequence: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 40683 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 40683 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 40684 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 1
+Total time for backward call to driver() for mirror index: 00:00:00
+
+------------------------------------------------------------bowtie2-build /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+------------------------------------------------------------Building a SMALL index
+
+------------------------------------------------------------Settings:
+  Output files: "/home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.*.bt2"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 4 (one in 16)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 40683 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 40683 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 40684 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 0
+Total time for call to driver() for forward index: 00:00:00
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+  Time to reverse reference sequence: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 40683 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 40683 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 40684 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 1
+Total time for backward call to driver() for mirror index: 00:00:00
+
+------------------------------------------------------------bowtie2-build /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+------------------------------------------------------------Building a SMALL index
+
+------------------------------------------------------------Settings:
+  Output files: "/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.*.bt2"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 4 (one in 16)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 2, merged 6; iterating...
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 4519.44 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 9
+  Reserving size (7628) for bucket 1
+  Calculating Z arrays for bucket 1
+  Entering block accumulator loop for bucket 1:
+  bucket 1: 10%
+  bucket 1: 20%
+  bucket 1: 30%
+  bucket 1: 40%
+  bucket 1: 50%
+  bucket 1: 60%
+  bucket 1: 70%
+  bucket 1: 80%
+  bucket 1: 90%
+  bucket 1: 100%
+  Sorting block of length 6782 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 6783 for bucket 1
+Getting block 2 of 9
+  Reserving size (7628) for bucket 2
+  Calculating Z arrays for bucket 2
+  Entering block accumulator loop for bucket 2:
+  bucket 2: 10%
+  bucket 2: 20%
+  bucket 2: 30%
+  bucket 2: 40%
+  bucket 2: 50%
+  bucket 2: 60%
+  bucket 2: 70%
+  bucket 2: 80%
+  bucket 2: 90%
+  bucket 2: 100%
+  Sorting block of length 5104 for bucket 2
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5105 for bucket 2
+Getting block 3 of 9
+  Reserving size (7628) for bucket 3
+  Calculating Z arrays for bucket 3
+  Entering block accumulator loop for bucket 3:
+  bucket 3: 10%
+  bucket 3: 20%
+  bucket 3: 30%
+  bucket 3: 40%
+  bucket 3: 50%
+  bucket 3: 60%
+  bucket 3: 70%
+  bucket 3: 80%
+  bucket 3: 90%
+  bucket 3: 100%
+  Sorting block of length 4292 for bucket 3
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 4293 for bucket 3
+Getting block 4 of 9
+  Reserving size (7628) for bucket 4
+  Calculating Z arrays for bucket 4
+  Entering block accumulator loop for bucket 4:
+  bucket 4: 10%
+  bucket 4: 20%
+  bucket 4: 30%
+  bucket 4: 40%
+  bucket 4: 50%
+  bucket 4: 60%
+  bucket 4: 70%
+  bucket 4: 80%
+  bucket 4: 90%
+  bucket 4: 100%
+  Sorting block of length 5705 for bucket 4
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5706 for bucket 4
+Getting block 5 of 9
+  Reserving size (7628) for bucket 5
+  Calculating Z arrays for bucket 5
+  Entering block accumulator loop for bucket 5:
+  bucket 5: 10%
+  bucket 5: 20%
+  bucket 5: 30%
+  bucket 5: 40%
+  bucket 5: 50%
+  bucket 5: 60%
+  bucket 5: 70%
+  bucket 5: 80%
+  bucket 5: 90%
+  bucket 5: 100%
+  Sorting block of length 2094 for bucket 5
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 2095 for bucket 5
+Getting block 6 of 9
+  Reserving size (7628) for bucket 6
+  Calculating Z arrays for bucket 6
+  Entering block accumulator loop for bucket 6:
+  bucket 6: 10%
+  bucket 6: 20%
+  bucket 6: 30%
+  bucket 6: 40%
+  bucket 6: 50%
+  bucket 6: 60%
+  bucket 6: 70%
+  bucket 6: 80%
+  bucket 6: 90%
+  bucket 6: 100%
+  Sorting block of length 6912 for bucket 6
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 6913 for bucket 6
+Getting block 7 of 9
+  Reserving size (7628) for bucket 7
+  Calculating Z arrays for bucket 7
+  Entering block accumulator loop for bucket 7:
+  bucket 7: 10%
+  bucket 7: 20%
+  bucket 7: 30%
+  bucket 7: 40%
+  bucket 7: 50%
+  bucket 7: 60%
+  bucket 7: 70%
+  bucket 7: 80%
+  bucket 7: 90%
+  bucket 7: 100%
+  Sorting block of length 1749 for bucket 7
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 1750 for bucket 7
+Getting block 8 of 9
+  Reserving size (7628) for bucket 8
+  Calculating Z arrays for bucket 8
+  Entering block accumulator loop for bucket 8:
+  bucket 8: 10%
+  bucket 8: 20%
+  bucket 8: 30%
+  bucket 8: 40%
+  bucket 8: 50%
+  bucket 8: 60%
+  bucket 8: 70%
+  bucket 8: 80%
+  bucket 8: 90%
+  bucket 8: 100%
+  Sorting block of length 6968 for bucket 8
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 6969 for bucket 8
+Getting block 9 of 9
+  Reserving size (7628) for bucket 9
+  Calculating Z arrays for bucket 9
+  Entering block accumulator loop for bucket 9:
+  bucket 9: 10%
+  bucket 9: 20%
+  bucket 9: 30%
+  bucket 9: 40%
+  bucket 9: 50%
+  bucket 9: 60%
+  bucket 9: 70%
+  bucket 9: 80%
+  bucket 9: 90%
+  bucket 9: 100%
+  Sorting block of length 1069 for bucket 9
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 1070 for bucket 9
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 0
+Total time for call to driver() for forward index: 00:00:00
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+  Time to reverse reference sequence: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 3, merged 7; iterating...
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 1, merged 2; iterating...
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 5084.5 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 8
+  Reserving size (7628) for bucket 1
+  Calculating Z arrays for bucket 1
+  Entering block accumulator loop for bucket 1:
+  bucket 1: 10%
+  bucket 1: 20%
+  bucket 1: 30%
+  bucket 1: 40%
+  bucket 1: 50%
+  bucket 1: 60%
+  bucket 1: 70%
+  bucket 1: 80%
+  bucket 1: 90%
+  bucket 1: 100%
+  Sorting block of length 3334 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 3335 for bucket 1
+Getting block 2 of 8
+  Reserving size (7628) for bucket 2
+  Calculating Z arrays for bucket 2
+  Entering block accumulator loop for bucket 2:
+  bucket 2: 10%
+  bucket 2: 20%
+  bucket 2: 30%
+  bucket 2: 40%
+  bucket 2: 50%
+  bucket 2: 60%
+  bucket 2: 70%
+  bucket 2: 80%
+  bucket 2: 90%
+  bucket 2: 100%
+  Sorting block of length 5433 for bucket 2
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5434 for bucket 2
+Getting block 3 of 8
+  Reserving size (7628) for bucket 3
+  Calculating Z arrays for bucket 3
+  Entering block accumulator loop for bucket 3:
+  bucket 3: 10%
+  bucket 3: 20%
+  bucket 3: 30%
+  bucket 3: 40%
+  bucket 3: 50%
+  bucket 3: 60%
+  bucket 3: 70%
+  bucket 3: 80%
+  bucket 3: 90%
+  bucket 3: 100%
+  Sorting block of length 5427 for bucket 3
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5428 for bucket 3
+Getting block 4 of 8
+  Reserving size (7628) for bucket 4
+  Calculating Z arrays for bucket 4
+  Entering block accumulator loop for bucket 4:
+  bucket 4: 10%
+  bucket 4: 20%
+  bucket 4: 30%
+  bucket 4: 40%
+  bucket 4: 50%
+  bucket 4: 60%
+  bucket 4: 70%
+  bucket 4: 80%
+  bucket 4: 90%
+  bucket 4: 100%
+  Sorting block of length 5700 for bucket 4
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5701 for bucket 4
+Getting block 5 of 8
+  Reserving size (7628) for bucket 5
+  Calculating Z arrays for bucket 5
+  Entering block accumulator loop for bucket 5:
+  bucket 5: 10%
+  bucket 5: 20%
+  bucket 5: 30%
+  bucket 5: 40%
+  bucket 5: 50%
+  bucket 5: 60%
+  bucket 5: 70%
+  bucket 5: 80%
+  bucket 5: 90%
+  bucket 5: 100%
+  Sorting block of length 7108 for bucket 5
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 7109 for bucket 5
+Getting block 6 of 8
+  Reserving size (7628) for bucket 6
+  Calculating Z arrays for bucket 6
+  Entering block accumulator loop for bucket 6:
+  bucket 6: 10%
+  bucket 6: 20%
+  bucket 6: 30%
+  bucket 6: 40%
+  bucket 6: 50%
+  bucket 6: 60%
+  bucket 6: 70%
+  bucket 6: 80%
+  bucket 6: 90%
+  bucket 6: 100%
+  Sorting block of length 3850 for bucket 6
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 3851 for bucket 6
+Getting block 7 of 8
+  Reserving size (7628) for bucket 7
+  Calculating Z arrays for bucket 7
+  Entering block accumulator loop for bucket 7:
+  bucket 7: 10%
+  bucket 7: 20%
+  bucket 7: 30%
+  bucket 7: 40%
+  bucket 7: 50%
+  bucket 7: 60%
+  bucket 7: 70%
+  bucket 7: 80%
+  bucket 7: 90%
+  bucket 7: 100%
+  Sorting block of length 4718 for bucket 7
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 4719 for bucket 7
+Getting block 8 of 8
+  Reserving size (7628) for bucket 8
+  Calculating Z arrays for bucket 8
+  Entering block accumulator loop for bucket 8:
+  bucket 8: 10%
+  bucket 8: 20%
+  bucket 8: 30%
+  bucket 8: 40%
+  bucket 8: 50%
+  bucket 8: 60%
+  bucket 8: 70%
+  bucket 8: 80%
+  bucket 8: 90%
+  bucket 8: 100%
+  Sorting block of length 5106 for bucket 8
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5107 for bucket 8
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 1
+Total time for backward call to driver() for mirror index: 00:00:00
+
+------------------------------------------------------------bowtie2-build /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+------------------------------------------------------------Building a SMALL index
+
+------------------------------------------------------------Settings:
+  Output files: "/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.*.bt2"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 4 (one in 16)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 2, merged 6; iterating...
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 4519.44 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 9
+  Reserving size (7628) for bucket 1
+  Calculating Z arrays for bucket 1
+  Entering block accumulator loop for bucket 1:
+  bucket 1: 10%
+  bucket 1: 20%
+  bucket 1: 30%
+  bucket 1: 40%
+  bucket 1: 50%
+  bucket 1: 60%
+  bucket 1: 70%
+  bucket 1: 80%
+  bucket 1: 90%
+  bucket 1: 100%
+  Sorting block of length 6782 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 6783 for bucket 1
+Getting block 2 of 9
+  Reserving size (7628) for bucket 2
+  Calculating Z arrays for bucket 2
+  Entering block accumulator loop for bucket 2:
+  bucket 2: 10%
+  bucket 2: 20%
+  bucket 2: 30%
+  bucket 2: 40%
+  bucket 2: 50%
+  bucket 2: 60%
+  bucket 2: 70%
+  bucket 2: 80%
+  bucket 2: 90%
+  bucket 2: 100%
+  Sorting block of length 5104 for bucket 2
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5105 for bucket 2
+Getting block 3 of 9
+  Reserving size (7628) for bucket 3
+  Calculating Z arrays for bucket 3
+  Entering block accumulator loop for bucket 3:
+  bucket 3: 10%
+  bucket 3: 20%
+  bucket 3: 30%
+  bucket 3: 40%
+  bucket 3: 50%
+  bucket 3: 60%
+  bucket 3: 70%
+  bucket 3: 80%
+  bucket 3: 90%
+  bucket 3: 100%
+  Sorting block of length 4292 for bucket 3
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 4293 for bucket 3
+Getting block 4 of 9
+  Reserving size (7628) for bucket 4
+  Calculating Z arrays for bucket 4
+  Entering block accumulator loop for bucket 4:
+  bucket 4: 10%
+  bucket 4: 20%
+  bucket 4: 30%
+  bucket 4: 40%
+  bucket 4: 50%
+  bucket 4: 60%
+  bucket 4: 70%
+  bucket 4: 80%
+  bucket 4: 90%
+  bucket 4: 100%
+  Sorting block of length 5705 for bucket 4
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5706 for bucket 4
+Getting block 5 of 9
+  Reserving size (7628) for bucket 5
+  Calculating Z arrays for bucket 5
+  Entering block accumulator loop for bucket 5:
+  bucket 5: 10%
+  bucket 5: 20%
+  bucket 5: 30%
+  bucket 5: 40%
+  bucket 5: 50%
+  bucket 5: 60%
+  bucket 5: 70%
+  bucket 5: 80%
+  bucket 5: 90%
+  bucket 5: 100%
+  Sorting block of length 2094 for bucket 5
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 2095 for bucket 5
+Getting block 6 of 9
+  Reserving size (7628) for bucket 6
+  Calculating Z arrays for bucket 6
+  Entering block accumulator loop for bucket 6:
+  bucket 6: 10%
+  bucket 6: 20%
+  bucket 6: 30%
+  bucket 6: 40%
+  bucket 6: 50%
+  bucket 6: 60%
+  bucket 6: 70%
+  bucket 6: 80%
+  bucket 6: 90%
+  bucket 6: 100%
+  Sorting block of length 6912 for bucket 6
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 6913 for bucket 6
+Getting block 7 of 9
+  Reserving size (7628) for bucket 7
+  Calculating Z arrays for bucket 7
+  Entering block accumulator loop for bucket 7:
+  bucket 7: 10%
+  bucket 7: 20%
+  bucket 7: 30%
+  bucket 7: 40%
+  bucket 7: 50%
+  bucket 7: 60%
+  bucket 7: 70%
+  bucket 7: 80%
+  bucket 7: 90%
+  bucket 7: 100%
+  Sorting block of length 1749 for bucket 7
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 1750 for bucket 7
+Getting block 8 of 9
+  Reserving size (7628) for bucket 8
+  Calculating Z arrays for bucket 8
+  Entering block accumulator loop for bucket 8:
+  bucket 8: 10%
+  bucket 8: 20%
+  bucket 8: 30%
+  bucket 8: 40%
+  bucket 8: 50%
+  bucket 8: 60%
+  bucket 8: 70%
+  bucket 8: 80%
+  bucket 8: 90%
+  bucket 8: 100%
+  Sorting block of length 6968 for bucket 8
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 6969 for bucket 8
+Getting block 9 of 9
+  Reserving size (7628) for bucket 9
+  Calculating Z arrays for bucket 9
+  Entering block accumulator loop for bucket 9:
+  bucket 9: 10%
+  bucket 9: 20%
+  bucket 9: 30%
+  bucket 9: 40%
+  bucket 9: 50%
+  bucket 9: 60%
+  bucket 9: 70%
+  bucket 9: 80%
+  bucket 9: 90%
+  bucket 9: 100%
+  Sorting block of length 1069 for bucket 9
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 1070 for bucket 9
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 0
+Total time for call to driver() for forward index: 00:00:00
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+  Time to reverse reference sequence: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 3, merged 7; iterating...
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 1, merged 2; iterating...
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 5084.5 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 8
+  Reserving size (7628) for bucket 1
+  Calculating Z arrays for bucket 1
+  Entering block accumulator loop for bucket 1:
+  bucket 1: 10%
+  bucket 1: 20%
+  bucket 1: 30%
+  bucket 1: 40%
+  bucket 1: 50%
+  bucket 1: 60%
+  bucket 1: 70%
+  bucket 1: 80%
+  bucket 1: 90%
+  bucket 1: 100%
+  Sorting block of length 3334 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 3335 for bucket 1
+Getting block 2 of 8
+  Reserving size (7628) for bucket 2
+  Calculating Z arrays for bucket 2
+  Entering block accumulator loop for bucket 2:
+  bucket 2: 10%
+  bucket 2: 20%
+  bucket 2: 30%
+  bucket 2: 40%
+  bucket 2: 50%
+  bucket 2: 60%
+  bucket 2: 70%
+  bucket 2: 80%
+  bucket 2: 90%
+  bucket 2: 100%
+  Sorting block of length 5433 for bucket 2
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5434 for bucket 2
+Getting block 3 of 8
+  Reserving size (7628) for bucket 3
+  Calculating Z arrays for bucket 3
+  Entering block accumulator loop for bucket 3:
+  bucket 3: 10%
+  bucket 3: 20%
+  bucket 3: 30%
+  bucket 3: 40%
+  bucket 3: 50%
+  bucket 3: 60%
+  bucket 3: 70%
+  bucket 3: 80%
+  bucket 3: 90%
+  bucket 3: 100%
+  Sorting block of length 5427 for bucket 3
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5428 for bucket 3
+Getting block 4 of 8
+  Reserving size (7628) for bucket 4
+  Calculating Z arrays for bucket 4
+  Entering block accumulator loop for bucket 4:
+  bucket 4: 10%
+  bucket 4: 20%
+  bucket 4: 30%
+  bucket 4: 40%
+  bucket 4: 50%
+  bucket 4: 60%
+  bucket 4: 70%
+  bucket 4: 80%
+  bucket 4: 90%
+  bucket 4: 100%
+  Sorting block of length 5700 for bucket 4
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5701 for bucket 4
+Getting block 5 of 8
+  Reserving size (7628) for bucket 5
+  Calculating Z arrays for bucket 5
+  Entering block accumulator loop for bucket 5:
+  bucket 5: 10%
+  bucket 5: 20%
+  bucket 5: 30%
+  bucket 5: 40%
+  bucket 5: 50%
+  bucket 5: 60%
+  bucket 5: 70%
+  bucket 5: 80%
+  bucket 5: 90%
+  bucket 5: 100%
+  Sorting block of length 7108 for bucket 5
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 7109 for bucket 5
+Getting block 6 of 8
+  Reserving size (7628) for bucket 6
+  Calculating Z arrays for bucket 6
+  Entering block accumulator loop for bucket 6:
+  bucket 6: 10%
+  bucket 6: 20%
+  bucket 6: 30%
+  bucket 6: 40%
+  bucket 6: 50%
+  bucket 6: 60%
+  bucket 6: 70%
+  bucket 6: 80%
+  bucket 6: 90%
+  bucket 6: 100%
+  Sorting block of length 3850 for bucket 6
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 3851 for bucket 6
+Getting block 7 of 8
+  Reserving size (7628) for bucket 7
+  Calculating Z arrays for bucket 7
+  Entering block accumulator loop for bucket 7:
+  bucket 7: 10%
+  bucket 7: 20%
+  bucket 7: 30%
+  bucket 7: 40%
+  bucket 7: 50%
+  bucket 7: 60%
+  bucket 7: 70%
+  bucket 7: 80%
+  bucket 7: 90%
+  bucket 7: 100%
+  Sorting block of length 4718 for bucket 7
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 4719 for bucket 7
+Getting block 8 of 8
+  Reserving size (7628) for bucket 8
+  Calculating Z arrays for bucket 8
+  Entering block accumulator loop for bucket 8:
+  bucket 8: 10%
+  bucket 8: 20%
+  bucket 8: 30%
+  bucket 8: 40%
+  bucket 8: 50%
+  bucket 8: 60%
+  bucket 8: 70%
+  bucket 8: 80%
+  bucket 8: 90%
+  bucket 8: 100%
+  Sorting block of length 5106 for bucket 8
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5107 for bucket 8
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 1
+Total time for backward call to driver() for mirror index: 00:00:00
+
+------------------------------------------------------------bowtie2-build /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+------------------------------------------------------------Building a SMALL index
+
+------------------------------------------------------------Settings:
+  Output files: "/home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.*.bt2"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 4 (one in 16)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 40683 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 40683 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 40684 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 0
+Total time for call to driver() for forward index: 00:00:00
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+  Time to reverse reference sequence: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 40683 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 40683 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 40684 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 1
+Total time for backward call to driver() for mirror index: 00:00:00
+
+------------------------------------------------------------bowtie2-build /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+------------------------------------------------------------Building a SMALL index
+
+------------------------------------------------------------Settings:
+  Output files: "/sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.*.bt2"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 4 (one in 16)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 2, merged 6; iterating...
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 4519.44 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 9
+  Reserving size (7628) for bucket 1
+  Calculating Z arrays for bucket 1
+  Entering block accumulator loop for bucket 1:
+  bucket 1: 10%
+  bucket 1: 20%
+  bucket 1: 30%
+  bucket 1: 40%
+  bucket 1: 50%
+  bucket 1: 60%
+  bucket 1: 70%
+  bucket 1: 80%
+  bucket 1: 90%
+  bucket 1: 100%
+  Sorting block of length 6782 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 6783 for bucket 1
+Getting block 2 of 9
+  Reserving size (7628) for bucket 2
+  Calculating Z arrays for bucket 2
+  Entering block accumulator loop for bucket 2:
+  bucket 2: 10%
+  bucket 2: 20%
+  bucket 2: 30%
+  bucket 2: 40%
+  bucket 2: 50%
+  bucket 2: 60%
+  bucket 2: 70%
+  bucket 2: 80%
+  bucket 2: 90%
+  bucket 2: 100%
+  Sorting block of length 5104 for bucket 2
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5105 for bucket 2
+Getting block 3 of 9
+  Reserving size (7628) for bucket 3
+  Calculating Z arrays for bucket 3
+  Entering block accumulator loop for bucket 3:
+  bucket 3: 10%
+  bucket 3: 20%
+  bucket 3: 30%
+  bucket 3: 40%
+  bucket 3: 50%
+  bucket 3: 60%
+  bucket 3: 70%
+  bucket 3: 80%
+  bucket 3: 90%
+  bucket 3: 100%
+  Sorting block of length 4292 for bucket 3
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 4293 for bucket 3
+Getting block 4 of 9
+  Reserving size (7628) for bucket 4
+  Calculating Z arrays for bucket 4
+  Entering block accumulator loop for bucket 4:
+  bucket 4: 10%
+  bucket 4: 20%
+  bucket 4: 30%
+  bucket 4: 40%
+  bucket 4: 50%
+  bucket 4: 60%
+  bucket 4: 70%
+  bucket 4: 80%
+  bucket 4: 90%
+  bucket 4: 100%
+  Sorting block of length 5705 for bucket 4
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5706 for bucket 4
+Getting block 5 of 9
+  Reserving size (7628) for bucket 5
+  Calculating Z arrays for bucket 5
+  Entering block accumulator loop for bucket 5:
+  bucket 5: 10%
+  bucket 5: 20%
+  bucket 5: 30%
+  bucket 5: 40%
+  bucket 5: 50%
+  bucket 5: 60%
+  bucket 5: 70%
+  bucket 5: 80%
+  bucket 5: 90%
+  bucket 5: 100%
+  Sorting block of length 2094 for bucket 5
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 2095 for bucket 5
+Getting block 6 of 9
+  Reserving size (7628) for bucket 6
+  Calculating Z arrays for bucket 6
+  Entering block accumulator loop for bucket 6:
+  bucket 6: 10%
+  bucket 6: 20%
+  bucket 6: 30%
+  bucket 6: 40%
+  bucket 6: 50%
+  bucket 6: 60%
+  bucket 6: 70%
+  bucket 6: 80%
+  bucket 6: 90%
+  bucket 6: 100%
+  Sorting block of length 6912 for bucket 6
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 6913 for bucket 6
+Getting block 7 of 9
+  Reserving size (7628) for bucket 7
+  Calculating Z arrays for bucket 7
+  Entering block accumulator loop for bucket 7:
+  bucket 7: 10%
+  bucket 7: 20%
+  bucket 7: 30%
+  bucket 7: 40%
+  bucket 7: 50%
+  bucket 7: 60%
+  bucket 7: 70%
+  bucket 7: 80%
+  bucket 7: 90%
+  bucket 7: 100%
+  Sorting block of length 1749 for bucket 7
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 1750 for bucket 7
+Getting block 8 of 9
+  Reserving size (7628) for bucket 8
+  Calculating Z arrays for bucket 8
+  Entering block accumulator loop for bucket 8:
+  bucket 8: 10%
+  bucket 8: 20%
+  bucket 8: 30%
+  bucket 8: 40%
+  bucket 8: 50%
+  bucket 8: 60%
+  bucket 8: 70%
+  bucket 8: 80%
+  bucket 8: 90%
+  bucket 8: 100%
+  Sorting block of length 6968 for bucket 8
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 6969 for bucket 8
+Getting block 9 of 9
+  Reserving size (7628) for bucket 9
+  Calculating Z arrays for bucket 9
+  Entering block accumulator loop for bucket 9:
+  bucket 9: 10%
+  bucket 9: 20%
+  bucket 9: 30%
+  bucket 9: 40%
+  bucket 9: 50%
+  bucket 9: 60%
+  bucket 9: 70%
+  bucket 9: 80%
+  bucket 9: 90%
+  bucket 9: 100%
+  Sorting block of length 1069 for bucket 9
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 1070 for bucket 9
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 0
+Total time for call to driver() for forward index: 00:00:00
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+  Time to reverse reference sequence: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 3, merged 7; iterating...
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 1, merged 2; iterating...
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 5084.5 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 8
+  Reserving size (7628) for bucket 1
+  Calculating Z arrays for bucket 1
+  Entering block accumulator loop for bucket 1:
+  bucket 1: 10%
+  bucket 1: 20%
+  bucket 1: 30%
+  bucket 1: 40%
+  bucket 1: 50%
+  bucket 1: 60%
+  bucket 1: 70%
+  bucket 1: 80%
+  bucket 1: 90%
+  bucket 1: 100%
+  Sorting block of length 3334 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 3335 for bucket 1
+Getting block 2 of 8
+  Reserving size (7628) for bucket 2
+  Calculating Z arrays for bucket 2
+  Entering block accumulator loop for bucket 2:
+  bucket 2: 10%
+  bucket 2: 20%
+  bucket 2: 30%
+  bucket 2: 40%
+  bucket 2: 50%
+  bucket 2: 60%
+  bucket 2: 70%
+  bucket 2: 80%
+  bucket 2: 90%
+  bucket 2: 100%
+  Sorting block of length 5433 for bucket 2
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5434 for bucket 2
+Getting block 3 of 8
+  Reserving size (7628) for bucket 3
+  Calculating Z arrays for bucket 3
+  Entering block accumulator loop for bucket 3:
+  bucket 3: 10%
+  bucket 3: 20%
+  bucket 3: 30%
+  bucket 3: 40%
+  bucket 3: 50%
+  bucket 3: 60%
+  bucket 3: 70%
+  bucket 3: 80%
+  bucket 3: 90%
+  bucket 3: 100%
+  Sorting block of length 5427 for bucket 3
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5428 for bucket 3
+Getting block 4 of 8
+  Reserving size (7628) for bucket 4
+  Calculating Z arrays for bucket 4
+  Entering block accumulator loop for bucket 4:
+  bucket 4: 10%
+  bucket 4: 20%
+  bucket 4: 30%
+  bucket 4: 40%
+  bucket 4: 50%
+  bucket 4: 60%
+  bucket 4: 70%
+  bucket 4: 80%
+  bucket 4: 90%
+  bucket 4: 100%
+  Sorting block of length 5700 for bucket 4
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5701 for bucket 4
+Getting block 5 of 8
+  Reserving size (7628) for bucket 5
+  Calculating Z arrays for bucket 5
+  Entering block accumulator loop for bucket 5:
+  bucket 5: 10%
+  bucket 5: 20%
+  bucket 5: 30%
+  bucket 5: 40%
+  bucket 5: 50%
+  bucket 5: 60%
+  bucket 5: 70%
+  bucket 5: 80%
+  bucket 5: 90%
+  bucket 5: 100%
+  Sorting block of length 7108 for bucket 5
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 7109 for bucket 5
+Getting block 6 of 8
+  Reserving size (7628) for bucket 6
+  Calculating Z arrays for bucket 6
+  Entering block accumulator loop for bucket 6:
+  bucket 6: 10%
+  bucket 6: 20%
+  bucket 6: 30%
+  bucket 6: 40%
+  bucket 6: 50%
+  bucket 6: 60%
+  bucket 6: 70%
+  bucket 6: 80%
+  bucket 6: 90%
+  bucket 6: 100%
+  Sorting block of length 3850 for bucket 6
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 3851 for bucket 6
+Getting block 7 of 8
+  Reserving size (7628) for bucket 7
+  Calculating Z arrays for bucket 7
+  Entering block accumulator loop for bucket 7:
+  bucket 7: 10%
+  bucket 7: 20%
+  bucket 7: 30%
+  bucket 7: 40%
+  bucket 7: 50%
+  bucket 7: 60%
+  bucket 7: 70%
+  bucket 7: 80%
+  bucket 7: 90%
+  bucket 7: 100%
+  Sorting block of length 4718 for bucket 7
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 4719 for bucket 7
+Getting block 8 of 8
+  Reserving size (7628) for bucket 8
+  Calculating Z arrays for bucket 8
+  Entering block accumulator loop for bucket 8:
+  bucket 8: 10%
+  bucket 8: 20%
+  bucket 8: 30%
+  bucket 8: 40%
+  bucket 8: 50%
+  bucket 8: 60%
+  bucket 8: 70%
+  bucket 8: 80%
+  bucket 8: 90%
+  bucket 8: 100%
+  Sorting block of length 5106 for bucket 8
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 5107 for bucket 8
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /sippr/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 1
+Total time for backward call to driver() for mirror index: 00:00:00
+
+------------------------------------------------------------bowtie2-build /home/adamkoziol/Bioinformatics/assembly/2014-SEQ-0276/serosippr/baitedtargets.fa /home/adamkoziol/Bioinformatics/assembly/2014-SEQ-0276/serosippr/baitedtargets.fa
+------------------------------------------------------------Building a SMALL index
+
+------------------------------------------------------------Settings:
+  Output files: "/home/adamkoziol/Bioinformatics/assembly/2014-SEQ-0276/serosippr/baitedtargets.fa.*.bt2"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 4 (one in 16)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  /home/adamkoziol/Bioinformatics/assembly/2014-SEQ-0276/serosippr/baitedtargets.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 40683 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 40683 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 40684 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/assembly/2014-SEQ-0276/serosippr/baitedtargets.fa.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/assembly/2014-SEQ-0276/serosippr/baitedtargets.fa.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 0
+Total time for call to driver() for forward index: 00:00:00
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+  Time to reverse reference sequence: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 40683 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 40683 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:01
+Returning block of 40684 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/assembly/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/assembly/2014-SEQ-0276/serosippr/baitedtargets.fa.rev.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 1
+Total time for backward call to driver() for mirror index: 00:00:01
+
+------------------------------------------------------------bowtie2-build /home/adamkoziol/Bioinformatics/sippr/sero/sequences/2017-SEQ-0935/serosippr/baitedtargets.fa /home/adamkoziol/Bioinformatics/sippr/sero/sequences/2017-SEQ-0935/serosippr/baitedtargets.fa
+------------------------------------------------------------Building a SMALL index
+
+------------------------------------------------------------Settings:
+  Output files: "/home/adamkoziol/Bioinformatics/sippr/sero/sequences/2017-SEQ-0935/serosippr/baitedtargets.fa.*.bt2"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 4 (one in 16)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  /home/adamkoziol/Bioinformatics/sippr/sero/sequences/2017-SEQ-0935/serosippr/baitedtargets.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+bmax according to bmaxDivN setting: 2364
+Using parameters --bmax 1773 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 1773 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 9459 (target: 1772)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 9459 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 9460 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 2900
+fchr[G]: 4854
+fchr[T]: 6963
+fchr[$]: 9459
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4197875 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/sippr/sero/sequences/2017-SEQ-0935/serosippr/baitedtargets.fa.1.bt2
+Wrote 2372 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/sippr/sero/sequences/2017-SEQ-0935/serosippr/baitedtargets.fa.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 9459
+    bwtLen: 9460
+    sz: 2365
+    bwtSz: 2365
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 592
+    offsSz: 2368
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 50
+    numLines: 50
+    ebwtTotLen: 3200
+    ebwtTotSz: 3200
+    color: 0
+    reverse: 0
+Total time for call to driver() for forward index: 00:00:00
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+  Time to reverse reference sequence: 00:00:00
+bmax according to bmaxDivN setting: 2364
+Using parameters --bmax 1773 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 1773 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 9459 (target: 1772)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 9459 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 9460 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 2900
+fchr[G]: 4854
+fchr[T]: 6963
+fchr[$]: 9459
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4197875 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/sippr/sero/sequences/2017-SEQ-0935/serosippr/baitedtargets.fa.rev.1.bt2
+Wrote 2372 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/sippr/sero/sequences/2017-SEQ-0935/serosippr/baitedtargets.fa.rev.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 9459
+    bwtLen: 9460
+    sz: 2365
+    bwtSz: 2365
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 592
+    offsSz: 2368
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 50
+    numLines: 50
+    ebwtTotLen: 3200
+    ebwtTotSz: 3200
+    color: 0
+    reverse: 1
+Total time for backward call to driver() for mirror index: 00:00:00
+
+------------------------------------------------------------bowtie2-build /home/adamkoziol/Bioinformatics/sippr/unittest/sequences/NC_002695/serosippr/baitedtargets.fa /home/adamkoziol/Bioinformatics/sippr/unittest/sequences/NC_002695/serosippr/baitedtargets.fa
+------------------------------------------------------------Building a SMALL index
+
+------------------------------------------------------------Settings:
+  Output files: "/home/adamkoziol/Bioinformatics/sippr/unittest/sequences/NC_002695/serosippr/baitedtargets.fa.*.bt2"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 4 (one in 16)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  /home/adamkoziol/Bioinformatics/sippr/unittest/sequences/NC_002695/serosippr/baitedtargets.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 40683 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 40683 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 40684 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/sippr/unittest/sequences/NC_002695/serosippr/baitedtargets.fa.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/sippr/unittest/sequences/NC_002695/serosippr/baitedtargets.fa.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 0
+Total time for call to driver() for forward index: 00:00:00
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+  Time to reverse reference sequence: 00:00:00
+bmax according to bmaxDivN setting: 10170
+Using parameters --bmax 7628 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 7628 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 40683 (target: 7627)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 40683 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 40684 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 12264
+fchr[G]: 20123
+fchr[T]: 28529
+fchr[$]: 40683
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4209084 bytes to primary EBWT file: /home/adamkoziol/Bioinformatics/sippr/unittest/sequences/NC_002695/serosippr/baitedtargets.fa.rev.1.bt2
+Wrote 10176 bytes to secondary EBWT file: /home/adamkoziol/Bioinformatics/sippr/unittest/sequences/NC_002695/serosippr/baitedtargets.fa.rev.2.bt2
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 40683
+    bwtLen: 40684
+    sz: 10171
+    bwtSz: 10171
+    lineRate: 6
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 2543
+    offsSz: 10172
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 48
+    sideBwtLen: 192
+    numSides: 212
+    numLines: 212
+    ebwtTotLen: 13568
+    ebwtTotSz: 13568
+    color: 0
+    reverse: 1
+Total time for backward call to driver() for mirror index: 00:00:01
+
+------------------------------------------------------------
