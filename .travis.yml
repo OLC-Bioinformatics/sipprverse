@@ -21,6 +21,7 @@ install:
   - conda install -c anaconda psutil
   - conda install -c bioconda bbmap
   - conda install -c bioconda bowtie2
+  - pip install -r requirements.txt
 #  - pip install pysam==0.13
 #  - pip install biopython==1.70
 #  - pip install OLCTools
