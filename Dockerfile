@@ -63,7 +63,7 @@ RUN pip3 install sipprverse==0.0.21
 RUN git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git
 
 # Edit the path
-ENV PATH /geneSipprV2/sipprverse:$PATH
+ENV PATH /geneSipprV2:$PATH
 
 # TO RUN
 # docker rm genesipprmethod && docker run -it -v /nas0:/nas0 --name genesipprmethod 192.168.1.5:5000/genesipprmethod method.py /genesipprrun -t /targets -s /sequences
