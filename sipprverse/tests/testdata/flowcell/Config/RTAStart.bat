@@ -1,3 +1,0 @@
-title RTA 1.18.54 - D:\Illumina\MiSeqTemp\161104_M02466_0002_000000000-AV4G5
-pushd "C:\Illumina\RTA"
-"C:\Illumina\RTA\RTA.exe"  "D:\Illumina\MiSeqTemp\161104_M02466_0002_000000000-AV4G5\Images " "D:\Illumina\MiSeqOutput " Read=All ControlLane=0 Threads=2 CopyIntensityFilesToNetwork=0 instrumentType=miseq templatecycles=7 subregionachannelsettings=213,0,0 subregioncchannelsettings=213,0,0 subregionwidthheight=2944,2440 qualityscoretype=v8
