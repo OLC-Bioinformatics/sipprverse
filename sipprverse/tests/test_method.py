@@ -52,8 +52,8 @@ method = method_init(variables())
 
 def test_bcl2fastq(variables):
     method.createobjects()
-    assert os.path.isfile(os.path.join(variables.path, 'sequences', '1_0', '2016-SEQ-0836_S1_L001_R1_001.fastq.gz'))
-
+    assert os.path.isfile(os.path.join(variables.path, variables.miseqfolder, '1_0',
+                                       'Undetermined_S0_L001_R1_001.fastq.gz'))
 
 def metadata_update(analysistype):
     """
@@ -302,14 +302,3 @@ def test_clear_blast(variables):
     os.remove(os.path.join(targetpath, 'baitedtargets.nnd'))
     os.remove(os.path.join(targetpath, 'baitedtargets.nin'))
     os.remove(os.path.join(targetpath, 'baitedtargets.nhr'))
-
-
-
-
-
-
-
-
-
-
-
