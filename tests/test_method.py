@@ -1,5 +1,4 @@
 #!/usr/bin/env python 3
-from accessoryFunctions.accessoryFunctions import make_path
 from Bio.Sequencing.Applications import SamtoolsFaidxCommandline, SamtoolsIndexCommandline, \
     SamtoolsSortCommandline, SamtoolsViewCommandline
 from sipprCommon.bowtie import Bowtie2CommandLine, Bowtie2BuildCommandLine
@@ -63,7 +62,6 @@ def metadata_update(analysistype):
     """
     method.sequencepath = os.path.join(testpath, 'testdata', 'sequences', analysistype)
     method.reportpath = os.path.join(testpath, 'testdata', 'reports')
-    make_path(method.sequencepath)
     for sample in method.runmetadata.samples:
         sample.name = 'unit_test'
         sample.general.outputdirectory = method.sequencepath
@@ -168,7 +166,7 @@ def test_index_bam(variables):
 def test_subsample(variables):
     targetpath = os.path.join(variables.targetpath, 'blast')
     outpath = os.path.join(variables.path, 'blast')
-    make_path(outpath)
+    os.mkdir(outpath)
     outfile = os.path.join(outpath, 'subsampled_reads.fastq.gz')
     cmd = 'reformat.sh in={input} out={output} samplebasestarget=100000'.format(
         input=os.path.join(targetpath, 'reads.fastq.gz'),
