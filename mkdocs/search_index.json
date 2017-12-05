@@ -1,0 +1,49 @@
+{
+    "docs": [
+        {
+            "location": "/",
+            "text": "Welcome to MkDocs\n\n\nFor full documentation visit \nmkdocs.org\n.\n\n\nCommands\n\n\n\n\nmkdocs new [dir-name]\n - Create a new project.\n\n\nmkdocs serve\n - Start the live-reloading docs server.\n\n\nmkdocs build\n - Build the documentation site.\n\n\nmkdocs gh-deploy\n- Deploy the GitHub pages site\n\n\nmkdocs help\n - Print this help message.\n\n\n\n\nProject layout\n\n\nmkdocs.yml    # The configuration file.\ndocs/\n    index.md  # The documentation homepage.\n    ...       # Other markdown pages, images and other files.\n\n\n\nmethod",
+            "title": "Home"
+        },
+        {
+            "location": "/#welcome-to-mkdocs",
+            "text": "For full documentation visit  mkdocs.org .",
+            "title": "Welcome to MkDocs"
+        },
+        {
+            "location": "/#commands",
+            "text": "mkdocs new [dir-name]  - Create a new project.  mkdocs serve  - Start the live-reloading docs server.  mkdocs build  - Build the documentation site.  mkdocs gh-deploy - Deploy the GitHub pages site  mkdocs help  - Print this help message.",
+            "title": "Commands"
+        },
+        {
+            "location": "/#project-layout",
+            "text": "mkdocs.yml    # The configuration file.\ndocs/\n    index.md  # The documentation homepage.\n    ...       # Other markdown pages, images and other files.  method",
+            "title": "Project layout"
+        },
+        {
+            "location": "/installation/",
+            "text": "Installation\n\n\nSystem Requirements\n\n\nDebian Linux\n\n\nQuick Install\n\n\ngit clone https://github.com/OLC-Bioinformatics/geneSipprV2.git\n\n\ncd geneSipprV2\n\n\nNOW:\n\n\nUsing the Dockerfile\n\n\ndocker build -t <IMAGE_NAME .\n\n\ndocker -it --rm -v <DESIRED VOLUME>:<DESTINATION> --name <CONTAINER_NAME> <IMAGE_NAME>\n\n\nOR\n\n\nManual install\n\n\nThis requires a few prerequisites:\n\n\nThe following dependencies can be obtained with apt\n\n\n\n\npython-dev\n\n\ncurl\n\n\npython3-pip\n\n\nfastx-toolkit\n\n\nncbi-blast+\n\n\n\n\nInstallation of conda is more involved:\n\n\n\n\nconda\n\n\n\n\ncurl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh\n\n\nsudo bash /tmp/miniconda.sh -bfp /usr/local\n\n\nsudo rm -rf /tmp/miniconda.sh\n\n\nsudo conda install -y python=3\n\n\nsudo conda update conda\n\n\nUse the conda environment\n\n\nconda env create -f environment.yml\n\n\nsource activate genesippr\n\n\nOR\n\n\nInstall packages manually\n\n\nInstall bcl2fastq\n\n\nconda install -c dranew bcl2fastq=2.19.0=1\n\n\nUpgrade pip\n\n\npip3 install --upgrade pip\n\n\nInstall pysam\n\n\npip3 install pysam==0.13\n\n\nInstall biopython\n\n\npip3 install biopython==1.70\n\n\nInstall samtools\n\n\nconda install -c bioconda samtools=1.6=0\n\n\nInstall seqtk\n\n\nconda install -c bioconda seqtk=1.2=0\n\n\nInstall psutil\n\n\nconda install -c anaconda psutil=5.4.1=py35h2e39a06_0\n\n\nInstall bbmap\n\n\nconda install -c bioconda bbmap=37.66=0\n \n\n\nInstall bowtie2\n\n\nconda install -c bioconda bowtie2=2.3.3.1=py35pl5.22.0_0\n\n\nInstall OLCTools\n\n\npip3 install OLCTools==0.3.18\n\n\nInstall latest genesippr package\n\n\npip3 install sipprverse==0.0.22\n\n\nAdd the geneSipprV2 folder to the $PATH\n\n\nTest install\n\n\nsudo pip3 install -U pytest\n\n\npytest\n\n\nInstall targets\n\n\nwget -O targets.tar.gz https://ndownloader.figshare.com/files/9918805 && tar xf targets.tar.gz && rm targets.tar.gz\n\n\nRun the method\n\n\nmethod.py <PATH> -t <PATH TO TARGETS> -b -m <PATH TO MISEQ> -f <RUN NAME>",
+            "title": "Installation"
+        },
+        {
+            "location": "/installation/#test-install",
+            "text": "sudo pip3 install -U pytest  pytest",
+            "title": "Test install"
+        },
+        {
+            "location": "/installation/#install-targets",
+            "text": "wget -O targets.tar.gz https://ndownloader.figshare.com/files/9918805 && tar xf targets.tar.gz && rm targets.tar.gz",
+            "title": "Install targets"
+        },
+        {
+            "location": "/installation/#run-the-method",
+            "text": "method.py <PATH> -t <PATH TO TARGETS> -b -m <PATH TO MISEQ> -f <RUN NAME>",
+            "title": "Run the method"
+        },
+        {
+            "location": "/method/",
+            "text": "method",
+            "title": "Method"
+        }
+    ]
+}

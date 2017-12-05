@@ -3,28 +3,31 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  
-  <link rel="shortcut icon" href="../img/favicon.ico">
   <title>Installation - My Docs</title>
+  
+
+  <link rel="shortcut icon" href="../img/favicon.ico">
+
+  
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="../css/highlight.css">
+
   
   <script>
     // Current page data
     var mkdocs_page_name = "Installation";
-    var mkdocs_page_input_path = "installation.md";
-    var mkdocs_page_url = "/installation/";
   </script>
   
   <script src="../js/jquery-2.1.1.min.js"></script>
   <script src="../js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
+  <script type="text/javascript" src="../js/highlight.pack.js"></script>
+  <script src="../js/theme.js"></script> 
+
   
 </head>
 
@@ -44,52 +47,54 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
+        <ul class="current">
           
-            <li class="toctree-l1">
-		
-    <a class="" href="..">Welcome to MkDocs</a>
-	    </li>
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="..">Home</a>
+        
+    </li>
+<li>
           
-            <li class="toctree-l1 current">
-		
-    <a class="current" href="./">Installation</a>
-    <ul class="subnav">
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Installation</a>
+        
+            <ul>
             
-    <li class="toctree-l2"><a href="#installation">Installation</a></li>
-    
-
-    <li class="toctree-l2"><a href="#system-requirements">System Requirements</a></li>
-    
-
-    <li class="toctree-l2"><a href="#quick-install">Quick Install</a></li>
-    
-        <ul>
+                <li class="toctree-l3"><a href="#installation">Installation</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#system-requirements">System Requirements</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#quick-install">Quick Install</a></li>
+                
+                    <li><a class="toctree-l4" href="#using-the-dockerfile">Using the Dockerfile</a></li>
+                
+                    <li><a class="toctree-l4" href="#manual-install">Manual install</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#test-install">Test install</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#install-targets">Install targets</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#run-the-method">Run the method</a></li>
+                
+            
+            </ul>
         
-            <li><a class="toctree-l3" href="#using-the-dockerfile">Using the Dockerfile</a></li>
-        
-            <li><a class="toctree-l3" href="#manual-install">Manual install</a></li>
-        
-        </ul>
-    
-
-    <li class="toctree-l2"><a href="#test-install">Test install</a></li>
-    
-
-    <li class="toctree-l2"><a href="#install-targets">Install targets</a></li>
-    
-
-    <li class="toctree-l2"><a href="#run-the-method">Run the method</a></li>
-    
-
-    </ul>
-	    </li>
+    </li>
+<li>
           
-            <li class="toctree-l1">
-		
-    <a class="" href="../method/">Method</a>
-	    </li>
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../method/">Method</a>
+        
+    </li>
+<li>
           
         </ul>
       </div>
@@ -148,20 +153,18 @@
 <ul>
 <li>conda</li>
 </ul>
-<pre><code>curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh
-        &amp;&amp; bash /tmp/miniconda.sh -bfp /usr/local
-        &amp;&amp; rm -rf /tmp/miniconda.sh
-        &amp;&amp; conda install -y python=3
-        &amp;&amp; conda update conda
-</code></pre>
-
+<p><code>curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh</code></p>
+<p><code>sudo bash /tmp/miniconda.sh -bfp /usr/local</code></p>
+<p><code>sudo rm -rf /tmp/miniconda.sh</code></p>
+<p><code>sudo conda install -y python=3</code></p>
+<p><code>sudo conda update conda</code></p>
 <h5 id="use-the-conda-environment">Use the conda environment</h5>
 <p><code>conda env create -f environment.yml</code></p>
 <p><code>source activate genesippr</code></p>
 <p>OR</p>
 <h5 id="install-packages-manually">Install packages manually</h5>
 <h6 id="install-bcl2fastq">Install bcl2fastq</h6>
-<p><code>conda install -c dranew bcl2fastq</code></p>
+<p><code>conda install -c dranew bcl2fastq=2.19.0=1</code></p>
 <h6 id="upgrade-pip">Upgrade pip</h6>
 <p><code>pip3 install --upgrade pip</code></p>
 <h6 id="install-pysam">Install pysam</h6>
@@ -169,22 +172,22 @@
 <h6 id="install-biopython">Install biopython</h6>
 <p><code>pip3 install biopython==1.70</code></p>
 <h6 id="install-samtools">Install samtools</h6>
-<p><code>conda install -c bioconda samtools</code></p>
+<p><code>conda install -c bioconda samtools=1.6=0</code></p>
 <h6 id="install-seqtk">Install seqtk</h6>
-<p><code>conda install -c bioconda seqtk</code></p>
+<p><code>conda install -c bioconda seqtk=1.2=0</code></p>
 <h6 id="install-psutil">Install psutil</h6>
-<p><code>conda install -c anaconda psutil</code></p>
+<p><code>conda install -c anaconda psutil=5.4.1=py35h2e39a06_0</code></p>
 <h6 id="install-bbmap">Install bbmap</h6>
-<p><code>conda install -c bioconda bbmap</code> </p>
+<p><code>conda install -c bioconda bbmap=37.66=0</code> </p>
 <h6 id="install-bowtie2">Install bowtie2</h6>
-<p><code>conda install -c bioconda bowtie2</code></p>
+<p><code>conda install -c bioconda bowtie2=2.3.3.1=py35pl5.22.0_0</code></p>
 <h6 id="install-olctools">Install OLCTools</h6>
-<p><code>pip3 install OLCTools==0.3.15</code></p>
+<p><code>pip3 install OLCTools==0.3.18</code></p>
 <h6 id="install-latest-genesippr-package">Install latest genesippr package</h6>
 <p><code>pip3 install sipprverse==0.0.22</code></p>
 <p>Add the geneSipprV2 folder to the $PATH</p>
 <h2 id="test-install">Test install</h2>
-<p><code>pip3 install -U pytest</code></p>
+<p><code>sudo pip3 install -U pytest</code></p>
 <p><code>pytest</code></p>
 <h2 id="install-targets">Install targets</h2>
 <p><code>wget -O targets.tar.gz https://ndownloader.figshare.com/files/9918805 &amp;&amp; tar xf targets.tar.gz &amp;&amp; rm targets.tar.gz</code></p>
@@ -197,10 +200,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../method/" class="btn btn-neutral float-right" title="Method">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../method/" class="btn btn-neutral float-right" title="Method"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href=".." class="btn btn-neutral" title="Welcome to MkDocs"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href=".." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -214,7 +217,7 @@
 
   Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-      
+	  
         </div>
       </div>
 
@@ -222,7 +225,7 @@
 
   </div>
 
-  <div class="rst-versions" role="note" style="cursor: pointer">
+<div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
@@ -233,10 +236,6 @@
       
     </span>
 </div>
-    <script>var base_url = '..';</script>
-    <script src="../js/theme.js"></script>
-      <script src="../search/require.js"></script>
-      <script src="../search/search.js"></script>
 
 </body>
 </html>
