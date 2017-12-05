@@ -37,13 +37,15 @@ Installation of conda is more involved:
 
 - conda
 
-```
-curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh
-	    && bash /tmp/miniconda.sh -bfp /usr/local
-	    && rm -rf /tmp/miniconda.sh
-	    && conda install -y python=3
-	    && conda update conda
-```
+`curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh`
+
+`sudo bash /tmp/miniconda.sh -bfp /usr/local`
+
+`sudo rm -rf /tmp/miniconda.sh`
+
+`sudo conda install -y python=3`
+
+`sudo conda update conda`
 
 ##### Use the conda environment
 
@@ -91,9 +93,8 @@ OR
 
 Add the geneSipprV2 folder to the $PATH
 
-
 ## Test install
-`pip3 install -U pytest`
+`sudo pip3 install -U pytest`
 
 `pytest`
 
