@@ -62,6 +62,9 @@ RUN pip3 install sipprverse==0.0.22
 # Install the pipeline
 RUN git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git
 
+# Install pytest
+RUN pip3 install -U pytest
+
 # Edit the path
 ENV PATH /geneSipprV2:$PATH
 
