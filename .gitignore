@@ -1,0 +1,11 @@
+# Compiled Python Files #
+#########################
+*.pyc
+
+# Edited text files #
+#####################
+*~
+
+# Log files #
+#############
+*.log
