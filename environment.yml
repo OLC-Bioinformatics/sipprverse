@@ -1,0 +1,46 @@
+name: genesippr
+channels:
+- dranew
+- adamkoziol
+- conda-forge
+- defaults
+- r
+- bioconda
+- anaconda
+dependencies:
+- psutil=5.4.1=py35h2e39a06_0
+- bbmap=37.66=0
+- bowtie2=2.3.3.1=py35pl5.22.0_0
+- samtools=1.6=0
+- seqtk=1.2=0
+- tbb=4.4_20150728=0
+- bzip2=1.0.6=1
+- ca-certificates=2017.11.5=0
+- certifi=2017.11.5=py35_0
+- curl=7.54.1=0
+- krb5=1.14.2=0
+- libssh2=1.8.0=1
+- ncurses=5.9=10
+- openssl=1.0.2m=0
+- perl=5.22.0.1=0
+- pip=9.0.1=py35_0
+- python=3.5.4=0
+- readline=6.2=0
+- setuptools=38.2.3=py35_0
+- sqlite=3.13.0=1
+- tk=8.5.19=2
+- wheel=0.30.0=py_1
+- xz=5.2.3=0
+- zlib=1.2.8=3
+- libgcc=7.2.0=h69d50b8_2
+- libgcc-ng=7.2.0=h7cc24e2_2
+- libstdcxx-ng=7.2.0=h7a57d05_2
+- openjdk=8.0.121=1
+- bcl2fastq=2.19.0=1
+- boost_lib=1.54.0=1
+- pip:
+  - biopython==1.70
+  - numpy==1.13.3
+  - olctools==0.3.15
+  - pysam==0.13
+  - sipprverse==0.0.22

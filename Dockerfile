@@ -57,7 +57,7 @@ RUN conda install -c bioconda bowtie2
 RUN pip3 install OLCTools==0.3.15
 
 # Install latest genesippr package
-RUN pip3 install sipprverse==0.0.21
+RUN pip3 install sipprverse==0.0.22
 
 # Install the pipeline
 RUN git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git
