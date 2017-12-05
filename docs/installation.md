@@ -57,7 +57,7 @@ OR
 ##### Install packages manually
 
 ###### Install bcl2fastq
-`conda install -c dranew bcl2fastq`
+`conda install -c dranew bcl2fastq=2.19.0=1`
 
 ###### Upgrade pip
 `pip3 install --upgrade pip`
@@ -69,22 +69,22 @@ OR
 `pip3 install biopython==1.70`
 
 ###### Install samtools
-`conda install -c bioconda samtools`
+`conda install -c bioconda samtools=1.6=0`
 
 ###### Install seqtk
-`conda install -c bioconda seqtk`
+`conda install -c bioconda seqtk=1.2=0`
 
 ###### Install psutil
-`conda install -c anaconda psutil`
+`conda install -c anaconda psutil=5.4.1=py35h2e39a06_0`
 
 ###### Install bbmap 
-`conda install -c bioconda bbmap` 
+`conda install -c bioconda bbmap=37.66=0` 
 
 ###### Install bowtie2 
-`conda install -c bioconda bowtie2`
+`conda install -c bioconda bowtie2=2.3.3.1=py35pl5.22.0_0`
 
 ###### Install OLCTools
-`pip3 install OLCTools==0.3.15`
+`pip3 install OLCTools==0.3.18`
 
 ###### Install latest genesippr package
 `pip3 install sipprverse==0.0.22`

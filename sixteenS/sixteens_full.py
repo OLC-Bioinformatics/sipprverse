@@ -24,7 +24,7 @@ class SixteenSBait(Sippr):
 
         """
         self.targets()
-        self.bait()
+        self.bait(k=51)
         self.reversebait()
         self.subsample_reads()
 
@@ -45,107 +45,6 @@ class SixteenSBait(Sippr):
                 sample[self.analysistype].baitedfastq = \
                     '{}/{}_targetMatches.fastq'.format(sample[self.analysistype].outputdir, self.analysistype)
                 sample[self.analysistype].complete = False
-
-    def bait(self):
-        """
-        Use bbduk to perform baiting
-        """
-        printtime('Performing kmer baiting of fastq files with {} targets'.format(self.analysistype), self.start,
-                  output=self.portallog)
-        for sample in self.runmetadata:
-            if sample.general.bestassemblyfile != 'NA':
-                # Create the folder (if necessary)
-                make_path(sample[self.analysistype].outputdir)
-                # Make the system call
-                if len(sample.general.fastqfiles) == 2:
-                    # Create the command to run the baiting - paired inputs and a single, zipped output
-                    sample[self.analysistype].bbdukcmd = \
-                        'bbduk.sh ref={} in1={} in2={} k=51 mincovfraction=0.5 threads={} outm={}' \
-                        .format(sample[self.analysistype].baitfile,
-                                sample.general.trimmedcorrectedfastqfiles[0],
-                                sample.general.trimmedcorrectedfastqfiles[1],
-                                str(self.threads),
-                                sample[self.analysistype].baitedfastq)
-                else:
-                    sample[self.analysistype].bbdukcmd = 'bbduk.sh ref={} in={} threads={} outm={}' \
-                        .format(sample[self.analysistype].baitfile,
-                                sample.general.trimmedcorrectedfastqfiles[0],
-                                str(self.threads),
-                                sample[self.analysistype].baitedfastq)
-                # Run the system call (if necessary) , stdout=self.devnull, stderr=self.devnull
-                if not os.path.isfile(sample[self.analysistype].baitedfastq):
-                    # call(sample[self.analysistype].bbdukcmd, shell=True)
-                    out, err = run_subprocess(sample[self.analysistype].bbdukcmd)
-                    write_to_logfile(sample[self.analysistype].bbdukcmd,
-                                     sample[self.analysistype].bbdukcmd,
-                                     self.logfile, sample.general.logout, sample.general.logerr,
-                                     sample[self.analysistype].logout, sample[self.analysistype].logerr)
-                    write_to_logfile(out,
-                                     err,
-                                     self.logfile, sample.general.logout, sample.general.logerr,
-                                     sample[self.analysistype].logout, sample[self.analysistype].logerr)
-
-    def reversebait(self):
-        """
-        Use the baited FASTQ files to bait out the targets from the database to create a (hopefully) smaller
-        database to use for the reference mapping step
-        """
-        printtime('Performing reverse kmer baiting of targets with fastq files', self.start, output=self.portallog)
-        for sample in self.runmetadata:
-            if sample.general.bestassemblyfile != 'NA':
-                outfile = os.path.join(sample[self.analysistype].outputdir, 'baitedtargets.fa')
-                sample[self.analysistype].revbbdukcmd = \
-                    'bbduk.sh ref={} in={} threads={} mincovfraction={} maskmiddle=f outm={}'\
-                    .format(sample[self.analysistype].baitedfastq,
-                            sample[self.analysistype].baitfile,
-                            str(self.threads),
-                            self.cutoff,
-                            outfile)
-                # Run the system call (if necessary) , stdout=self.devnull, stderr=self.devnull
-                if not os.path.isfile(outfile):
-                    # call(sample[self.analysistype].revbbdukcmd, shell=True)
-                    out, err = run_subprocess(sample[self.analysistype].revbbdukcmd)
-                    write_to_logfile(sample[self.analysistype].bbdukcmd,
-                                     sample[self.analysistype].bbdukcmd,
-                                     self.logfile, sample.general.logout, sample.general.logerr,
-                                     sample[self.analysistype].logout, sample[self.analysistype].logerr)
-                    write_to_logfile(out,
-                                     err,
-                                     self.logfile, sample.general.logout, sample.general.logerr,
-                                     sample[self.analysistype].logout, sample[self.analysistype].logerr)
-                # Set the baitfile to use in the mapping steps as the newly created outfile
-                sample[self.analysistype].baitfile = outfile
-
-    def subsample_reads(self):
-        """
-        Subsampling of reads to 20X coverage of rMLST genes (roughly).
-        To be called after rMLST extraction and read trimming, in that order.
-        """
-        printtime('Subsampling {} reads'.format(self.analysistype), self.start, output=self.portallog)
-        for sample in self.runmetadata:
-            # Create the name of the subsampled read file
-            sample[self.analysistype].subsampledreads = os.path.join(
-                sample[self.analysistype].outputdir, '{}_targetMatches_subsampled.fastq.gz'.format(self.analysistype))
-            # Set the reformat.sh command - as this command will be run multiple times, overwrite previous iterations
-            # each time. Use samplebasestarget to provide an approximation of the number of bases to include in the
-            # subsampled reads e.g. for rMLST: 700000 (approx. 35000 bp total length of genes x 20X coverage)
-            sample[self.analysistype].subsamplecmd = 'reformat.sh in={} out={} overwrite samplebasestarget=700000' \
-                .format(sample[self.analysistype].baitedfastq,
-                        sample[self.analysistype].subsampledreads)
-            if not os.path.isfile(sample[self.analysistype].subsampledreads):
-                # Run the call
-                # call(sample[self.analysistype].subsamplecmd, shell=True, stdout=self.devnull, stderr=self.devnull)
-                out, err = run_subprocess(sample[self.analysistype].subsamplecmd)
-                write_to_logfile(sample[self.analysistype].subsamplecmd,
-                                 sample[self.analysistype].subsamplecmd,
-                                 self.logfile, sample.general.logout, sample.general.logerr,
-                                 sample[self.analysistype].logout, sample[self.analysistype].logerr)
-                write_to_logfile(out,
-                                 err,
-                                 self.logfile, sample.general.logout, sample.general.logerr,
-                                 sample[self.analysistype].logout, sample[self.analysistype].logerr)
-            # Update the variable to store the baited reads
-            sample[self.analysistype].baitedfastq = sample[self.analysistype].subsampledreads
 
 
 class SixteenSSipper(Sippr):
