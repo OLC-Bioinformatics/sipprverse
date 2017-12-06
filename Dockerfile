@@ -11,7 +11,6 @@ RUN apt-get update -y -qq && apt-get install -y \
 	git \
 	curl \
 	python3-pip \
-        ncbi-blast+ \
 	fastx-toolkit \
 	nano && \
 	curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh \
@@ -52,6 +51,12 @@ RUN conda install -c bioconda bbmap
 
 # Install bowtie2 
 RUN conda install -c bioconda bowtie2
+
+# Install BLAST+
+RUN conda install -c bioconda blast
+
+# Install fastx-toolkit
+RUN conda install -c biobuilds fastx-toolkit
 
 # Install OLCTools
 RUN pip3 install OLCTools==0.3.18
