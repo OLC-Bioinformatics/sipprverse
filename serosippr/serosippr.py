@@ -23,9 +23,8 @@ class SeroSippr(object):
         printer.printmetadata()
         self.serotype_escherichia()
         self.serotype_salmonella()
-        quit()
         # Create the reports
-        # self.reporter()
+        self.reporter()
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
@@ -34,22 +33,22 @@ class SeroSippr(object):
         """
         Creates a report of the results
         """
+        printtime('Creating {} report'.format(self.analysistype), self.starttime)
         # Create the path in which the reports are stored
         make_path(self.reportpath)
-        header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
+        header = 'Strain,Serotype\n'
         data = ''
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'w') as report:
+        with open(os.path.join(self.reportpath, '{}.csv'.format(self.analysistype)), 'w') as report:
             for sample in self.runmetadata.samples:
                 if sample.general.bestassemblyfile != 'NA':
                     data += sample.name + ','
                     if sample[self.analysistype].results:
-                        multiple = False
-                        for name, identity in sample[self.analysistype].results.items():
-                            if not multiple:
-                                data += '{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
-                            else:
-                                data += ',{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
-                            multiple = True
+                        serotype = '{oset} ({opid}):{hset} ({hpid}),' \
+                            .format(oset=';'.join(sample.serosippr.o_set),
+                                    opid=sample.serosippr.best_o_pid,
+                                    hset=';'.join(sample.serosippr.h_set),
+                                    hpid=sample.serosippr.best_h_pid)
+                        data += '{}\n'.format(serotype)
                     else:
                         data += '\n'
             report.write(header)

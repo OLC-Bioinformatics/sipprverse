@@ -11,7 +11,6 @@ RUN apt-get update -y -qq && apt-get install -y \
 	git \
 	curl \
 	python3-pip \
-	fastx-toolkit \
 	nano && \
 	curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh \
 	    && bash /tmp/miniconda.sh -bfp /usr/local \
@@ -59,10 +58,10 @@ RUN conda install -c bioconda blast
 RUN conda install -c biobuilds fastx-toolkit
 
 # Install OLCTools
-RUN pip3 install OLCTools==0.3.18
+RUN pip3 install OLCTools==0.3.19
 
 # Install latest genesippr package
-RUN pip3 install sipprverse==0.0.23
+RUN pip3 install sipprverse==0.0.25
 
 # Install the pipeline
 RUN git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git

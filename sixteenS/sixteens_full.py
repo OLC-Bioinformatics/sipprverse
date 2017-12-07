@@ -282,7 +282,7 @@ class SixteenS(object):
                     try:
                         blastn()
                     except Bio.Application.ApplicationError:
-                       sample[self.analysistype].blastreport = str()
+                        sample[self.analysistype].blastreport = str()
             self.blastqueue.task_done()
 
     def blastparse(self):

@@ -73,8 +73,8 @@ dependencies:
 - boost_lib=1.54.0=1
 - pip:
   - biopython==1.70
-  - olctools==0.3.15
+  - olctools==0.3.19
   - pysam==0.13
-  - sipprverse==0.0.22
+  - sipprverse==0.0.24
 prefix: /home/adamkoziol/miniconda3/envs/genesippr
 
