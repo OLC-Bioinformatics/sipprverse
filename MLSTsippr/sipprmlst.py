@@ -78,7 +78,7 @@ class MLSTmap(Sippr):
                 sample[self.analysistype].baitedfastq = '{}/{}_targetMatches.fastq.gz'\
                     .format(sample[self.analysistype].outputdir, self.analysistype)
         # Run the baiting method in the Sippr class
-        self.bait()
+        # self.bait()
 
     def __init__(self, inputobject, analysistype, cutoff):
         self.analysistype = analysistype

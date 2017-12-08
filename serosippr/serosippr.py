@@ -59,6 +59,13 @@ class SeroSippr(object):
         Create attributes storing the best results for the O and H types
         """
         for sample in self.runmetadata.samples:
+            # Initialise negative results to be overwritten when necessary
+            sample[self.analysistype].best_o_pid = '-'
+            sample[self.analysistype].o_genes = ['-']
+            sample[self.analysistype].o_set = ['-']
+            sample[self.analysistype].best_h_pid = '-'
+            sample[self.analysistype].h_genes = ['-']
+            sample[self.analysistype].h_set = ['-']
             if sample.general.bestassemblyfile != 'NA':
                 if sample.general.closestrefseqgenus == 'Escherichia':
                     o = dict()
@@ -78,9 +85,7 @@ class SeroSippr(object):
                         sample[self.analysistype].o_set = \
                             list(set(gene.split('_')[-1] for gene in sample[self.analysistype].o_genes))
                     except (KeyError, IndexError):
-                        sample[self.analysistype].best_o_pid = '-'
-                        sample[self.analysistype].o_genes = ['-']
-                        sample[self.analysistype].o_set = ['-']
+                        pass
                     # H
                     try:
                         sorted_h = sorted(h.items(), key=operator.itemgetter(1), reverse=True)
@@ -90,10 +95,7 @@ class SeroSippr(object):
                         sample[self.analysistype].h_set = \
                             list(set(gene.split('_')[-1] for gene in sample[self.analysistype].h_genes))
                     except (KeyError, IndexError):
-                        sample[self.analysistype].best_h_pid = '-'
-                        sample[self.analysistype].h_genes = ['-']
-                        sample[self.analysistype].h_set = ['-']
-
+                        pass
     def serotype_salmonella(self):
         """
 
