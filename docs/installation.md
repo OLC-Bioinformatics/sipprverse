@@ -30,22 +30,20 @@ The following dependencies can be obtained with apt
 - python-dev
 - curl
 - python3-pip
-- fastx-toolkit
-- ncbi-blast+
 
 Installation of conda is more involved:
 
 - conda
 
-`curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh`
+`curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda.sh`
 
-`sudo bash /tmp/miniconda.sh -bfp /usr/local`
+`bash miniconda.sh -bp $HOME/miniconda`
 
-`sudo rm -rf /tmp/miniconda.sh`
+`export PATH="$HOME/miniconda/bin:$PATH`
 
-`sudo conda install -y python=3`
+`conda install -y python=3`
 
-`sudo conda update conda`
+`conda update conda`
 
 ##### Use the conda environment
 
@@ -86,10 +84,10 @@ OR
 `conda install -c bioconda bowtie2=2.3.3.1=py35pl5.22.0_0`
 
 ###### Install OLCTools
-`pip3 install OLCTools==0.3.18`
+`pip3 install OLCTools==0.3.19`
 
 ###### Install latest genesippr package
-`pip3 install sipprverse==0.0.22`
+`pip3 install sipprverse==0.0.26`
 
 Add the geneSipprV2 folder to the $PATH
 
