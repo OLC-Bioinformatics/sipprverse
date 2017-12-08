@@ -87,7 +87,7 @@ OR
 `pip3 install OLCTools==0.3.19`
 
 ###### Install latest genesippr package
-`pip3 install sipprverse==0.0.26`
+`pip3 install sipprverse==0.0.27`
 
 Add the geneSipprV2 folder to the $PATH
 

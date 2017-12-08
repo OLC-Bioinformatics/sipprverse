@@ -72,9 +72,14 @@ dependencies:
 - bcl2fastq=2.19.0=1
 - boost_lib=1.54.0=1
 - pip:
+  - attrs==17.3.0
   - biopython==1.70
   - olctools==0.3.19
+  - pluggy==0.6.0
+  - py==1.5.2
   - pysam==0.13
-  - sipprverse==0.0.26
+  - pytest==3.3.1
+  - sipprverse==0.0.27
+  - six==1.11.0
 prefix: /home/adamkoziol/miniconda3/envs/genesippr
 
