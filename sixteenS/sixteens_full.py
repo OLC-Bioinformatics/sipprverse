@@ -302,6 +302,7 @@ class SixteenS(object):
                 # Open the sequence profile file as a dictionary
                 blastdict = DictReader(open(sample[self.analysistype].blastreport),
                                        fieldnames=self.fieldnames, dialect='excel-tab')
+                recorddict = dict()
                 for record in blastdict:
                     # Create the subject id. It will look like this: gi|1018196593|ref|NR_136472.1|
                     subject = record['subject_id']
@@ -316,24 +317,37 @@ class SixteenS(object):
                         sample[self.analysistype].frequency[genus] += 1
                     except KeyError:
                         sample[self.analysistype].frequency[genus] = 1
+                    try:
+                        recorddict[dbrecords[subject].description] += 1
+                    except KeyError:
+                        recorddict[dbrecords[subject].description] = 1
                 # Sort the dictionary based on the number of times a genus is seen
                 sample[self.analysistype].sortedgenera = sorted(sample[self.analysistype].frequency.items(),
                                                                 key=operator.itemgetter(1), reverse=True)
+                # Sort the records as above
+                sortedrecords = sorted(recorddict.items(), key=operator.itemgetter(1), reverse=True)
                 try:
                     # Extract the top result, and set it as the genus of the sample
                     sample[self.analysistype].genus = sample[self.analysistype].sortedgenera[0][0]
                     # Previous code relies on having the closest refseq genus, so set this as above
                     sample.general.closestrefseqgenus = sample[self.analysistype].genus
+                    # Set the best match and species from the sorted records
+                    sample[self.analysistype].sixteens_match = sortedrecords[0][0].split(' 16S')[0]
+                    sample[self.analysistype].species = sortedrecords[0][0].split('|')[-1].split()[1]
                 except IndexError:
                     # Populate attributes with 'NA'
                     sample[self.analysistype].sortedgenera = 'NA'
                     sample[self.analysistype].genus = 'NA'
                     sample.general.closestrefseqgenus = 'NA'
+                    sample[self.analysistype].sixteens_match = 'NA'
+                    sample[self.analysistype].species = 'NA'
             else:
                 # Populate attributes with 'NA'
                 sample[self.analysistype].sortedgenera = 'NA'
                 sample[self.analysistype].genus = 'NA'
                 sample.general.closestrefseqgenus = 'NA'
+                sample[self.analysistype].sixteens_match = 'NA'
+                sample[self.analysistype].species = 'NA'
 
     def reporter(self):
         """

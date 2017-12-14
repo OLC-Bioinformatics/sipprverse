@@ -58,10 +58,10 @@ RUN conda install -c bioconda blast
 RUN conda install -c biobuilds fastx-toolkit
 
 # Install OLCTools
-RUN pip3 install OLCTools==0.3.19
+RUN pip3 install OLCTools
 
 # Install latest genesippr package
-RUN pip3 install sipprverse==0.0.25
+RUN pip3 install sipprverse
 
 # Install the pipeline
 RUN git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git

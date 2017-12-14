@@ -96,6 +96,7 @@ class SeroSippr(object):
                             list(set(gene.split('_')[-1] for gene in sample[self.analysistype].h_genes))
                     except (KeyError, IndexError):
                         pass
+
     def serotype_salmonella(self):
         """
 
