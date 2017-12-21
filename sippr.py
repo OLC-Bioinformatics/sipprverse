@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from accessoryFunctions.accessoryFunctions import GenObject, make_path, MetadataObject, printtime
 from accessoryFunctions.metadataprinter import MetadataPrinter
+from spadespipeline.typingclasses import Resistance
 from sixteenS.sixteens_full import SixteenS as SixteensFull
 from sipprCommon.objectprep import Objectprep
 from sipprCommon.sippingmethods import Sippr
@@ -40,6 +41,8 @@ class Sipprverse(object):
         # Run the 16S analyses
         self.analysistype = 'sixteens_full'
         SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
+        # ResFinding
+        Resistance(self, self.commit, self.starttime, self.homepath, 'resfinder', 0.90, False, True)
         # Run the GDCS analysis
         self.analysistype = 'GDCS'
         self.pipeline = True
