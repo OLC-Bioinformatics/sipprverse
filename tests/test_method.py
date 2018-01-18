@@ -7,7 +7,6 @@ from argparse import ArgumentParser
 from subprocess import call
 import multiprocessing
 from time import time
-import logging
 import pytest
 import shutil
 import sys
@@ -19,10 +18,6 @@ sys.path.append(scriptpath)
 from method import Method
 
 __author__ = 'adamkoziol'
-
-# Set global variables
-logging.basicConfig(level=logging.DEBUG)
-runmetadata = list()
 
 
 @pytest.fixture()
@@ -53,6 +48,7 @@ def test_bcl2fastq(variables):
     method.createobjects()
     assert os.path.isfile(os.path.join(variables.path, variables.miseqfolder, '1_0',
                                        'Undetermined_S0_L001_R1_001.fastq.gz'))
+
 
 def metadata_update(analysistype):
     """

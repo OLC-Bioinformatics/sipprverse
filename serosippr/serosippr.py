@@ -104,7 +104,7 @@ class SeroSippr(object):
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
                 if sample.general.closestrefseqgenus == 'Salmonella':
-                    print(sample.name, sample[self.analysistype].datastore)
+                    print('Salmonella', sample.name, sample[self.analysistype].datastore)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline):
         """
@@ -141,14 +141,26 @@ class SeroSippr(object):
             self.bcltofastq = args.bcltofastq
         except AttributeError:
             self.bcltofastq = False
-        self.miseqpath = args.miseqpath
+        try:
+            self.miseqpath = args.miseqpath
+        except AttributeError:
+            self.miseqpath = str()
         try:
             self.miseqfolder = args.miseqfolder
         except AttributeError:
             self.miseqfolder = str()
-        self.fastqdestination = args.fastqdestination
-        self.forwardlength = args.forwardlength
-        self.reverselength = args.reverselength
+        try:
+            self.fastqdestination = args.fastqdestination
+        except AttributeError:
+            self.fastqdestination = str()
+        try:
+            self.forwardlength = args.forwardlength
+        except AttributeError:
+            self.forwardlength = 'full'
+        try:
+            self.reverselength = args.reverselength
+        except AttributeError:
+            self.reverselength = 'full'
         self.numreads = 2 if self.reverselength != 0 else 1
         self.customsamplesheet = args.customsamplesheet
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}

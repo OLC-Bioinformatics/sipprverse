@@ -407,14 +407,26 @@ class GeneSippr(object):
             self.bcltofastq = args.bcltofastq
         except AttributeError:
             self.bcltofastq = False
-        self.miseqpath = args.miseqpath
+        try:
+            self.miseqpath = args.miseqpath
+        except AttributeError:
+            self.miseqpath = str()
         try:
             self.miseqfolder = args.miseqfolder
         except AttributeError:
             self.miseqfolder = str()
-        self.fastqdestination = args.fastqdestination
-        self.forwardlength = args.forwardlength
-        self.reverselength = args.reverselength
+        try:
+            self.fastqdestination = args.fastqdestination
+        except AttributeError:
+            self.fastqdestination = str()
+        try:
+            self.forwardlength = args.forwardlength
+        except AttributeError:
+            self.forwardlength = 'full'
+        try:
+            self.reverselength = args.reverselength
+        except AttributeError:
+            self.reverselength = 'full'
         self.numreads = 2 if self.reverselength != 0 else 1
         self.customsamplesheet = args.customsamplesheet
         # Set the custom cutoff value

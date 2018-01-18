@@ -427,7 +427,10 @@ class SixteenS(object):
             self.bcltofastq = args.bcltofastq
         except AttributeError:
             self.bcltofastq = False
-        self.miseqpath = args.miseqpath
+        try:
+            self.miseqpath = args.miseqpath
+        except AttributeError:
+            self.miseqpath = str()
         try:
             self.miseqfolder = args.miseqfolder
         except AttributeError:
@@ -436,10 +439,19 @@ class SixteenS(object):
             self.portallog = args.portallog
         except AttributeError:
             self.portallog = os.path.join(self.path, 'portal.log')
-        self.fastqdestination = args.fastqdestination
+        try:
+            self.fastqdestination = args.fastqdestination
+        except AttributeError:
+            self.fastqdestination = str()
         self.logfile = args.logfile
-        self.forwardlength = args.forwardlength
-        self.reverselength = args.reverselength
+        try:
+            self.forwardlength = args.forwardlength
+        except AttributeError:
+            self.forwardlength = 'full'
+        try:
+            self.reverselength = args.reverselength
+        except AttributeError:
+            self.reverselength = 'full'
         self.numreads = 2 if self.reverselength != 0 else 1
         self.customsamplesheet = args.customsamplesheet
         # Set the custom cutoff value
