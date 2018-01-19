@@ -25,16 +25,15 @@ class Mash(object):
             make_path(sample[self.analysistype].reportdir)
             sample[self.analysistype].targetpath = self.referencefilepath if not self.pipeline else os.path.join(
                 self.referencefilepath, self.analysistype)
-            sample[self.analysistype].refseqsketch = \
-                sample[self.analysistype].targetpath + '/RefSeqSketchesDefaults.msh'
-            sample[self.analysistype].sketchfilenoext = '{}/{}'.format(sample[self.analysistype].reportdir,
-                                                                       sample.name)
+            sample[self.analysistype].refseqsketch = os.path.join(sample[self.analysistype].targetpath,
+                                                                  'RefSeqSketchesDefaults.msh')
+            sample[self.analysistype].sketchfilenoext = os.path.join(sample[self.analysistype].reportdir, sample.name)
             sample[self.analysistype].sketchfile = sample[self.analysistype].sketchfilenoext + '.msh'
             # Make the mash output directory if necessary
             make_path(sample[self.analysistype].reportdir)
             # Create a file containing the path/name of the filtered, corrected fastq files
-            sample[self.analysistype].filelist = '{}/{}_fastqfiles.txt'.format(sample[self.analysistype].reportdir,
-                                                                               sample.name)
+            sample[self.analysistype].filelist = os.path.join(sample[self.analysistype].reportdir,
+                                                              '{}_fastqfiles.txt'.format(sample.name))
             with open(sample[self.analysistype].filelist, 'w') as filelist:
                 filelist.write('\n'.join(sample.general.trimmedcorrectedfastqfiles))
 
@@ -67,8 +66,8 @@ class Mash(object):
                 threads.start()
         # Populate threads for each gene, genome combination
         for sample in self.metadata:
-            sample[self.analysistype].mashresults = '{}/{}.tab'.format(sample[self.analysistype].reportdir,
-                                                                       sample.name)
+            sample[self.analysistype].mashresults = os.path.join(sample[self.analysistype].reportdir, '{}.tab'.format(
+                sample.name))
 
             sample.commands.mash = \
                 'mash dist -p {} {} {} | sort -gk3 > {}'.format(self.threads,
