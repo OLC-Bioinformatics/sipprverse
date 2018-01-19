@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-from subprocess import call
-from threading import Thread
-from queue import Queue
 from accessoryFunctions.accessoryFunctions import printtime, make_path, GenObject
+from threading import Thread
+from subprocess import call
+from queue import Queue
 import os
 import re
 __author__ = 'adamkoziol'
@@ -97,6 +97,7 @@ class Mash(object):
         refdict = dict()
         # Set the name of the file storing the assembly summaries
         referencefile = os.path.join(self.referencefilepath, self.analysistype, 'assembly_summary_refseq.txt')
+
         with open(referencefile) as reffile:
             for line in reffile:
                 # Ignore the first couple of lines
@@ -151,7 +152,7 @@ class Mash(object):
             except AttributeError:
                 data += '{}\n'.format(sample.name)
         # Create the report file
-        reportfile = '{}/mash.csv'.format(self.reportpath)
+        reportfile = os.path.join(self.reportpath, 'mash.csv')
         with open(reportfile, 'w') as report:
             report.write(header)
             report.write(data)
