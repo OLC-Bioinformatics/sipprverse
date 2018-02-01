@@ -42,8 +42,8 @@ class SixteenSBait(Sippr):
                 sample[self.analysistype].outputdir = os.path.join(sample.run.outputdirectory, self.analysistype)
                 sample[self.analysistype].logout = os.path.join(sample[self.analysistype].outputdir, 'logout.txt')
                 sample[self.analysistype].logerr = os.path.join(sample[self.analysistype].outputdir, 'logerr.txt')
-                sample[self.analysistype].baitedfastq = \
-                    '{}/{}_targetMatches.fastq'.format(sample[self.analysistype].outputdir, self.analysistype)
+                sample[self.analysistype].baitedfastq = os.path.join(sample[self.analysistype].outputdir,
+                                                                     '{}_targetMatches.fastq'.format(self.analysistype))
                 sample[self.analysistype].complete = False
 
 
@@ -262,7 +262,7 @@ class SixteenS(object):
             blastn = NcbiblastnCommandline(query=sample[self.analysistype].fasta,
                                            db=os.path.splitext(sample[self.analysistype].baitfile)[0],
                                            max_target_seqs=1,
-                                           num_threads=12,
+                                           num_threads=self.threads,
                                            outfmt="'6 qseqid sseqid positive mismatch gaps "
                                                   "evalue bitscore slen length qstart qend qseq sstart send sseq'",
                                            out=sample[self.analysistype].blastreport)
@@ -324,30 +324,21 @@ class SixteenS(object):
                 # Sort the dictionary based on the number of times a genus is seen
                 sample[self.analysistype].sortedgenera = sorted(sample[self.analysistype].frequency.items(),
                                                                 key=operator.itemgetter(1), reverse=True)
-                # Sort the records as above
-                sortedrecords = sorted(recorddict.items(), key=operator.itemgetter(1), reverse=True)
                 try:
                     # Extract the top result, and set it as the genus of the sample
                     sample[self.analysistype].genus = sample[self.analysistype].sortedgenera[0][0]
                     # Previous code relies on having the closest refseq genus, so set this as above
                     sample.general.closestrefseqgenus = sample[self.analysistype].genus
-                    # Set the best match and species from the sorted records
-                    sample[self.analysistype].sixteens_match = sortedrecords[0][0].split(' 16S')[0]
-                    sample[self.analysistype].species = sortedrecords[0][0].split('|')[-1].split()[1]
                 except IndexError:
                     # Populate attributes with 'NA'
                     sample[self.analysistype].sortedgenera = 'NA'
                     sample[self.analysistype].genus = 'NA'
                     sample.general.closestrefseqgenus = 'NA'
-                    sample[self.analysistype].sixteens_match = 'NA'
-                    sample[self.analysistype].species = 'NA'
             else:
                 # Populate attributes with 'NA'
                 sample[self.analysistype].sortedgenera = 'NA'
                 sample[self.analysistype].genus = 'NA'
                 sample.general.closestrefseqgenus = 'NA'
-                sample[self.analysistype].sixteens_match = 'NA'
-                sample[self.analysistype].species = 'NA'
 
     def reporter(self):
         """
@@ -358,16 +349,31 @@ class SixteenS(object):
         from Bio.Alphabet import IUPAC
         # Create the path in which the reports are stored
         make_path(self.reportpath)
+        printtime('Creating {} report'.format(self.analysistype), self.starttime)
         # Initialise the header and data strings
         header = 'Strain,Gene,PercentIdentity,Genus,FoldCoverage\n'
         data = ''
         with open(os.path.join(self.reportpath, self.analysistype + '.csv'), 'w') as report:
             with open(os.path.join(self.reportpath, self.analysistype + '_sequences.fa'), 'w') as sequences:
                 for sample in self.runmetadata.samples:
+                    # Initialise
+                    sample[self.analysistype].sixteens_match = 'NA'
+                    sample[self.analysistype].species = 'NA'
                     try:
-                        # Select the best hit of all the full-length 16S genes mapped
-                        sample[self.analysistype].besthit = sorted(sample[self.analysistype].results.items(),
-                                                                   key=operator.itemgetter(1), reverse=True)[0][0]
+                        # Select the best hit of all the full-length 16S genes mapped - for 16S use the hit with the
+                        # fewest number of SNPs rather than the highest percent identity
+                        sample[self.analysistype].besthit = sorted(sample[self.analysistype].resultssnp.items(),
+                                                                   key=operator.itemgetter(1))[0][0]
+                        # Parse the baited FASTA file to pull out the the description of the hit
+                        for record in SeqIO.parse(sample[self.analysistype].baitfile, 'fasta'):
+                            # If the best hit e.g. gi|631251361|ref|NR_112558.1| is present in the current record,
+                            # gi|631251361|ref|NR_112558.1| Escherichia coli strain JCM 1649 16S ribosomal RNA ...,
+                            # extract the match and the species
+                            if sample[self.analysistype].besthit in record.id:
+                                # Set the best match and species from the records
+                                sample[self.analysistype].sixteens_match = record.description.split(' 16S')[0]
+                                sample[self.analysistype].species = \
+                                    sample[self.analysistype].sixteens_match.split('|')[-1].split()[1]
                         # Add the sample name to the data string
                         data += sample.name + ','
                         # Find the record that matches the best hit, and extract the necessary values to be place in the
@@ -406,12 +412,12 @@ class SixteenS(object):
         self.analysistype = analysistype
         # Define variables based on supplied arguments
         self.path = os.path.join(args.path, '')
-        assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
+        assert os.path.isdir(self.path), 'Supplied path is not a valid directory {0!r:s}'.format(self.path)
         try:
             self.sequencepath = os.path.join(args.sequencepath, '')
         except AttributeError:
             self.sequencepath = self.path
-        assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
+        assert os.path.isdir(self.sequencepath), 'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
         try:
             self.targetpath = os.path.join(args.targetpath, self.analysistype, '')
@@ -421,7 +427,7 @@ class SixteenS(object):
             self.reportpath = args.reportpath
         except AttributeError:
             self.reportpath = os.path.join(self.path, 'reports')
-        assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
+        assert os.path.isdir(self.targetpath), 'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
         try:
             self.bcltofastq = args.bcltofastq

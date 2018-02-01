@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from accessoryFunctions.accessoryFunctions import GenObject, make_path, MetadataObject, printtime
 from accessoryFunctions.metadataprinter import MetadataPrinter
-from spadespipeline.typingclasses import Resistance, CARD
+from spadespipeline.typingclasses import Resistance
 from sixteenS.sixteens_full import SixteenS as SixteensFull
 from sipprCommon.objectprep import Objectprep
 from sipprCommon.sippingmethods import Sippr

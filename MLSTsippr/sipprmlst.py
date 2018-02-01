@@ -1,16 +1,18 @@
 #!/usr/bin/env python
-from sipprCommon.sippingmethods import Sippr
 from accessoryFunctions.accessoryFunctions import printtime, GenObject
-import os
+from sipprCommon.sippingmethods import Sippr
+from Bio import SeqIO
 from glob import glob
+import os
 __author__ = 'adamkoziol'
 
 
 class MLSTmap(Sippr):
 
     def targets(self):
-        from Bio import SeqIO
         printtime('Finding {} target files'.format(self.analysistype), self.start)
+        #
+        alleleset = set()
         for sample in self.runmetadata:
             setattr(sample, self.analysistype, GenObject())
             sample[self.analysistype].runanalysis = True
@@ -41,25 +43,33 @@ class MLSTmap(Sippr):
                     sample[self.analysistype].profile = 'NA'
                     sample[self.analysistype].combinedalleles = 'NA'
                     sample[self.analysistype].runanalysis = False
-            geneset = set()
-            try:
-                # Find all the gene names from the combined alleles files
-                for record in SeqIO.parse(open(sample[self.analysistype].combinedalleles, "rU"), "fasta"):
-                    # Determine whether an underscore, or a hyphen is being used to separate the gene name and allele
-                    # number, split on the delimiter, and add the gene name to the set
-                    if '_' in record.id:
-                        geneset.add(record.id.split('_')[0])
-                    elif '-' in record.id:
-                        geneset.add(record.id.split('-')[0])
-            except FileNotFoundError:
+            if os.path.isfile(sample[self.analysistype].combinedalleles):
+                alleleset.add(sample[self.analysistype].combinedalleles)
+            else:
                 sample[self.analysistype].runanalysis = False
-
+        #
+        genedict = dict()
+        for combinedfile in alleleset:
+            genedict[combinedfile] = set()
+            # Find all the gene names from the combined alleles files
+            for record in SeqIO.parse(open(combinedfile, "rU"), "fasta"):
+                # Determine whether an underscore, or a hyphen is being used to separate the gene name and allele
+                # number, split on the delimiter, and add the gene name to the set
+                if '_' in record.id:
+                    genedict[combinedfile].add(record.id.split('_')[0])
+                elif '-' in record.id:
+                    genedict[combinedfile].add(record.id.split('-')[0])
+        #
+        for sample in self.runmetadata:
             # Add the combined alleles to the profile set
             self.profileset.add(sample[self.analysistype].combinedalleles)
-            sample[self.analysistype].alleles = sorted(list(geneset)) if geneset else 'NA'
-            sample[self.analysistype].allelenames = \
-                sorted([os.path.splitext(os.path.split(x)[1])[0] for x in sample[self.analysistype].alleles]) if \
-                    geneset else 'NA'
+            try:
+                sample[self.analysistype].alleles = sorted(list(genedict[sample[self.analysistype].combinedalleles]))
+                sample[self.analysistype].allelenames = \
+                    sorted([os.path.splitext(os.path.split(x)[1])[0] for x in sample[self.analysistype].alleles])
+            except KeyError:
+                sample[self.analysistype].alleles = 'NA'
+                sample[self.analysistype].allelenames = 'NA'
             #
             sample[self.analysistype].analysistype = self.analysistype
             sample[self.analysistype].reportdir = os.path.join(sample.general.outputdirectory, self.analysistype)
@@ -75,10 +85,9 @@ class MLSTmap(Sippr):
                                                                    self.analysistype)
                 sample[self.analysistype].logout = os.path.join(sample[self.analysistype].outputdir, 'logout.txt')
                 sample[self.analysistype].logerr = os.path.join(sample[self.analysistype].outputdir, 'logerr.txt')
-                sample[self.analysistype].baitedfastq = '{}/{}_targetMatches.fastq.gz'\
-                    .format(sample[self.analysistype].outputdir, self.analysistype)
-        # Run the baiting method in the Sippr class
-        # self.bait()
+                sample[self.analysistype].baitedfastq = os.path.join(sample[self.analysistype].outputdir,
+                                                                     '{}_targetMatches.fastq.gz'
+                                                                     .format(self.analysistype))
 
     def __init__(self, inputobject, analysistype, cutoff):
         self.analysistype = analysistype
