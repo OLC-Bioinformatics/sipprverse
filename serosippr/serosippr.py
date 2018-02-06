@@ -104,7 +104,8 @@ class SeroSippr(object):
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
                 if sample.general.closestrefseqgenus == 'Salmonella':
-                    print('Salmonella', sample.name, sample[self.analysistype].datastore)
+                    pass
+                    # print('Salmonella', sample.name, sample[self.analysistype].datastore)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline):
         """
