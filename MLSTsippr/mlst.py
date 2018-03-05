@@ -58,23 +58,24 @@ class GeneSippr(object):
         printtime('Preparing reports', self.starttime)
         # Populate self.plusdict in order to reuse parsing code from an assembly-based method
         for sample in self.runmetadata.samples:
-            for gene in sample[self.analysistype].allelenames:
-                for allele, percentidentity in sample[self.analysistype].results.items():
-                    if gene in allele:
-                        # Split the allele number from the gene name using the appropriate delimiter
-                        if '_' in allele:
-                            splitter = '_'
-                        elif '-' in allele:
-                            splitter = '-'
-                        else:
-                            splitter = ''
-                        # Create the plusdict dictionary as in the assembly-based (r)MLST method. Allows all the
-                        # parsing and sequence typing code to be reused.
-                        try:
-                            self.plusdict[sample.name][gene][allele.split(splitter)[1]][percentidentity] \
-                                = sample[self.analysistype].avgdepth[allele]
-                        except IndexError:
-                            pass
+            if sample.general.bestassemblyfile != 'NA':
+                for gene in sample[self.analysistype].allelenames:
+                    for allele, percentidentity in sample[self.analysistype].results.items():
+                        if gene in allele:
+                            # Split the allele number from the gene name using the appropriate delimiter
+                            if '_' in allele:
+                                splitter = '_'
+                            elif '-' in allele:
+                                splitter = '-'
+                            else:
+                                splitter = ''
+                            # Create the plusdict dictionary as in the assembly-based (r)MLST method. Allows all the
+                            # parsing and sequence typing code to be reused.
+                            try:
+                                self.plusdict[sample.name][gene][allele.split(splitter)[1]][percentidentity] \
+                                    = sample[self.analysistype].avgdepth[allele]
+                            except IndexError:
+                                pass
         self.profiler()
         self.sequencetyper()
         self.mlstreporter()
@@ -89,16 +90,18 @@ class GeneSippr(object):
         genedict = dict()
         # Find all the unique profiles to use with a set
         for sample in self.runmetadata.samples:
-            if sample[self.analysistype].profile != 'NA':
-                profileset.add(sample[self.analysistype].profile)
+            if sample.general.bestassemblyfile != 'NA':
+                if sample[self.analysistype].profile != 'NA':
+                    profileset.add(sample[self.analysistype].profile)
 
         # Extract the profiles for each set
         for sequenceprofile in profileset:
             # Clear the list of genes
             genelist = list()
             for sample in self.runmetadata.samples:
-                if sequenceprofile == sample[self.analysistype].profile:
-                    genelist = [allele for allele in sample[self.analysistype].alleles]
+                if sample.general.bestassemblyfile != 'NA':
+                    if sequenceprofile == sample[self.analysistype].profile:
+                        genelist = [allele for allele in sample[self.analysistype].alleles]
             try:
                 # Open the sequence profile file as a dictionary
                 profile = DictReader(open(sequenceprofile), dialect='excel-tab')
@@ -293,70 +296,73 @@ class GeneSippr(object):
         # Populate a set of all the report directories to use. A standard analysis will only have a single report
         # directory, while pipeline analyses will have as many report directories as there are assembled samples
         for sample in self.runmetadata.samples:
-            # Ignore samples that lack a populated reportdir attribute
-            if sample[self.analysistype].reportdir != 'NA':
-                make_path(sample[self.analysistype].reportdir)
-                # Add to the set - I probably could have used a counter here, but I decided against it
-                reportdirset.add(sample[self.analysistype].reportdir)
+            if sample.general.bestassemblyfile != 'NA':
+                # Ignore samples that lack a populated reportdir attribute
+                if sample[self.analysistype].reportdir != 'NA':
+                    make_path(sample[self.analysistype].reportdir)
+                    # Add to the set - I probably could have used a counter here, but I decided against it
+                    reportdirset.add(sample[self.analysistype].reportdir)
         # Create a report for each sample from :self.resultprofile
         for sample in self.runmetadata.samples:
-            if sample[self.analysistype].reportdir != 'NA':
-                if type(sample[self.analysistype].allelenames) == list:
-                    # Populate the header with the appropriate data, including all the genes in the list of targets
-                    row = 'Strain,Genus,SequenceType,Matches,{},\n' \
-                        .format(','.join(sorted(sample[self.analysistype].allelenames)))
-                    # Set the sequence counter to 0. This will be used when a sample has multiple best sequence types.
-                    # The name of the sample will not be written on subsequent rows in order to make the report clearer
-                    seqcount = 0
-                    # Iterate through the best sequence types for the sample (only occurs if update profile is disabled)
-                    for seqtype in self.resultprofile[sample.name]:
-                        sample[self.analysistype].sequencetype = seqtype
-                        # The number of matches to the profile
-                        sample[self.analysistype].matches = list(self.resultprofile[sample.name][seqtype].keys())[0]
-                        # If this is the first of one or more sequence types, include the sample name
-                        if seqcount == 0:
-                            row += '{},{},{},{},'.format(sample.name, sample.general.referencegenus, seqtype,
-                                                         sample[self.analysistype].matches)
-                        # Otherwise, skip the sample name
-                        else:
-                            row += ',,{},{},'.format(seqtype, sample[self.analysistype].matches)
-                        # Iterate through all the genes present in the analyses for the sample
-                        for gene in sorted(sample[self.analysistype].allelenames):
-                            # refallele = self.profiledata[self.analysistype][seqtype][gene]
-                            refallele = sample[self.analysistype].profiledata[seqtype][gene]
-                            # Set the allele and percent id from the dictionary's keys and values, respectively
-                            allele = list(self.resultprofile[sample.name][seqtype][sample[self.analysistype].matches]
-                                          [gene].keys())[0]
-                            percentid = list(self.resultprofile[sample.name][seqtype][sample[self.analysistype].matches]
-                                             [gene].values())[0]
-                            try:
-                                if refallele and refallele != allele:
-                                    if 0 < float(percentid) < 100:
-                                        row += '{} ({:.2f}%),'.format(allele, float(percentid))
+            if sample.general.bestassemblyfile != 'NA':
+                if sample[self.analysistype].reportdir != 'NA':
+                    if type(sample[self.analysistype].allelenames) == list:
+                        # Populate the header with the appropriate data, including all the genes in the list of targets
+                        row = 'Strain,Genus,SequenceType,Matches,{},\n' \
+                            .format(','.join(sorted(sample[self.analysistype].allelenames)))
+                        # Set the seq counter to 0. This will be used when a sample has multiple best sequence types.
+                        # The sample name will not be written on subsequent rows in order to make the report clearer
+                        seqcount = 0
+                        # Iterate through the best sequence types for the sample
+                        for seqtype in self.resultprofile[sample.name]:
+                            sample[self.analysistype].sequencetype = seqtype
+                            # The number of matches to the profile
+                            sample[self.analysistype].matches = list(self.resultprofile[sample.name][seqtype].keys())[0]
+                            # If this is the first of one or more sequence types, include the sample name
+                            if seqcount == 0:
+                                row += '{},{},{},{},'.format(sample.name, sample.general.referencegenus, seqtype,
+                                                             sample[self.analysistype].matches)
+                            # Otherwise, skip the sample name
+                            else:
+                                row += ',,{},{},'.format(seqtype, sample[self.analysistype].matches)
+                            # Iterate through all the genes present in the analyses for the sample
+                            for gene in sorted(sample[self.analysistype].allelenames):
+                                refallele = sample[self.analysistype].profiledata[seqtype][gene]
+                                # Set the allele and percent id from the dictionary's keys and values, respectively
+                                allele = \
+                                    list(self.resultprofile[sample.name][seqtype][sample[self.analysistype].matches]
+                                         [gene].keys())[0]
+                                percentid = \
+                                    list(self.resultprofile[sample.name][seqtype][sample[self.analysistype].matches]
+                                         [gene].values())[0]
+                                try:
+                                    if refallele and refallele != allele:
+                                        if 0 < float(percentid) < 100:
+                                            row += '{} ({:.2f}%),'.format(allele, float(percentid))
+                                        else:
+                                            row += '{} ({}),'.format(allele, refallele)
                                     else:
-                                        row += '{} ({}),'.format(allele, refallele)
-                                else:
-                                    # Add the allele and % id to the row (only add the % identity if it is not 100%)
-                                    if 0 < float(percentid) < 100:
-                                        row += '{} ({:.2f}%),'.format(allele, float(percentid))
-                                    else:
-                                        row += '{},'.format(allele)
-                                self.referenceprofile[sample.name][gene] = allele
-                            except ValueError:
-                                pass
-                        # Add a newline
-                        row += '\n'
-                        # Increment the number of sequence types observed for the sample
-                        seqcount += 1
-                    combinedrow += row
-                    # If the length of the # of report directories is greater than 1 (script is being run as part of
-                    # the assembly pipeline) make a report for each sample
-                    if self.pipeline:
-                        # Open the report
-                        with open(os.path.join(sample[self.analysistype].reportdir,
-                                               '{}_{}.csv'.format(sample.name, self.analysistype)), 'w') as report:
-                            # Write the row to the report
-                            report.write(row)
+                                        # Add the allele and % id to the row (only add the % identity if it is not 100%)
+                                        if 0 < float(percentid) < 100:
+                                            row += '{} ({:.2f}%),'.format(allele, float(percentid))
+                                        else:
+                                            row += '{},'.format(allele)
+                                    self.referenceprofile[sample.name][gene] = allele
+                                except ValueError:
+                                    pass
+                            # Add a newline
+                            row += '\n'
+                            # Increment the number of sequence types observed for the sample
+                            seqcount += 1
+                        combinedrow += row
+                        # If the length of the # of report directories is greater than 1 (script is being run as part of
+                        # the assembly pipeline) make a report for each sample
+                        if self.pipeline:
+                            # Open the report
+                            with open(os.path.join(sample[self.analysistype].reportdir,
+                                                   '{}_{}.csv'.format(sample.name, self.analysistype)), 'w') as report:
+                                # Write the row to the report
+                                report.write(row)
                 dotter()
             # Create the report folder
             make_path(self.reportpath)

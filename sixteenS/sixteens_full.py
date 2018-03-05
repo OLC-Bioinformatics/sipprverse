@@ -152,15 +152,16 @@ class SixteenS(object):
             threads.setDaemon(True)
             threads.start()
         for sample in self.runmetadata.samples:
-            # Set the name of the subsampled FASTQ file
-            sample[self.analysistype].subsampledfastq = os.path.splitext(sample[self.analysistype].baitedfastq)[0] \
-                                                        + '_subsampled.fastq'
-            # Set the system call
-            sample[self.analysistype].seqtkcall = 'seqtk sample {} 1000 > {}'\
-                .format(sample[self.analysistype].baitedfastq,
-                        sample[self.analysistype].subsampledfastq)
-            # Add the sample to the queue
-            self.samplequeue.put(sample)
+            if sample.general.bestassemblyfile != 'NA':
+                # Set the name of the subsampled FASTQ file
+                sample[self.analysistype].subsampledfastq = os.path.splitext(sample[self.analysistype].baitedfastq)[0] \
+                                                            + '_subsampled.fastq'
+                # Set the system call
+                sample[self.analysistype].seqtkcall = 'seqtk sample {} 1000 > {}'\
+                    .format(sample[self.analysistype].baitedfastq,
+                            sample[self.analysistype].subsampledfastq)
+                # Add the sample to the queue
+                self.samplequeue.put(sample)
         self.samplequeue.join()
 
     def subsamplethreads(self):
@@ -192,13 +193,14 @@ class SixteenS(object):
             threads.setDaemon(True)
             threads.start()
         for sample in self.runmetadata.samples:
-            # Set the name as the FASTA file - the same as the FASTQ, but with .fa file extension instead of .fastq
-            sample[self.analysistype].fasta = os.path.splitext(sample[self.analysistype].subsampledfastq)[0] + '.fa'
-            # Set the system call
-            sample[self.analysistype].fastxcall = 'fastq_to_fasta -i {} -o {}'\
-                .format(sample[self.analysistype].subsampledfastq, sample[self.analysistype].fasta)
-            # Add the sample to the queue
-            self.fastaqueue.put(sample)
+            if sample.general.bestassemblyfile != 'NA':
+                # Set the name as the FASTA file - the same as the FASTQ, but with .fa file extension instead of .fastq
+                sample[self.analysistype].fasta = os.path.splitext(sample[self.analysistype].subsampledfastq)[0] + '.fa'
+                # Set the system call
+                sample[self.analysistype].fastxcall = 'fastq_to_fasta -i {} -o {}'\
+                    .format(sample[self.analysistype].subsampledfastq, sample[self.analysistype].fasta)
+                # Add the sample to the queue
+                self.fastaqueue.put(sample)
         self.fastaqueue.join()
 
     def fastathreads(self):
@@ -207,7 +209,6 @@ class SixteenS(object):
             # Check to see if the FASTA file already exists
             if not os.path.isfile(sample[self.analysistype].fasta):
                 # Run the system call , stdout=self.devnull, stderr=self.devnull
-                # call(sample[self.analysistype].fastxcall, shell=True)
                 out, err = run_subprocess(sample[self.analysistype].fastxcall)
                 write_to_logfile(sample[self.analysistype].fastxcall,
                                  sample[self.analysistype].fastxcall,
@@ -225,24 +226,25 @@ class SixteenS(object):
         """
         # Iterate through the samples to set the bait file.
         for sample in self.runmetadata.samples:
-            # Remove the file extension
-            db = os.path.splitext(sample[self.analysistype].baitfile)[0]
-            # Add '.nhr' for searching below
-            nhr = '{}.nhr'.format(db)
-            # Check for already existing database files
-            if not os.path.isfile(str(nhr)):
-                # Create the databases
-                command = 'makeblastdb -in {} -parse_seqids -max_file_sz 2GB -dbtype nucl -out {}'\
-                    .format(sample[self.analysistype].baitfile, db)
-                out, err = run_subprocess(command)
-                write_to_logfile(command,
-                                 command,
-                                 self.logfile, sample.general.logout, sample.general.logerr,
-                                 sample[self.analysistype].logout, sample[self.analysistype].logerr)
-                write_to_logfile(out,
-                                 err,
-                                 self.logfile, sample.general.logout, sample.general.logerr,
-                                 sample[self.analysistype].logout, sample[self.analysistype].logerr)
+            if sample.general.bestassemblyfile != 'NA':
+                # Remove the file extension
+                db = os.path.splitext(sample[self.analysistype].baitfile)[0]
+                # Add '.nhr' for searching below
+                nhr = '{}.nhr'.format(db)
+                # Check for already existing database files
+                if not os.path.isfile(str(nhr)):
+                    # Create the databases
+                    command = 'makeblastdb -in {} -parse_seqids -max_file_sz 2GB -dbtype nucl -out {}'\
+                        .format(sample[self.analysistype].baitfile, db)
+                    out, err = run_subprocess(command)
+                    write_to_logfile(command,
+                                     command,
+                                     self.logfile, sample.general.logout, sample.general.logerr,
+                                     sample[self.analysistype].logout, sample[self.analysistype].logerr)
+                    write_to_logfile(out,
+                                     err,
+                                     self.logfile, sample.general.logout, sample.general.logerr,
+                                     sample[self.analysistype].logout, sample[self.analysistype].logerr)
 
     def blast(self):
         """
@@ -255,21 +257,23 @@ class SixteenS(object):
             threads.setDaemon(True)
             threads.start()
         for sample in self.runmetadata.samples:
-            # Set the name of the BLAST report
-            sample[self.analysistype].blastreport = os.path.join(
-                sample[self.analysistype].outputdir, '{}_{}_blastresults.csv'.format(sample.name, self.analysistype))
-            # Use the NCBI BLASTn command line wrapper module from BioPython to set the parameters of the search
-            blastn = NcbiblastnCommandline(query=sample[self.analysistype].fasta,
-                                           db=os.path.splitext(sample[self.analysistype].baitfile)[0],
-                                           max_target_seqs=1,
-                                           num_threads=self.threads,
-                                           outfmt="'6 qseqid sseqid positive mismatch gaps "
-                                                  "evalue bitscore slen length qstart qend qseq sstart send sseq'",
-                                           out=sample[self.analysistype].blastreport)
-            # Add a string of the command to the metadata object
-            sample[self.analysistype].blastcall = str(blastn)
-            # Add the object and the command to the BLAST queue
-            self.blastqueue.put((sample, blastn))
+            if sample.general.bestassemblyfile != 'NA':
+                # Set the name of the BLAST report
+                sample[self.analysistype].blastreport = os.path.join(
+                    sample[self.analysistype].outputdir,
+                    '{}_{}_blastresults.csv'.format(sample.name, self.analysistype))
+                # Use the NCBI BLASTn command line wrapper module from BioPython to set the parameters of the search
+                blastn = NcbiblastnCommandline(query=sample[self.analysistype].fasta,
+                                               db=os.path.splitext(sample[self.analysistype].baitfile)[0],
+                                               max_target_seqs=1,
+                                               num_threads=self.threads,
+                                               outfmt="'6 qseqid sseqid positive mismatch gaps "
+                                                      "evalue bitscore slen length qstart qend qseq sstart send sseq'",
+                                               out=sample[self.analysistype].blastreport)
+                # Add a string of the command to the metadata object
+                sample[self.analysistype].blastcall = str(blastn)
+                # Add the object and the command to the BLAST queue
+                self.blastqueue.put((sample, blastn))
         self.blastqueue.join()
 
     def blastthreads(self):
@@ -291,45 +295,50 @@ class SixteenS(object):
         """
         printtime('Parsing BLAST results', self.starttime, output=self.portallog)
         # Load the NCBI 16S reference database as a dictionary
-        # dbrecords = SeqIO.to_dict(SeqIO.parse(self.baitfile, 'fasta'))
         for sample in self.runmetadata.samples:
-            # Load the NCBI 16S reference database as a dictionary
-            dbrecords = SeqIO.to_dict(SeqIO.parse(sample[self.analysistype].baitfile, 'fasta'))
-            # Allow for no BLAST results
-            if os.path.isfile(sample[self.analysistype].blastreport):
-                # Initialise a dictionary to store the number of times a genus is the best hit
-                sample[self.analysistype].frequency = dict()
-                # Open the sequence profile file as a dictionary
-                blastdict = DictReader(open(sample[self.analysistype].blastreport),
-                                       fieldnames=self.fieldnames, dialect='excel-tab')
-                recorddict = dict()
-                for record in blastdict:
-                    # Create the subject id. It will look like this: gi|1018196593|ref|NR_136472.1|
-                    subject = record['subject_id']
-                    # Extract the genus name. Use the subject id as a key in the dictionary of the reference database.
-                    # It will return the full record e.g. gi|1018196593|ref|NR_136472.1| Escherichia marmotae
-                    # strain HT073016 16S ribosomal RNA, partial sequence
-                    # This full description can be manipulated to extract the genus e.g. Escherichia
-                    genus = dbrecords[subject].description.split('|')[-1].split()[0]
-                    # Increment the number of times this genus was encountered, or initialise the dictionary with this
-                    # genus the first time it is seen
+            if sample.general.bestassemblyfile != 'NA':
+                # Load the NCBI 16S reference database as a dictionary
+                dbrecords = SeqIO.to_dict(SeqIO.parse(sample[self.analysistype].baitfile, 'fasta'))
+                # Allow for no BLAST results
+                if os.path.isfile(sample[self.analysistype].blastreport):
+                    # Initialise a dictionary to store the number of times a genus is the best hit
+                    sample[self.analysistype].frequency = dict()
+                    # Open the sequence profile file as a dictionary
+                    blastdict = DictReader(open(sample[self.analysistype].blastreport),
+                                           fieldnames=self.fieldnames, dialect='excel-tab')
+                    recorddict = dict()
+                    for record in blastdict:
+                        # Create the subject id. It will look like this: gi|1018196593|ref|NR_136472.1|
+                        subject = record['subject_id']
+                        # Extract the genus name. Use the subject id as a key in the dictionary of the reference db.
+                        # It will return the full record e.g. gi|1018196593|ref|NR_136472.1| Escherichia marmotae
+                        # strain HT073016 16S ribosomal RNA, partial sequence
+                        # This full description can be manipulated to extract the genus e.g. Escherichia
+                        genus = dbrecords[subject].description.split('|')[-1].split()[0]
+                        # Increment the number of times this genus was found, or initialise the dictionary with this
+                        # genus the first time it is seen
+                        try:
+                            sample[self.analysistype].frequency[genus] += 1
+                        except KeyError:
+                            sample[self.analysistype].frequency[genus] = 1
+                        try:
+                            recorddict[dbrecords[subject].description] += 1
+                        except KeyError:
+                            recorddict[dbrecords[subject].description] = 1
+                    # Sort the dictionary based on the number of times a genus is seen
+                    sample[self.analysistype].sortedgenera = sorted(sample[self.analysistype].frequency.items(),
+                                                                    key=operator.itemgetter(1), reverse=True)
                     try:
-                        sample[self.analysistype].frequency[genus] += 1
-                    except KeyError:
-                        sample[self.analysistype].frequency[genus] = 1
-                    try:
-                        recorddict[dbrecords[subject].description] += 1
-                    except KeyError:
-                        recorddict[dbrecords[subject].description] = 1
-                # Sort the dictionary based on the number of times a genus is seen
-                sample[self.analysistype].sortedgenera = sorted(sample[self.analysistype].frequency.items(),
-                                                                key=operator.itemgetter(1), reverse=True)
-                try:
-                    # Extract the top result, and set it as the genus of the sample
-                    sample[self.analysistype].genus = sample[self.analysistype].sortedgenera[0][0]
-                    # Previous code relies on having the closest refseq genus, so set this as above
-                    sample.general.closestrefseqgenus = sample[self.analysistype].genus
-                except IndexError:
+                        # Extract the top result, and set it as the genus of the sample
+                        sample[self.analysistype].genus = sample[self.analysistype].sortedgenera[0][0]
+                        # Previous code relies on having the closest refseq genus, so set this as above
+                        sample.general.closestrefseqgenus = sample[self.analysistype].genus
+                    except IndexError:
+                        # Populate attributes with 'NA'
+                        sample[self.analysistype].sortedgenera = 'NA'
+                        sample[self.analysistype].genus = 'NA'
+                        sample.general.closestrefseqgenus = 'NA'
+                else:
                     # Populate attributes with 'NA'
                     sample[self.analysistype].sortedgenera = 'NA'
                     sample[self.analysistype].genus = 'NA'

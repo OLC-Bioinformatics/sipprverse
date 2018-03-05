@@ -109,24 +109,28 @@ class Mash(object):
                         # Populate the dictionary with the accession: tax id e.g. GCF_001298055: Helicobacter pullorum
                         refdict[data[0].split('.')[0]] = data[7]
         for sample in self.metadata:
-            # Open the results and extract the first line of data
-            mashdata = open(sample[self.analysistype].mashresults).readline().rstrip()
-            # Split on tabs
-            data = mashdata.split('\t')
-            referenceid, queryid, sample[self.analysistype].mashdistance, sample[self.analysistype]. \
-                pvalue, sample[self.analysistype].nummatches = data
-            # Extract the name of the refseq assembly from the mash outputs, and split as necessary e.g.
-            # GCF_000008865.1_ASM886v1_genomic.fna.gz becomes GCF_000008865
-            refid = referenceid.split('.')[0]
-            # Find the genus and species of the sample using the dictionary of refseq summaries
+
             try:
+                # Open the results and extract the first line of data
+                mashdata = open(sample[self.analysistype].mashresults).readline().rstrip()
+                # Split on tabs
+                data = mashdata.split('\t')
+                referenceid, queryid, sample[self.analysistype].mashdistance, sample[self.analysistype]. \
+                    pvalue, sample[self.analysistype].nummatches = data
+                # Extract the name of the refseq assembly from the mash outputs, and split as necessary e.g.
+                # GCF_000008865.1_ASM886v1_genomic.fna.gz becomes GCF_000008865
+                refid = referenceid.split('.')[0]
+                # Find the genus and species of the sample using the dictionary of refseq summaries
                 sample[self.analysistype].closestrefseq = refdict[refid]
                 sample[self.analysistype].closestrefseqgenus = sample[self.analysistype].closestrefseq.split()[0]
                 sample[self.analysistype].closestrefseqspecies = sample[self.analysistype].closestrefseq.split()[1]
-            except KeyError:
+            except (KeyError, ValueError):
                 sample[self.analysistype].closestrefseq = 'NA'
                 sample[self.analysistype].closestrefseqgenus = 'NA'
                 sample[self.analysistype].closestrefseqspecies = 'NA'
+                sample[self.analysistype].mashdistance = 'NA'
+                sample[self.analysistype].pvalue = 'NA'
+                sample[self.analysistype].nummatches = 'NA'
             # Set the closest refseq genus - will be used for all typing that requires the genus to be known
             sample.general.referencegenus = sample[self.analysistype].closestrefseqgenus
         self.reporter()

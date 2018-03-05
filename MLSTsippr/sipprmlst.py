@@ -15,38 +15,37 @@ class MLSTmap(Sippr):
         alleleset = set()
         for sample in self.runmetadata:
             setattr(sample, self.analysistype, GenObject())
-            sample[self.analysistype].runanalysis = True
-            if not self.pipeline:
-                # self.profile = glob('{}*.txt'.format(self.targetpath))
-                # self.combinedalleles = glob('{}/*.fasta'.format(self.targetpath))[0]
-                try:
-                    sample[self.analysistype].profile = glob(os.path.join(self.targetpath, '*.txt'))[0]
-                    sample[self.analysistype].combinedalleles = glob(os.path.join(self.targetpath, '*.fasta'))[0]
-                    sample[self.analysistype].targetpath = self.targetpath
-                    sample[self.analysistype].alleledir = self.targetpath
-                except IndexError:
-                    print('Cannot find the profile and/or the combined allele file in the designated target path ({})'
-                          'please ensure that those files exist'.format(self.targetpath))
-                    quit()
-            else:
+            if sample.general.bestassemblyfile != 'NA':
+                sample[self.analysistype].runanalysis = True
+                if not self.pipeline:
+                    try:
+                        sample[self.analysistype].profile = glob(os.path.join(self.targetpath, '*.txt'))[0]
+                        sample[self.analysistype].combinedalleles = glob(os.path.join(self.targetpath, '*.fasta'))[0]
+                        sample[self.analysistype].targetpath = self.targetpath
+                        sample[self.analysistype].alleledir = self.targetpath
+                    except IndexError:
+                        print('Cannot find the profile and/or the combined allele file in the designated target path '
+                              '({}) please ensure that those files exist'.format(self.targetpath))
+                        quit()
+                else:
 
-                try:
-                    if self.analysistype.lower() == 'rmlst':
-                        targetdir = self.targetpath
-                    else:
-                        targetdir = os.path.join(self.targetpath, sample.general.closestrefseqgenus)
-                    sample[self.analysistype].profile = glob(os.path.join(targetdir, '*.txt'))[0]
-                    sample[self.analysistype].combinedalleles = glob(os.path.join(targetdir, '*.fasta'))[0]
-                    sample[self.analysistype].targetpath = targetdir
-                    sample[self.analysistype].alleledir = targetdir
-                except IndexError:
-                    sample[self.analysistype].profile = 'NA'
-                    sample[self.analysistype].combinedalleles = 'NA'
+                    try:
+                        if self.analysistype.lower() == 'rmlst':
+                            targetdir = self.targetpath
+                        else:
+                            targetdir = os.path.join(self.targetpath, sample.general.closestrefseqgenus)
+                        sample[self.analysistype].profile = glob(os.path.join(targetdir, '*.txt'))[0]
+                        sample[self.analysistype].combinedalleles = glob(os.path.join(targetdir, '*.fasta'))[0]
+                        sample[self.analysistype].targetpath = targetdir
+                        sample[self.analysistype].alleledir = targetdir
+                    except IndexError:
+                        sample[self.analysistype].profile = 'NA'
+                        sample[self.analysistype].combinedalleles = 'NA'
+                        sample[self.analysistype].runanalysis = False
+                if os.path.isfile(sample[self.analysistype].combinedalleles):
+                    alleleset.add(sample[self.analysistype].combinedalleles)
+                else:
                     sample[self.analysistype].runanalysis = False
-            if os.path.isfile(sample[self.analysistype].combinedalleles):
-                alleleset.add(sample[self.analysistype].combinedalleles)
-            else:
-                sample[self.analysistype].runanalysis = False
         #
         genedict = dict()
         for combinedfile in alleleset:
@@ -61,19 +60,21 @@ class MLSTmap(Sippr):
                     genedict[combinedfile].add(record.id.split('-')[0])
         #
         for sample in self.runmetadata:
-            # Add the combined alleles to the profile set
-            self.profileset.add(sample[self.analysistype].combinedalleles)
-            try:
-                sample[self.analysistype].alleles = sorted(list(genedict[sample[self.analysistype].combinedalleles]))
-                sample[self.analysistype].allelenames = \
-                    sorted([os.path.splitext(os.path.split(x)[1])[0] for x in sample[self.analysistype].alleles])
-            except KeyError:
-                sample[self.analysistype].alleles = 'NA'
-                sample[self.analysistype].allelenames = 'NA'
-            #
-            sample[self.analysistype].analysistype = self.analysistype
-            sample[self.analysistype].reportdir = os.path.join(sample.general.outputdirectory, self.analysistype)
-            sample[self.analysistype].baitfile = sample[self.analysistype].combinedalleles
+            if sample.general.bestassemblyfile != 'NA':
+                # Add the combined alleles to the profile set
+                self.profileset.add(sample[self.analysistype].combinedalleles)
+                try:
+                    sample[self.analysistype].alleles = \
+                        sorted(list(genedict[sample[self.analysistype].combinedalleles]))
+                    sample[self.analysistype].allelenames = \
+                        sorted([os.path.splitext(os.path.split(x)[1])[0] for x in sample[self.analysistype].alleles])
+                except KeyError:
+                    sample[self.analysistype].alleles = 'NA'
+                    sample[self.analysistype].allelenames = 'NA'
+                #
+                sample[self.analysistype].analysistype = self.analysistype
+                sample[self.analysistype].reportdir = os.path.join(sample.general.outputdirectory, self.analysistype)
+                sample[self.analysistype].baitfile = sample[self.analysistype].combinedalleles
 
         printtime('Indexing {} target file'.format(self.analysistype), self.start)
         # Ensure that the hash file was successfully created
