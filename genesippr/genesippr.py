@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from accessoryFunctions.accessoryFunctions import printtime, make_path, MetadataObject
+from accessoryFunctions.accessoryFunctions import printtime, MetadataObject
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from sipprCommon.objectprep import Objectprep
 from sipprCommon.sippingmethods import Sippr
