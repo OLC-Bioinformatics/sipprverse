@@ -21,8 +21,7 @@ class Reports(object):
         printtime('Creating {} report'.format(analysistype), self.starttime, output=self.portallog)
         # Create a dictionary to link all the genera with their genes
         genusgenes = dict()
-        # A list to store all the unique gene names
-        geneset = list()
+        genelist = ['eae', 'O26', 'O45', 'O103', 'O111', "O121", 'O145', 'O157', 'VT1', 'VT2', 'VT2f', 'uidA', 'hlyA', 'IGS', 'inlJ', 'invA', 'stn']
         # The organism-specific targets are in .tfa files in the target path
         targetpath = str()
         for sample in self.runmetadata.samples:
@@ -32,16 +31,12 @@ class Reports(object):
             organism = os.path.splitext(os.path.basename(organismfile))[0]
             # Use BioPython to extract all the gene names from the file
             for record in SeqIO.parse(open(organismfile), 'fasta'):
-                # Add the gene name to the list of genes if it is not already present. I wanted to use a set, but
-                # I also wanted to keep the input order, which is why I used the if .. not in loop instead
-                if record.id not in geneset:
-                    geneset.append(record.id)
                 # Append the gene names to the genus-specific list
                 try:
-                    genusgenes[organism].append(record.id)
+                    genusgenes[organism].add(record.id.split('_')[0])
                 except (KeyError, IndexError):
-                    genusgenes[organism] = list()
-                    genusgenes[organism].append(record.id)
+                    genusgenes[organism] = set()
+                    genusgenes[organism].add(record.id.split('_')[0])
         # Determine from which genera the gene hits were sourced
         for sample in self.runmetadata.samples:
             # Initialise the list to store the genera
@@ -52,13 +47,13 @@ class Reports(object):
                     for gene in sample[analysistype].results:
                         # If the gene name is in the genes from that organism, add the genus name to the list of
                         # genera found in the sample
-                        if gene in genusgenes[organism]:
+                        if gene.split('_')[0] in genusgenes[organism]:
                             if organism not in sample[analysistype].targetgenera:
                                 sample[analysistype].targetgenera.append(organism)
         # Create the path in which the reports are stored
         make_path(self.reportpath)
         # The report will have every gene for all genera in the header
-        header = 'Strain,Genus,{},\n'.format(','.join(geneset))
+        header = 'Strain,Genus,{},\n'.format(','.join(genelist))
         data = str()
         with open(os.path.join(self.reportpath, analysistype + '.csv'), 'w') as report:
             for sample in self.runmetadata.samples:
@@ -66,16 +61,18 @@ class Reports(object):
                     # Add the genus/genera found in the sample
                     data += '{},{},'.format(sample.name, ';'.join(sample[analysistype].targetgenera))
                     if sample[analysistype].results:
-                        for gene in geneset:
+                        gene_check = list()
+                        for gene in genelist:
                             # If the gene was not found in the sample, print an empty cell in the report
-                            if gene not in [target[0] for target in sample[analysistype].results.items()]:
+                            if gene not in [target[0].split('_')[0] for target in sample[analysistype].results.items()]:
                                 data += ','
                             # Print the required information for the gene
                             for name, identity in sample[analysistype].results.items():
-                                if name == gene:
+                                if name.split('_')[0] == gene and gene not in gene_check:
                                     data += '{}% ({} +/- {}),'.format(identity,
                                                                       sample[analysistype].avgdepth[name],
                                                                       sample[analysistype].standarddev[name])
+                                    gene_check.append(gene)
                         # Add a newline after each sample
                         data += '\n'
                     # Add a newline if the sample did not have any gene hits
@@ -111,12 +108,12 @@ class Reports(object):
                         # Iterate through all the genes associated with this genus. If the gene is in the current
                         # sample, add a + to the string, otherwise, add a -
                         for gene in genelist:
-                            if gene.lower() in [target[0].lower() for target in sample[analysistype].results.items()]:
+                            if gene.lower() in [target[0].lower().split('_')[0] for target in sample[analysistype].results.items()]:
                                 results[genus] += '+,'
                             # Special case for eae: if either eae or eae_1 are present, add a +
-                            elif gene.lower() + '_1' in [target[0].lower() for target in
-                                                         sample[analysistype].results.items()]:
-                                results[genus] += '+,'
+                            # elif gene.lower() + '_1' in [target[0].lower() for target in
+                            #                              sample[analysistype].results.items()]:
+                            #     results[genus] += '+,'
                             else:
                                 results[genus] += '-,'
                         results[genus] += '\n'
@@ -132,6 +129,7 @@ class Reports(object):
                     genusreport.write('Strain,{}\n'.format(','.join(genedict[genus])))
                     # Write the results to the report
                     genusreport.write(resultstring)
+        quit()
 
     def gdcsreporter(self, analysistype='GDCS'):
         """
