@@ -21,7 +21,8 @@ class Reports(object):
         printtime('Creating {} report'.format(analysistype), self.starttime, output=self.portallog)
         # Create a dictionary to link all the genera with their genes
         genusgenes = dict()
-        genelist = ['eae', 'O26', 'O45', 'O103', 'O111', "O121", 'O145', 'O157', 'VT1', 'VT2', 'VT2f', 'uidA', 'hlyA', 'IGS', 'inlJ', 'invA', 'stn']
+        genelist = ['eae', 'O26', 'O45', 'O103', 'O111', "O121", 'O145', 'O157', 'VT1', 'VT2', 'VT2f', 'uidA', 'hlyA',
+                    'IGS', 'inlJ', 'invA', 'stn']
         # The organism-specific targets are in .tfa files in the target path
         targetpath = str()
         for sample in self.runmetadata.samples:
@@ -57,6 +58,7 @@ class Reports(object):
         data = str()
         with open(os.path.join(self.reportpath, analysistype + '.csv'), 'w') as report:
             for sample in self.runmetadata.samples:
+                sample[analysistype].report_output = list()
                 if sample.general.bestassemblyfile != 'NA':
                     # Add the genus/genera found in the sample
                     data += '{},{},'.format(sample.name, ';'.join(sample[analysistype].targetgenera))
@@ -73,6 +75,8 @@ class Reports(object):
                                                                       sample[analysistype].avgdepth[name],
                                                                       sample[analysistype].standarddev[name])
                                     gene_check.append(gene)
+                                    # Add the simplified results to the object - used in the assembly pipeline report
+                                    sample[analysistype].report_output.append(gene)
                         # Add a newline after each sample
                         data += '\n'
                     # Add a newline if the sample did not have any gene hits
@@ -108,12 +112,9 @@ class Reports(object):
                         # Iterate through all the genes associated with this genus. If the gene is in the current
                         # sample, add a + to the string, otherwise, add a -
                         for gene in genelist:
-                            if gene.lower() in [target[0].lower().split('_')[0] for target in sample[analysistype].results.items()]:
+                            if gene.lower() in [target[0].lower().split('_')[0] for target in
+                                                sample[analysistype].results.items()]:
                                 results[genus] += '+,'
-                            # Special case for eae: if either eae or eae_1 are present, add a +
-                            # elif gene.lower() + '_1' in [target[0].lower() for target in
-                            #                              sample[analysistype].results.items()]:
-                            #     results[genus] += '+,'
                             else:
                                 results[genus] += '-,'
                         results[genus] += '\n'
@@ -129,7 +130,6 @@ class Reports(object):
                     genusreport.write('Strain,{}\n'.format(','.join(genedict[genus])))
                     # Write the results to the report
                     genusreport.write(resultstring)
-        quit()
 
     def gdcsreporter(self, analysistype='GDCS'):
         """
@@ -292,10 +292,19 @@ class Reports(object):
 
     def __init__(self, inputobject):
         self.starttime = inputobject.starttime
-        self.samples = inputobject.samples
-        self.completemetadata = inputobject.completemetadata
+        try:
+            self.samples = inputobject.samples
+        except AttributeError:
+            self.samples = inputobject.runmetadata.samples
+        try:
+            self.completemetadata = inputobject.completemetadata
+        except AttributeError:
+            self.completemetadata = inputobject.runmetadata.samples
         self.path = inputobject.path
-        self.analysescomplete = inputobject.analysescomplete
+        try:
+            self.analysescomplete = inputobject.analysescomplete
+        except AttributeError:
+            self.analysescomplete = True
         self.reportpath = inputobject.reportpath
         self.runmetadata = inputobject.runmetadata
         try:

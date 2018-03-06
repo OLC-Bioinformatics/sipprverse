@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-import subprocess
-from sipprCommon.sippingmethods import Sippr
-from sipprCommon.objectprep import Objectprep
 from accessoryFunctions.accessoryFunctions import printtime, make_path, MetadataObject
 from accessoryFunctions.metadataprinter import MetadataPrinter
-# Argument parser for user-inputted values, and a nifty help menu
+from sipprCommon.objectprep import Objectprep
+from sipprCommon.sippingmethods import Sippr
+from reporter.reports import Reports
 from argparse import ArgumentParser
 import multiprocessing
-import os
+import subprocess
 import time
+import os
+
 __author__ = 'adamkoziol'
 
 
@@ -31,35 +32,11 @@ class GeneSippr(object):
         # Run the analyses
         Sippr(self, self.cutoff)
         # Create the reports
-        self.reporter()
+        reports = Reports(self)
+        Reports.reporter(reports, analysistype=self.analysistype)
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
-
-    def reporter(self):
-        """
-        Creates a report of the results
-        """
-        # Create the path in which the reports are stored
-        printtime('Creating reports', self.starttime)
-        make_path(self.reportpath)
-        data = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
-        with open(os.path.join(self.reportpath, '{}.csv'.format(self.analysistype)), 'w') as report:
-            for sample in self.runmetadata.samples:
-                data += sample.name + ','
-                try:
-                    if sample[self.analysistype].results:
-                        multiple = False
-                        for name, identity in sample[self.analysistype].results.items():
-                            if multiple:
-                                data += ','
-                            data += '{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
-                            multiple = True
-                    else:
-                        data += '\n'
-                except KeyError:
-                    data += '\n'
-            report.write(data)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline, revbait):
         """
