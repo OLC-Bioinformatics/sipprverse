@@ -32,7 +32,7 @@ class Sipprverse(object):
         # Run the genesippr analyses
         self.analysistype = 'genesippr'
         self.targetpath = os.path.join(self.reffilepath, self.analysistype, '')
-        Sippr(self, self.cutoff)
+        Sippr(self, 0.90)
         # Create the reports
         self.reports = Reports(self)
         Reports.reporter(self.reports)
@@ -46,6 +46,7 @@ class Sipprverse(object):
         # Run the GDCS analysis
         self.analysistype = 'GDCS'
         self.pipeline = True
+        self.targetpath = os.path.join(self.targetpath, self.analysistype)
         Sippr(self, 0.95)
         # Create the reports
         Reports.gdcsreporter(self.reports)
@@ -182,7 +183,7 @@ if __name__ == '__main__':
                         help='Provide detailed reports with percent identity and depth of coverage values '
                              'rather than just "+" for positive results')
     parser.add_argument('-u', '--customcutoffs',
-                        default=0.8,
+                        default=0.90,
                         help='Custom cutoff values')
     parser.add_argument('-C', '--copy',
                         action='store_true',

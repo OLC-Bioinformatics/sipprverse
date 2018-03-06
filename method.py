@@ -165,7 +165,7 @@ class Method(object):
 
     def run_genesippr(self):
         # Run the genesippr analyses
-        self.cutoff = 0.8
+        self.cutoff = 0.9
         self.analysistype = 'genesippr'
         self.targetpath = os.path.join(self.reffilepath, self.analysistype, '')
         Sippr(self, self.cutoff, 5)
@@ -433,6 +433,19 @@ if __name__ == '__main__':
 -r2
 0
 -C
+-c
+/home/adamkoziol/Bioinformatics/sippr/method/SampleSheet.csv
+
+
+-b
+-m
+/home/adamkoziol/Bioinformatics/
+-f
+161104_M02466_0002_000000000-AV4G5
+-r1
+full
+-r2
+full
 -c
 /home/adamkoziol/Bioinformatics/sippr/method/SampleSheet.csv
 
