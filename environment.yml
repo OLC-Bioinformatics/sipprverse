@@ -1,7 +1,7 @@
 name: genesippr
 channels:
-  - dranew
   - bioconda
+  - dranew
   - biobuilds
   - conda-forge
   - defaults

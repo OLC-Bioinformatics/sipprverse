@@ -143,9 +143,7 @@ class Reports(object):
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
                 # Update the fai dict with all the genes in the analysis, rather than just those with baited hits
-                print('bfore', sample.name, sample[analysistype].faidict)
                 self.gdcs_fai(sample)
-                print('after', sample[analysistype].faidict)
                 sample[analysistype].createreport = True
                 # Determine which genera are present in the analysis
                 if sample.general.closestrefseqgenus not in genera:
