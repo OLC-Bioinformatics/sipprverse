@@ -342,11 +342,8 @@ class Reports(object):
         self.runmetadata = MetadataObject()
         try:
             self.runmetadata.samples = inputobject.runmetadata.samples
-
-            print('up', self.runmetadata)
         except AttributeError:
             self.runmetadata.samples = inputobject.runmetadata
-            print('down', self.runmetadata)
         try:
             self.portallog = inputobject.portallog
         except AttributeError:
