@@ -4,6 +4,7 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
 from Bio import SeqIO
+from io import StringIO
 from glob import glob
 import operator
 import numpy
@@ -239,8 +240,15 @@ class Reports(object):
         :param sample: sample object
         :param analysistype: current analysis being performed
         """
-        # Find the .fai file in the target path
-        sample[analysistype].faifile = glob(os.path.join(sample[analysistype].targetpath, '*.fai'))[0]
+        from Bio.Sequencing.Applications import SamtoolsFaidxCommandline
+        try:
+            # Find the .fai file in the target path
+            sample[analysistype].faifile = glob(os.path.join(sample[analysistype].targetpath, '*.fai'))[0]
+        except IndexError:
+            target_file = glob(os.path.join(sample[analysistype].targetpath, '*.fasta'))[0]
+            samindex = SamtoolsFaidxCommandline(reference=target_file)
+            map(StringIO, samindex(cwd=sample[analysistype].targetpath))
+            sample[analysistype].faifile = glob(os.path.join(sample[analysistype].targetpath, '*.fai'))[0]
         # Get the fai file into a dictionary to be used in parsing results
         try:
             with open(sample[analysistype].faifile, 'r') as faifile:
@@ -253,7 +261,6 @@ class Reports(object):
                         sample[analysistype].faidict[data[0]] = int(data[1])
         except FileNotFoundError:
             pass
-
 
     def sixteensreporter(self, analysistype='sixteens_full'):
         """
@@ -332,7 +339,14 @@ class Reports(object):
         except AttributeError:
             self.analysescomplete = True
         self.reportpath = inputobject.reportpath
-        self.runmetadata = inputobject.runmetadata
+        self.runmetadata = MetadataObject()
+        try:
+            self.runmetadata.samples = inputobject.runmetadata.samples
+
+            print('up', self.runmetadata)
+        except AttributeError:
+            self.runmetadata.samples = inputobject.runmetadata
+            print('down', self.runmetadata)
         try:
             self.portallog = inputobject.portallog
         except AttributeError:
