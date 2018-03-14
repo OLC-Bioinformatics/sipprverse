@@ -108,7 +108,7 @@ class SixteenS(object):
             # If the metadata has been passed from the method script, self.pipeline must still be false in order to
             # get Sippr() to function correctly, but the metadata shouldn't be recreated
             try:
-                _ = vars(self.runmetadata)['samples']
+                eq = vars(self.runmetadata)['samples']
             except KeyError:
                 # Create the objects to be used in the analyses
                 objects = Objectprep(self)
@@ -157,7 +157,7 @@ class SixteenS(object):
                 sample[self.analysistype].subsampledfastq = os.path.splitext(sample[self.analysistype].baitedfastq)[0] \
                                                             + '_subsampled.fastq'
                 # Set the system call
-                sample[self.analysistype].seqtkcall = 'seqtk sample {} 1000 > {}'\
+                sample[self.analysistype].seqtkcall = 'reformat.sh in={} out={} samplereadstarget=1000'\
                     .format(sample[self.analysistype].baitedfastq,
                             sample[self.analysistype].subsampledfastq)
                 # Add the sample to the queue
