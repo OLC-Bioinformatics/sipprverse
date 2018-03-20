@@ -34,7 +34,8 @@ RUN conda install -y python=3 \
 # Upgrade pip
 RUN pip3 install --upgrade pip
 
-#------
+# Set the language to use utf-8 encoding - encountered issues parsing accented characters in Mash database
+ENV LANG C.UTF-8
 
 # Install the pipeline
 WORKDIR /home/ubuntu/
@@ -43,8 +44,5 @@ RUN git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git
 WORKDIR /home/ubuntu/geneSipprV2
 RUN conda env create
 
-# Set the language to use utf-8 encoding - encountered issues parsing accented characters in Mash database
-ENV LANG C.UTF-8
-
 # TO RUN
-# docker run -u ubuntu -it -v /mnt/nas:/mnt/nas --name genesipprmethod --rm sipprverse:latest /bin/bash -c "source activate genesippr && method.py /genesipprrun -t /targets -s /sequences"
+# docker run -u ubuntu -it -v /mnt/nas:/mnt/nas --name genesipprmethod --rm sipprverse:latest /bin/bash -c "source activate genesippr && python3 method.py /genesipprrun -t /targets -s /sequences"
