@@ -1,8 +1,8 @@
 name: genesippr
 channels:
-  - bioconda
   - dranew
   - conda-forge
+  - bioconda
   - biobuilds
   - defaults
 dependencies:
@@ -27,7 +27,6 @@ dependencies:
   - bowtie2=2.3.3.1=py35pl5.22.0_0
   - samtools=1.6=0
   - seqtk=1.2=0
-  - tbb=4.4_20150728=0
   - boost=1.64.0=py35_4
   - boost-cpp=1.64.0=1
   - curl=7.54.1=0
@@ -48,13 +47,13 @@ dependencies:
   - krb5=1.14.2=h56d4222_4
   - libffi=3.2.1=hd88cf55_4
   - libgcc=4.8.5=2
-  - libgcc-ng=7.2.0=h7cc24e2_2
-  - libgfortran-ng=7.2.0=h9f7466a_2
+  - libgcc-ng=7.2.0=hdf63c60_3
+  - libgfortran-ng=7.2.0=hdf63c60_3
   - libssh2=1.8.0=h9cfc8f7_4
-  - libstdcxx-ng=7.2.0=h7a57d05_2
+  - libstdcxx-ng=7.2.0=hdf63c60_3
   - mkl=2018.0.1=h19d6760_4
   - ncurses=6.0=h9df7e31_2
-  - numpy=1.14.1=py35h3dfced4_1
+  - numpy=1.14.2=py35hdbf6ddf_0
   - openjdk=8.0.152=h46b5887_1
   - openssl=1.0.2n=hb7f436b_0
   - pcre=8.41=hc27e229_1
@@ -64,6 +63,7 @@ dependencies:
   - python=3.5.4=0
   - readline=6.2=2
   - setuptools=38.5.1=py35_0
+  - tbb=2018.0.2=hf484d3e_0
   - tk=8.5.18=0
   - wheel=0.30.0=py35hd3883cf_1
   - xz=5.2.3=h55aa19d_2
@@ -77,7 +77,7 @@ dependencies:
     - py==1.5.2
     - pysam==0.13
     - pytest==3.3.1
-    - sipprverse==0.0.40
+    - sipprverse==0.0.42
     - six==1.11.0
 prefix: /home/adamkoziol/miniconda/envs/genesippr
 

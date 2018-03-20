@@ -10,67 +10,41 @@ RUN apt-get update -y -qq && apt-get install -y \
 	python-dev \
 	git \
 	curl \
+	wget \
 	python3-pip \
-	nano && \
-	curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh \
-	    && bash /tmp/miniconda.sh -bfp /usr/local \
-	    && rm -rf /tmp/miniconda.sh \
-	    && conda install -y python=3 \
-	    && conda update conda && \
-    	apt-get clean  && \
-    	rm -rf /var/lib/apt/lists/*
+	ttf-dejavu \
+	nano  
 
-# Extract the targets
-ADD accessoryfiles/ /accessoryfiles
-RUN tar xf /accessoryfiles/targets.tar.gz -C / && rm /accessoryfiles/targets.tar.gz
+ENV PATH /usr/sbin:$PATH
+RUN useradd -ms /bin/bash/ ubuntu
+USER ubuntu
 
-# Install bcl2fastq
-RUN conda install -c dranew bcl2fastq
+WORKDIR HOME
+RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /home/ubuntu/miniconda.sh
+RUN bash /home/ubuntu/miniconda.sh -b -p /home/ubuntu/miniconda
+ENV PATH /home/ubuntu/miniconda/bin:$PATH
+RUN echo $PATH
+	    # && rm -rf miniconda.sh \
+RUN conda install -y python=3 \
+	    && conda update conda	
+
+# Add miniconda to the PATH
+# ENV PATH $HOME/miniconda/bin:$PATH
 
 # Upgrade pip
 RUN pip3 install --upgrade pip
 
-# Install pysam
-RUN pip3 install pysam==0.13
-
-# Install biopython 
-RUN pip3 install biopython==1.70
-
-# Install samtools
-RUN conda install -c bioconda samtools
-
-# Install seqtk
-RUN conda install -c bioconda seqtk
-
-# Install psutil
-RUN conda install -c anaconda psutil
-
-# Install bbmap 
-RUN conda install -c bioconda bbmap 
-
-# Install bowtie2 
-RUN conda install -c bioconda bowtie2
-
-# Install BLAST+
-RUN conda install -c bioconda blast
-
-# Install fastx-toolkit
-RUN conda install -c biobuilds fastx-toolkit
-
-# Install OLCTools
-RUN pip3 install OLCTools
-
-# Install latest genesippr package
-RUN pip3 install sipprverse
+#------
 
 # Install the pipeline
+WORKDIR /home/ubuntu/
+ENV PATH /home/ubuntu/geneSipprV2:$PATH
 RUN git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git
+WORKDIR /home/ubuntu/geneSipprV2
+RUN conda env create
 
-# Install pytest
-RUN pip3 install -U pytest
-
-# Edit the path
-ENV PATH /geneSipprV2:$PATH
+# Set the language to use utf-8 encoding - encountered issues parsing accented characters in Mash database
+ENV LANG C.UTF-8
 
 # TO RUN
-# docker rm genesipprmethod && docker run -it -v /nas0:/nas0 --name genesipprmethod 192.168.1.5:5000/genesipprmethod method.py /genesipprrun -t /targets -s /sequences
+# docker run -u ubuntu -it -v /mnt/nas:/mnt/nas --name genesipprmethod --rm sipprverse:latest /bin/bash -c "source activate genesippr && method.py /genesipprrun -t /targets -s /sequences"
