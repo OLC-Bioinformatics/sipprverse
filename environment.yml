@@ -79,5 +79,6 @@ dependencies:
     - pytest==3.3.1
     - sipprverse==0.0.42
     - six==1.11.0
+    - xlsxwriter==1.0.2
 prefix: /home/adamkoziol/miniconda/envs/genesippr
 
