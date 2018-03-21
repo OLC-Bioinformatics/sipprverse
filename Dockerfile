@@ -31,11 +31,11 @@ RUN conda install -y python=3 \
 # Add miniconda to the PATH
 # ENV PATH $HOME/miniconda/bin:$PATH
 
-# Upgrade pip
-RUN pip3 install --upgrade pip
-
 # Set the language to use utf-8 encoding - encountered issues parsing accented characters in Mash database
 ENV LANG C.UTF-8
+
+# Upgrade pip
+RUN pip3 install --upgrade pip
 
 # Install the pipeline
 WORKDIR /home/ubuntu/
