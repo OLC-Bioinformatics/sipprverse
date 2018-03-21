@@ -1,5 +1,6 @@
 #!/usr/bin/env python 3
 from accessoryFunctions.accessoryFunctions import make_path, MetadataObject, printtime
+from Bio.Sequencing.Applications import SamtoolsFaidxCommandline
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
@@ -143,18 +144,21 @@ class Reports(object):
         genera = list()
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
-                # Update the fai dict with all the genes in the analysis, rather than just those with baited hits
-                self.gdcs_fai(sample)
-                sample[analysistype].createreport = True
-                # Determine which genera are present in the analysis
-                if sample.general.closestrefseqgenus not in genera:
-                    genera.append(sample.general.closestrefseqgenus)
-                try:
-                    # Add all the GDCS genes to the list
-                    for gene in sorted(sample[analysistype].faidict):
-                        if gene not in gdcs:
-                            gdcs.append(gene)
-                except KeyError:
+                if os.path.isdir(sample[analysistype].targetpath):
+                    # Update the fai dict with all the genes in the analysis, rather than just those with baited hits
+                    self.gdcs_fai(sample)
+                    sample[analysistype].createreport = True
+                    # Determine which genera are present in the analysis
+                    if sample.general.closestrefseqgenus not in genera:
+                        genera.append(sample.general.closestrefseqgenus)
+                    try:
+                        # Add all the GDCS genes to the list
+                        for gene in sorted(sample[analysistype].faidict):
+                            if gene not in gdcs:
+                                gdcs.append(gene)
+                    except KeyError:
+                        sample[analysistype].createreport = False
+                else:
                     sample[analysistype].createreport = False
             else:
                 sample[analysistype].createreport = False
@@ -240,11 +244,12 @@ class Reports(object):
         :param sample: sample object
         :param analysistype: current analysis being performed
         """
-        from Bio.Sequencing.Applications import SamtoolsFaidxCommandline
         try:
             # Find the .fai file in the target path
             sample[analysistype].faifile = glob(os.path.join(sample[analysistype].targetpath, '*.fai'))[0]
         except IndexError:
+            print(sample.name, sample[analysistype].targetpath)
+            print(sample[analysistype].datastore)
             target_file = glob(os.path.join(sample[analysistype].targetpath, '*.fasta'))[0]
             samindex = SamtoolsFaidxCommandline(reference=target_file)
             map(StringIO, samindex(cwd=sample[analysistype].targetpath))
