@@ -1,10 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env/python3
+from accessoryFunctions.accessoryFunctions import make_path, MetadataObject, printtime
+from accessoryFunctions.metadataprinter import MetadataPrinter
+from sipprCommon.objectprep import Objectprep
+from sipprCommon.sippingmethods import Sippr
 import subprocess
 import time
-from sipprCommon.sippingmethods import *
-from sipprCommon.objectprep import Objectprep
-from accessoryFunctions.accessoryFunctions import *
-from accessoryFunctions.metadataprinter import *
+import os
 
 __author__ = 'adamkoziol'
 
@@ -92,6 +93,7 @@ class GDCS(object):
         self.pipeline = False
         # Run the analyses
         self.runner()
+
 
 if __name__ == '__main__':
     # Argument parser for user-inputted values, and a nifty help menu

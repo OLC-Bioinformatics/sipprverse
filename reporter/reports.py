@@ -207,7 +207,8 @@ class Reports(object):
                             # Pass, all GDCS, mean coverage greater than 20X coverage;
                             # ?: Indeterminate value;
                             # -: Fail value
-                            if count == len(sample[analysistype].faidict):
+                            # Allow one missing GDCS to still be considered a pass
+                            if count >= len(sample[analysistype].faidict) - 1:
                                 if sample[analysistype].mean > 20:
                                     quality = '+'
                                 else:

@@ -139,8 +139,6 @@ class GeneSippr(object):
                 if type(sample[self.analysistype].allelenames) == list:
                     # Initialise variables
                     header = 0
-                    # Iterate through the genomes
-                    # for sample in self.runmetadata.samples:
                     genome = sample.name
                     # Initialise self.bestmatch[genome] with an int that will eventually be replaced by the # of matches
                     self.bestmatch[genome] = defaultdict(int)
@@ -157,8 +155,6 @@ class GeneSippr(object):
                                 percentid = list(self.plusdict[genome][gene][allele].keys())[0]
                                 # "N" alleles screw up the allele splitter function
                                 if allele != "N":
-                                    # Use the alleleSplitter function to get the allele number
-                                    # allelenumber, alleleprenumber = allelesplitter(allele)
                                     # Append as appropriate - alleleNumber is treated as an integer for proper sorting
                                     multiallele.append(int(allele))
                                     multipercent.append(percentid)
@@ -201,10 +197,21 @@ class GeneSippr(object):
                                     # Special handling of BACT000060 and BACT000065 genes for E. coli and BACT000014
                                     # for Listeria. When the reference profile has an allele of 'N', and the query
                                     # allele doesn't, set the allele to 'N', and count it as a match
-                                    elif gene == 'BACT000060' or gene == 'BACT000065' or gene == 'BACT000014':
-                                        if sortedrefallele == 'N' and allele != 'N':
-                                            # Increment the number of matches to each profile
-                                            self.bestmatch[genome][sequencetype] += 1
+                                    elif sortedrefallele == 'N' and allele != 'N':
+                                        # Increment the number of matches to each profile
+                                        self.bestmatch[genome][sequencetype] += 1
+                                    # Consider cases with multiple allele matches
+                                    elif len(allele.split(' ')) > 1:
+                                        # Also increment the number of matches if one of the alleles matches the
+                                        # reference allele e.g. 41 16665 will match either 41 or 16665
+                                        if sortedrefallele != 'N' and allele != 'N':
+                                            match = False
+                                            for sub_allele in allele.split(' '):
+                                                if sub_allele == refallele:
+                                                    match = True
+                                            if match:
+                                                # Increment the number of matches to each profile
+                                                self.bestmatch[genome][sequencetype] += 1
                                     elif allele == sortedrefallele and sortedrefallele == 'N':
                                         # Increment the number of matches to each profile
                                         self.bestmatch[genome][sequencetype] += 1
@@ -310,21 +317,14 @@ class GeneSippr(object):
                         # Populate the header with the appropriate data, including all the genes in the list of targets
                         row = 'Strain,Genus,SequenceType,Matches,{},\n' \
                             .format(','.join(sorted(sample[self.analysistype].allelenames)))
-                        # Set the seq counter to 0. This will be used when a sample has multiple best sequence types.
-                        # The sample name will not be written on subsequent rows in order to make the report clearer
-                        seqcount = 0
                         # Iterate through the best sequence types for the sample
                         for seqtype in self.resultprofile[sample.name]:
                             sample[self.analysistype].sequencetype = seqtype
                             # The number of matches to the profile
                             sample[self.analysistype].matches = list(self.resultprofile[sample.name][seqtype].keys())[0]
                             # If this is the first of one or more sequence types, include the sample name
-                            if seqcount == 0:
-                                row += '{},{},{},{},'.format(sample.name, sample.general.referencegenus, seqtype,
-                                                             sample[self.analysistype].matches)
-                            # Otherwise, skip the sample name
-                            else:
-                                row += ',,{},{},'.format(seqtype, sample[self.analysistype].matches)
+                            row += '{},{},{},{},'.format(sample.name, sample.general.referencegenus, seqtype,
+                                                         sample[self.analysistype].matches)
                             # Iterate through all the genes present in the analyses for the sample
                             for gene in sorted(sample[self.analysistype].allelenames):
                                 refallele = sample[self.analysistype].profiledata[seqtype][gene]
@@ -352,8 +352,6 @@ class GeneSippr(object):
                                     pass
                             # Add a newline
                             row += '\n'
-                            # Increment the number of sequence types observed for the sample
-                            seqcount += 1
                         combinedrow += row
                         # If the length of the # of report directories is greater than 1 (script is being run as part of
                         # the assembly pipeline) make a report for each sample
@@ -363,7 +361,6 @@ class GeneSippr(object):
                                                    '{}_{}.csv'.format(sample.name, self.analysistype)), 'w') as report:
                                 # Write the row to the report
                                 report.write(row)
-                dotter()
             # Create the report folder
             make_path(self.reportpath)
             # Create the report containing all the data from all samples
