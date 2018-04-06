@@ -83,11 +83,11 @@ class Sipprverse(object):
         self.homepath = scriptpath
         self.args = args
         # Define variables based on supplied arguments
-        self.path = os.path.join(args.path, '')
+        self.path = os.path.join(args.outputpath)
         assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
-        self.sequencepath = os.path.join(args.sequencepath, '')
+        self.sequencepath = os.path.join(args.sequencepath)
         self.seqpath = self.sequencepath
-        self.targetpath = os.path.join(args.targetpath, '')
+        self.targetpath = os.path.join(args.referencefilepath)
         # ref file path is used to work with submodule code with a different naming scheme
         self.reffilepath = self.targetpath
         self.reportpath = os.path.join(self.path, 'reports')
@@ -141,14 +141,15 @@ if __name__ == '__main__':
                               shell=True, stdout=subprocess.PIPE).communicate()[0].rstrip()
     # Parser for arguments
     parser = ArgumentParser(description='Perform modelling of parameters for GeneSipping')
-    parser.add_argument('path',
-                        help='Specify input directory')
+    parser.add_argument('-o', '--outputpath',
+                        required=True,
+                        help='Path to directory in which report folder is to be created')
     parser.add_argument('-s', '--sequencepath',
                         required=True,
                         help='Path of .fastq(.gz) files to process.')
-    parser.add_argument('-t', '--targetpath',
-                        required=True,
-                        help='Path of target files to process.')
+    parser.add_argument('-r', '--referencefilepath',
+                        help='Provide the location of the folder containing the pipeline accessory files (reference '
+                             'genomes, MLST data, etc.')
     parser.add_argument('-n', '--numthreads',
                         help='Number of threads. Default is the number of cores in the system')
     parser.add_argument('-b', '--bcl2fastq',

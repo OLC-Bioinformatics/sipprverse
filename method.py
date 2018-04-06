@@ -281,7 +281,7 @@ class Method(object):
         self.starttime = startingtime
         self.homepath = scriptpath
         # Define variables based on supplied arguments
-        self.path = os.path.join(args.path)
+        self.path = os.path.join(args.outputpath)
         make_path(self.path)
         assert os.path.isdir(self.path), 'Supplied path is not a valid directory {0!r:s}'.format(self.path)
         try:
@@ -354,11 +354,12 @@ if __name__ == '__main__':
                               shell=True, stdout=subprocess.PIPE).communicate()[0].rstrip()
     # Parser for arguments
     parser = ArgumentParser(description='Perform modelling of parameters for GeneSipping')
-    parser.add_argument('path',
-                        help='Specify input directory')
-    parser.add_argument('-t', '--targetpath',
+    parser.add_argument('-o', '--outputpath',
                         required=True,
-                        help='Path of target files to process.')
+                        help='Path to directory in which report folder is to be created')
+    parser.add_argument('-r', '--referencefilepath',
+                        help='Provide the location of the folder containing the pipeline accessory files (reference '
+                             'genomes, MLST data, etc.')
     parser.add_argument('-n', '--numthreads',
                         help='Number of threads. Default is the number of cores in the system')
     parser.add_argument('-b', '--bcl2fastq',

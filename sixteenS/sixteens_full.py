@@ -4,11 +4,18 @@ from accessoryFunctions.accessoryFunctions import MetadataObject, GenObject, pri
 from sipprCommon.objectprep import Objectprep
 from sipprCommon.sippingmethods import Sippr
 from Bio.Blast.Applications import NcbiblastnCommandline
+from Bio.SeqRecord import SeqRecord
+from Bio.Alphabet import IUPAC
+from Bio.Seq import Seq
 import Bio.Application
 from Bio import SeqIO
+from argparse import ArgumentParser
+from subprocess import Popen
 from threading import Thread
 from subprocess import PIPE
 from csv import DictReader
+from queue import Queue
+import multiprocessing
 from glob import glob
 import operator
 import time
@@ -353,9 +360,6 @@ class SixteenS(object):
         """
         Creates a report of the results
         """
-        from Bio.Seq import Seq
-        from Bio.SeqRecord import SeqRecord
-        from Bio.Alphabet import IUPAC
         # Create the path in which the reports are stored
         make_path(self.reportpath)
         printtime('Creating {} report'.format(self.analysistype), self.starttime)
@@ -412,24 +416,25 @@ class SixteenS(object):
         :param analysistype: name of the analysis being performed - allows the program to find databases
         :param cutoff: percent identity cutoff for matches
         """
-        import multiprocessing
-        from queue import Queue
         # Initialise variables
         self.commit = str(pipelinecommit)
         self.starttime = startingtime
         self.homepath = scriptpath
         self.analysistype = analysistype
         # Define variables based on supplied arguments
-        self.path = os.path.join(args.path, '')
+        try:
+            self.path = os.path.join(args.outputpath)
+        except AttributeError:
+            self.path = os.path.join(args.path)
         assert os.path.isdir(self.path), 'Supplied path is not a valid directory {0!r:s}'.format(self.path)
         try:
-            self.sequencepath = os.path.join(args.sequencepath, '')
+            self.sequencepath = os.path.join(args.sequencepath)
         except AttributeError:
             self.sequencepath = self.path
         assert os.path.isdir(self.sequencepath), 'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
         try:
-            self.targetpath = os.path.join(args.targetpath, self.analysistype, '')
+            self.targetpath = os.path.join(args.referencefilepath, self.analysistype)
         except AttributeError:
             self.targetpath = os.path.join(args.reffilepath, self.analysistype)
         try:
@@ -498,8 +503,7 @@ class SixteenS(object):
 
 if __name__ == '__main__':
     # Argument parser for user-inputted values, and a nifty help menu
-    from argparse import ArgumentParser
-    from subprocess import Popen
+
     # Get the current commit of the pipeline from git
     # Extract the path of the current script from the full path + file name
     homepath = os.path.split(os.path.abspath(__file__))[0]
@@ -509,14 +513,15 @@ if __name__ == '__main__':
                    shell=True, stdout=PIPE).communicate()[0].rstrip()
     # Parser for arguments
     parser = ArgumentParser(description='Perform modelling of parameters for GeneSipping')
-    parser.add_argument('path',
-                        help='Specify input directory')
+    parser.add_argument('-o', '--outputpath',
+                        required=True,
+                        help='Path to directory in which report folder is to be created')
     parser.add_argument('-s', '--sequencepath',
                         required=True,
                         help='Path of .fastq(.gz) files to process.')
-    parser.add_argument('-t', '--targetpath',
-                        required=True,
-                        help='Path of target files to process.')
+    parser.add_argument('-r', '--referencefilepath',
+                        help='Provide the location of the folder containing the pipeline accessory files (reference '
+                             'genomes, MLST data, etc.')
     parser.add_argument('-n', '--cpus',
                         help='Number of threads. Default is the number of cores in the system')
     parser.add_argument('-b', '--bcltofastq',

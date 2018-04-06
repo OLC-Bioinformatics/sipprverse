@@ -23,7 +23,7 @@ __author__ = 'adamkoziol'
 @pytest.fixture()
 def variables():
     v = ArgumentParser()
-    v.path = os.path.join(testpath, 'testdata', 'results')
+    v.outputpath = os.path.join(testpath, 'testdata', 'results')
     v.targetpath = os.path.join(testpath, 'testdata', 'targets')
     v.miseqpath = os.path.join(testpath, 'testdata')
     v.miseqfolder = 'flowcell'
@@ -46,7 +46,7 @@ method = method_init(variables())
 
 def test_bcl2fastq(variables):
     method.createobjects()
-    assert os.path.isfile(os.path.join(variables.path, variables.miseqfolder, '1_0',
+    assert os.path.isfile(os.path.join(variables.outputpath, variables.miseqfolder, '1_0',
                                        'Undetermined_S0_L001_R1_001.fastq.gz'))
 
 
@@ -69,7 +69,7 @@ def metadata_update(analysistype):
 
 
 def test_fastq_bait(variables):
-    outfile = os.path.join(variables.path, 'bait', 'baited.fastq')
+    outfile = os.path.join(variables.outputpath, 'bait', 'baited.fastq')
     targetpath = os.path.join(variables.targetpath, 'bait')
     baitcall = 'bbduk.sh ref={ref} in={input} threads={cpus} outm={out}'.format(
         ref=os.path.join(targetpath, 'combinedtargets.fasta'),
@@ -83,7 +83,7 @@ def test_fastq_bait(variables):
 
 
 def test_reverse_bait(variables):
-    outfile = os.path.join(variables.path, 'reverse_bait', 'baited_targets.fasta')
+    outfile = os.path.join(variables.outputpath, 'reverse_bait', 'baited_targets.fasta')
     targetpath = os.path.join(variables.targetpath, 'bait')
     baitcall = 'bbduk.sh ref={ref} in={input} threads={cpus} outm={out}'.format(
         ref=os.path.join(targetpath, 'genesippr.fastq.gz'),
@@ -108,7 +108,7 @@ def test_bowtie2_build(variables):
 
 
 def test_bowtie2_align(variables):
-    outpath = os.path.join(variables.path, 'bait')
+    outpath = os.path.join(variables.outputpath, 'bait')
     outfile = os.path.join(outpath, 'map_test_sorted.bam')
     targetpath = os.path.join(variables.targetpath, 'bait')
     # Use samtools wrapper to set up the bam sorting command
@@ -161,7 +161,7 @@ def test_index_bam(variables):
 
 def test_subsample(variables):
     targetpath = os.path.join(variables.targetpath, 'blast')
-    outpath = os.path.join(variables.path, 'blast')
+    outpath = os.path.join(variables.outputpath, 'blast')
     os.mkdir(outpath)
     outfile = os.path.join(outpath, 'subsampled_reads.fastq.gz')
     cmd = 'reformat.sh in={input} out={output} samplebasestarget=100000'.format(
@@ -173,7 +173,7 @@ def test_subsample(variables):
 
 
 def test_downsample(variables):
-    outpath = os.path.join(variables.path, 'blast')
+    outpath = os.path.join(variables.outputpath, 'blast')
     outfile = os.path.join(outpath, 'subsampled_reads.fastq')
     cmd = 'seqtk sample {input} 1000 > {output}' .format(
         input=os.path.join(outpath, 'subsampled_reads.fastq.gz'),
@@ -184,9 +184,9 @@ def test_downsample(variables):
 
 
 def test_fastq_to_fasta(variables):
-    outfile = os.path.join(variables.path, 'blast', 'subsampled_reads.fasta')
+    outfile = os.path.join(variables.outputpath, 'blast', 'subsampled_reads.fasta')
     cmd = 'fastq_to_fasta -i {input} -o {output}'.format(
-        input=os.path.join(os.path.join(variables.path, 'blast', 'subsampled_reads.fastq')),
+        input=os.path.join(os.path.join(variables.outputpath, 'blast', 'subsampled_reads.fastq')),
         output=outfile)
     call(cmd, shell=True)
     size = os.stat(outfile)
@@ -206,7 +206,7 @@ def test_make_blastdb(variables):
 
 def test_blast(variables):
     targetpath = os.path.join(variables.targetpath, 'blast')
-    outpath = os.path.join(variables.path, 'blast')
+    outpath = os.path.join(variables.outputpath, 'blast')
     outfile = os.path.join(outpath, 'blast_results.csv')
     # Use the NCBI BLASTn command line wrapper module from BioPython to set the parameters of the search
     blastn = NcbiblastnCommandline(query=os.path.join(outpath, 'subsampled_reads.fasta'),
@@ -224,7 +224,7 @@ def test_blast(variables):
 def clean_folder(analysistype):
     """
 
-    :param analysistype:
+    :param analysistype: the name of the current typing analysis
     """
     shutil.rmtree(os.path.join(method.sequencepath, analysistype))
     os.remove(os.path.join(method.sequencepath, 'logout'))
@@ -267,7 +267,7 @@ def test_gdcs():
 
 
 def test_clear_results(variables):
-    shutil.rmtree(variables.path)
+    shutil.rmtree(variables.outputpath)
 
 
 def test_clear_reports():
