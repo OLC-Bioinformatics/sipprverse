@@ -191,7 +191,7 @@ class SixteenS(object):
 
     def fasta(self):
         """
-        Convert the subsampled reads to FASTA format using fastq_to_fasta from the FASTX toolkit
+        Convert the subsampled reads to FASTA format using reformat.sh
         """
         printtime('Converting FASTQ files to FASTA format', self.starttime, output=self.portallog)
         # Create the threads for the analysis
@@ -204,8 +204,9 @@ class SixteenS(object):
                 # Set the name as the FASTA file - the same as the FASTQ, but with .fa file extension instead of .fastq
                 sample[self.analysistype].fasta = os.path.splitext(sample[self.analysistype].subsampledfastq)[0] + '.fa'
                 # Set the system call
-                sample[self.analysistype].fastxcall = 'fastq_to_fasta -i {} -o {}'\
-                    .format(sample[self.analysistype].subsampledfastq, sample[self.analysistype].fasta)
+                sample[self.analysistype].reformatcall = 'reformat.sh in={fastq} out={fasta}'\
+                    .format(fastq=sample[self.analysistype].subsampledfastq,
+                            fasta=sample[self.analysistype].fasta)
                 # Add the sample to the queue
                 self.fastaqueue.put(sample)
         self.fastaqueue.join()
@@ -215,10 +216,10 @@ class SixteenS(object):
             sample = self.fastaqueue.get()
             # Check to see if the FASTA file already exists
             if not os.path.isfile(sample[self.analysistype].fasta):
-                # Run the system call , stdout=self.devnull, stderr=self.devnull
-                out, err = run_subprocess(sample[self.analysistype].fastxcall)
-                write_to_logfile(sample[self.analysistype].fastxcall,
-                                 sample[self.analysistype].fastxcall,
+                # Run the system call
+                out, err = run_subprocess(sample[self.analysistype].reformatcall)
+                write_to_logfile(sample[self.analysistype].reformatcall,
+                                 sample[self.analysistype].reformatcall,
                                  self.logfile, sample.general.logout, sample.general.logerr,
                                  sample[self.analysistype].logout, sample[self.analysistype].logerr)
                 write_to_logfile(out,
