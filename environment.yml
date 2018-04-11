@@ -86,7 +86,7 @@ dependencies:
   - interop==1.1.4
   - mkl-fft==1.0.0
   - mkl-random==1.0.1
-  - olctools==0.3.61
+  - olctools==0.3.62
   - pluggy==0.6.0
   - py==1.5.2
   - pysam==0.13
