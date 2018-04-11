@@ -7,7 +7,7 @@ mkl-fft==1.0.0
 mkl-random==1.0.1
 nose==1.3.7
 numpy==1.14.2
-OLCTools==0.3.59
+OLCTools==0.3.61
 pandas==0.22.0
 pluggy==0.6.0
 psutil==5.4.3
