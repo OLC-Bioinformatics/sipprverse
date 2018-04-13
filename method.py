@@ -4,7 +4,7 @@ from sipprCommon.objectprep import Objectprep
 from accessoryFunctions.accessoryFunctions import MetadataObject, make_path, printtime
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from sixteenS.sixteens_full import SixteenS as SixteensFull
-from reporter.reports import Reports
+from sipprverse_reporter.reports import Reports
 from argparse import ArgumentParser
 import multiprocessing
 from time import sleep

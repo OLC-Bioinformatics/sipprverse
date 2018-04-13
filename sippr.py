@@ -6,7 +6,7 @@ from sixteenS.sixteens_full import SixteenS as SixteensFull
 from sipprCommon.objectprep import Objectprep
 from sipprCommon.sippingmethods import Sippr
 from serosippr.serosippr import SeroSippr
-from reporter.reports import Reports
+from sipprverse_reporter.reports import Reports
 from argparse import ArgumentParser
 import multiprocessing
 import subprocess

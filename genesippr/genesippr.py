@@ -3,7 +3,7 @@ from accessoryFunctions.accessoryFunctions import printtime, MetadataObject
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from sipprCommon.objectprep import Objectprep
 from sipprCommon.sippingmethods import Sippr
-from reporter.reports import Reports
+from sipprverse_reporter.reports import Reports
 from argparse import ArgumentParser
 import multiprocessing
 import subprocess

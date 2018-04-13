@@ -436,7 +436,7 @@ class SixteenS(object):
             #
             # self.attributer()
             # Create the reports
-            # self.reporter()
+            # self.sipprverse_reporter()
             # Print the metadata
             printer = MetadataPrinter(self)
             printer.printmetadata()
