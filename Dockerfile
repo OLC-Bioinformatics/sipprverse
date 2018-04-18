@@ -35,7 +35,7 @@ RUN conda install -y python=3 \
 ENV LANG C.UTF-8
 
 # Upgrade pip
-RUN pip3 install --upgrade pip
+RUN pip install --upgrade pip
 
 # Install the pipeline
 WORKDIR /home/ubuntu/
