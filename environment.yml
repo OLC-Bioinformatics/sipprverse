@@ -1,9 +1,9 @@
 name: genesippr
 channels:
   - dranew
-  - bioconda
-  - conda-forge
   - biobuilds
+  - conda-forge
+  - bioconda
   - defaults
 dependencies:
   - cairo=1.14.6=700
@@ -81,12 +81,12 @@ dependencies:
     - attrs==17.3.0
     - biopython==1.71
     - interop==1.1.4
-    - olctools==0.3.67
+    - olctools==0.3.68
     - pluggy==0.6.0
     - py==1.5.2
     - pysam==0.13
     - pytest==3.3.1
-    - sipprverse==0.0.54
+    - sipprverse==0.0.55
     - xlsxwriter==1.0.2
 prefix: /home/adamkoziol/miniconda/envs/genesippr
 

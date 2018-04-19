@@ -50,22 +50,24 @@ class Sipprverse(object):
         Sippr(self, 0.95)
         # Create the reports
         Reports.gdcsreporter(self.reports)
-        # Perform serotyping for samples classified as Escherichia
-        for sample in self.runmetadata.samples:
-            if sample.general.bestassemblyfile != 'NA':
-                sample.mash = GenObject()
-                try:
-                    sample.mash.closestrefseqgenus = sample.general.closestrefseqgenus
-                    for genus, species in self.taxonomy.items():
-                        if genus == sample.mash.closestrefseqgenus:
-                            sample.mash.closestrefseqspecies = species
-                except KeyError:
+        # Optionally perform serotyping
+        if self.serotype:
+            # Perform serotyping for samples classified as Escherichia
+            for sample in self.runmetadata.samples:
+                if sample.general.bestassemblyfile != 'NA':
+                    sample.mash = GenObject()
+                    try:
+                        sample.mash.closestrefseqgenus = sample.general.closestrefseqgenus
+                        for genus, species in self.taxonomy.items():
+                            if genus == sample.mash.closestrefseqgenus:
+                                sample.mash.closestrefseqspecies = species
+                    except KeyError:
+                        sample.mash.closestrefseqgenus = 'NA'
+                        sample.mash.closestrefseqspecies = 'NA'
+                else:
                     sample.mash.closestrefseqgenus = 'NA'
                     sample.mash.closestrefseqspecies = 'NA'
-            else:
-                sample.mash.closestrefseqgenus = 'NA'
-                sample.mash.closestrefseqspecies = 'NA'
-        SeroSippr(self, self.commit, self.starttime, self.homepath, 'serosippr', 0.95, True)
+            SeroSippr(self, self.commit, self.starttime, self.homepath, 'serosippr', 0.95, True)
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
@@ -106,6 +108,10 @@ class Sipprverse(object):
         self.cutoff = args.customcutoffs
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
+        try:
+            self.serotype = args.serotype
+        except AttributeError:
+            self.serotype = False
         self.threads = int()
         self.runmetadata = MetadataObject()
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
@@ -190,6 +196,9 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Normally, the program will create symbolic links of the files into the sequence path, '
                              'however, the are occasions when it is necessary to copy the files instead')
+    parser.add_argument('-S', '--serotype',
+                        action='store_true',
+                        help='Perform serotype analysis on samples determined to be Escherichia')
     # Get the arguments into an object
     arguments = parser.parse_args()
 
