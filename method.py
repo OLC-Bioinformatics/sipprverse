@@ -1,10 +1,12 @@
 #!/usr/bin/python3
-from sipprCommon.sippingmethods import Sippr
-from sipprCommon.objectprep import Objectprep
 from accessoryFunctions.accessoryFunctions import MetadataObject, make_path, printtime
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from sixteenS.sixteens_full import SixteenS as SixteensFull
 from sipprverse_reporter.reports import Reports
+from spadespipeline.typingclasses import GDCS
+from sipprCommon.create_sample_sheet import SampleSheet
+from sipprCommon.objectprep import Objectprep
+from genesippr.genesippr import GeneSippr
 from argparse import ArgumentParser
 import multiprocessing
 from time import sleep
@@ -68,7 +70,8 @@ class Method(object):
             for sample in self.runmetadata.samples:
                 self.incomplete.append(sample.name)
             # Create the sample sheet
-            self.samplesheet()
+            samplesheet = SampleSheet(self)
+            samplesheet.samplesheet()
         # Set self.bcltofastq to False, as the call to Sippr() in self.methods will attempt to create the files again
         self.bcltofastq = False
 
@@ -109,7 +112,8 @@ class Method(object):
                 make_path(self.reportpath)
                 self.samplesheetpath = os.path.join(self.path, 'SampleSheets', reads)
                 # Create the sample sheet with only the samples that still need to be processed
-                self.samplesheet()
+                samplesheet = SampleSheet(self)
+                samplesheet.samplesheet()
                 # Reset booleans
                 self.analysescomplete = True
                 self.bcltofastq = True
@@ -142,7 +146,8 @@ class Method(object):
                 self.reportpath = os.path.join(self.path, 'reports', reads)
                 make_path(self.reportpath)
                 self.samplesheetpath = os.path.join(self.path, 'SampleSheets', reads)
-                self.samplesheet()
+                samplesheet = SampleSheet(self)
+                samplesheet.samplesheet()
                 self.bcltofastq = True
                 # Create the objects to be used in the analyses
                 objects = Objectprep(self)
@@ -156,41 +161,30 @@ class Method(object):
                 sleep(1500)
 
     def methods(self):
+        """
+        Run the typing methods
+        """
         self.run_genesippr()
         self.run_sixteens()
         self.run_gdcs()
-        # Print the metadata
-        printer = MetadataPrinter(self)
-        printer.printmetadata()
 
     def run_genesippr(self):
-        # Run the genesippr analyses
-        self.cutoff = 0.9
-        self.analysistype = 'genesippr'
-        self.targetpath = os.path.join(self.reffilepath, self.analysistype, '')
-        Sippr(self, self.cutoff, 5)
-        # Update the reports object
-        self.reports = Reports(self)
-        # Create the reports
-        Reports.reporter(self.reports)
-        Reports.genusspecific(self.reports)
+        """
+        Run the genesippr analyses
+        """
+        GeneSippr(self, self.commit, self.starttime, self.homepath, 'genesippr', 0.95, False, False)
 
     def run_sixteens(self):
-        # Run the 16S analyses using the filtered database
-        self.targetpath = self.reffilepath
+        """
+        Run the 16S analyses using the filtered database
+        """
         SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
 
     def run_gdcs(self):
         """
-
+        Run the GDCS analysis
         """
-        # Run the GDCS analysis
-        self.analysistype = 'GDCS'
-        self.pipeline = True
-        Sippr(self, 0.95)
-        # Create the reports
-        Reports.gdcsreporter(self.reports)
-        self.pipeline = False
+        GDCS(self)
 
     def complete(self):
         """
@@ -202,72 +196,30 @@ class Method(object):
         # Clear the list of samples that still require more sequence data
         self.incomplete = list()
         for sample in self.runmetadata.samples:
-            try:
-                # If the sample has been tagged as incomplete, only add it to the complete metadata list if the
-                # pipeline is on its final iteration
-                if sample.general.incomplete:
-                    if self.final:
-                        self.completemetadata.append(sample)
-                    else:
-                        sample.general.complete = False
-                        allcomplete = False
-                        self.incomplete.append(sample.name)
-            except KeyError:
-                sample.general.complete = True
-                self.completemetadata.append(sample)
+            if sample.general.bestassemblyfile != 'NA':
+                try:
+                    # If the sample has been tagged as incomplete, only add it to the complete metadata list if the
+                    # pipeline is on its final iteration
+                    if sample.general.incomplete:
+                        if self.final:
+                            self.completemetadata.append(sample)
+                        else:
+                            sample.general.complete = False
+                            allcomplete = False
+                            self.incomplete.append(sample.name)
+                except KeyError:
+                    sample.general.complete = True
+                    self.completemetadata.append(sample)
+            else:
+                if self.final:
+                    self.completemetadata.append(sample)
+                else:
+                    sample.general.complete = False
+                    allcomplete = False
+                    self.incomplete.append(sample.name)
         # If all the samples are complete, set the global variable for run completeness to True
         if allcomplete:
             self.analysescomplete = True
-
-    def samplesheet(self):
-        """
-        Create a custom sample sheet based on the original sample sheet for the run, but only including the samples
-        that did not pass the quality threshold on the previous iteration
-        """
-        make_path(self.samplesheetpath)
-        self.customsamplesheet = os.path.join(self.samplesheetpath, 'SampleSheet.csv')
-        header = ['Sample_ID', 'Sample_Name', 'Sample_Plate', 'Sample_Well', 'I7_Index_ID', 'index', 'I5_Index_ID',
-                  'index2', 'Sample_Project', 'Description']
-        with open(self.customsamplesheet, 'w') as samplesheet:
-            lines = str()
-            lines += '[Header]\n'
-            lines += 'IEMFileVersion,{}\n'.format(self.header['IEMFileVersion'])
-            lines += 'Investigator Name,{}\n'.format(self.header['InvestigatorName'])
-            lines += 'Experiment Name,{}\n'.format(self.header['ExperimentName'])
-            lines += 'Date,{}\n'.format(self.header['Date'])
-            lines += 'Workflow,{}\n'.format(self.header['Workflow'])
-            lines += 'Application,{}\n'.format(self.header['Application'])
-            lines += 'Assay,{}\n'.format(self.header['Assay'])
-            lines += 'Description,{}\n'.format(self.header['Description'])
-            lines += 'Chemistry,{}\n'.format(self.header['Chemistry'])
-            lines += '\n'
-            lines += '[Reads]\n'
-            lines += str(self.forward) + '\n'
-            lines += str(self.reverse) + '\n'
-            lines += '\n'
-            lines += '[Settings]\n'
-            lines += 'ReverseComplement,{}\n'.format(self.header['ReverseComplement'])
-            lines += 'Adapter,{}\n'.format(self.header['Adapter'])
-            lines += '\n'
-            lines += '[Data]\n'
-            lines += ','.join(header)
-            lines += '\n'
-            # Correlate all the samples added to the list of incomplete samples with their metadata
-            for incomplete in self.incomplete:
-                for sample in self.rundata:
-                    if incomplete == sample['SampleID']:
-                        # Use each entry in the header list as a key for the rundata dictionary
-                        for data in header:
-                            # Modify the key to be consistent with how the dictionary was populated
-                            result = sample[data.replace('_', '')]
-                            # Description is the final entry in the list, and shouldn't have a , following the value
-                            if data != 'Description':
-                                lines += '{},'.format(result.replace('NA', ''))
-                            # This entry should have a newline instead of a ,
-                            else:
-                                lines += '{}\n'.format(result.replace('NA', ''))
-            # Write the string to the sample sheet
-            samplesheet.write(lines)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
         """
@@ -294,7 +246,7 @@ class Method(object):
             pass
         self.sequencepath = os.path.join(self.path, 'sequences')
         self.seqpath = self.sequencepath
-        self.targetpath = os.path.join(args.targetpath)
+        self.targetpath = os.path.join(args.referencefilepath)
         # ref file path is used to work with sub module code with a different naming scheme
         self.reffilepath = self.targetpath
         self.reportpath = os.path.join(self.path, 'reports')
@@ -397,7 +349,7 @@ if __name__ == '__main__':
                              'however, the are occasions when it is necessary to copy the files instead')
     # Get the arguments into an object
     arguments = parser.parse_args()
-    arguments.portallog = os.path.join(arguments.path, 'portal.log')
+    arguments.portallog = os.path.join(arguments.outputpath, 'portal.log')
     # Define the start time
     start = time.time()
 

@@ -162,6 +162,7 @@ class Reports(object):
                     sample[analysistype].createreport = False
             else:
                 sample[analysistype].createreport = False
+                sample.general.incomplete = True
         header = 'Strain,Genus,Matches,MeanCoverage,Pass/Fail,{},\n'.format(','.join(gdcs))
         data = str()
         with open(os.path.join(self.reportpath, '{}.csv'.format(analysistype)), 'w') as report:
