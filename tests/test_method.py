@@ -24,7 +24,7 @@ __author__ = 'adamkoziol'
 def variables():
     v = ArgumentParser()
     v.outputpath = os.path.join(testpath, 'testdata', 'results')
-    v.targetpath = os.path.join(testpath, 'testdata', 'targets')
+    v.referencefilepath = os.path.join(testpath, 'testdata', 'targets')
     v.miseqpath = os.path.join(testpath, 'testdata')
     v.miseqfolder = 'flowcell'
     v.readlengthforward = '1'
@@ -57,7 +57,7 @@ def metadata_update(analysistype):
     :return:
     """
     method.sequencepath = os.path.join(testpath, 'testdata', 'sequences', analysistype)
-    method.reportpath = os.path.join(testpath, 'testdata', 'reports')
+    method.reportpath = os.path.join(testpath, 'testdata', 'results', 'reports')
     for sample in method.runmetadata.samples:
         sample.name = 'unit_test'
         sample.general.outputdirectory = method.sequencepath
@@ -70,7 +70,7 @@ def metadata_update(analysistype):
 
 def test_fastq_bait(variables):
     outfile = os.path.join(variables.outputpath, 'bait', 'baited.fastq')
-    targetpath = os.path.join(variables.targetpath, 'bait')
+    targetpath = os.path.join(variables.referencefilepath, 'bait')
     baitcall = 'bbduk.sh ref={ref} in={input} threads={cpus} outm={out}'.format(
         ref=os.path.join(targetpath, 'combinedtargets.fasta'),
         input=os.path.join(targetpath, 'genesippr.fastq.gz'),
@@ -84,7 +84,7 @@ def test_fastq_bait(variables):
 
 def test_reverse_bait(variables):
     outfile = os.path.join(variables.outputpath, 'reverse_bait', 'baited_targets.fasta')
-    targetpath = os.path.join(variables.targetpath, 'bait')
+    targetpath = os.path.join(variables.referencefilepath, 'bait')
     baitcall = 'bbduk.sh ref={ref} in={input} threads={cpus} outm={out}'.format(
         ref=os.path.join(targetpath, 'genesippr.fastq.gz'),
         input=os.path.join(targetpath, 'combinedtargets.fasta'),
@@ -98,7 +98,7 @@ def test_reverse_bait(variables):
 
 def test_bowtie2_build(variables):
     # Use bowtie2 wrapper to create index the target file
-    targetpath = os.path.join(variables.targetpath, 'bait')
+    targetpath = os.path.join(variables.referencefilepath, 'bait')
     bowtie2build = Bowtie2BuildCommandLine(reference=os.path.join(targetpath, 'baitedtargets.fa'),
                                            bt2=os.path.join(targetpath, 'baitedtargets'))
 
@@ -110,7 +110,7 @@ def test_bowtie2_build(variables):
 def test_bowtie2_align(variables):
     outpath = os.path.join(variables.outputpath, 'bait')
     outfile = os.path.join(outpath, 'map_test_sorted.bam')
-    targetpath = os.path.join(variables.targetpath, 'bait')
+    targetpath = os.path.join(variables.referencefilepath, 'bait')
     # Use samtools wrapper to set up the bam sorting command
     samsort = SamtoolsSortCommandline(input=outfile,
                                       o=True,
@@ -144,7 +144,7 @@ def test_bowtie2_align(variables):
 
 
 def test_index_target(variables):
-    targetpath = os.path.join(variables.targetpath, 'bait')
+    targetpath = os.path.join(variables.referencefilepath, 'bait')
     target_index = SamtoolsFaidxCommandline(reference=os.path.join(targetpath, 'baitedtargets.fa'))
     target_index()
     size = os.stat(os.path.join(targetpath, 'baitedtargets.fa.fai'))
@@ -152,7 +152,7 @@ def test_index_target(variables):
 
 
 def test_index_bam(variables):
-    targetpath = os.path.join(variables.targetpath, 'bait')
+    targetpath = os.path.join(variables.referencefilepath, 'bait')
     bam_index = SamtoolsIndexCommandline(input=os.path.join(targetpath, 'genesippr_sorted.bam'))
     bam_index()
     size = os.stat(os.path.join(targetpath, 'genesippr_sorted.bam.bai'))
@@ -160,7 +160,7 @@ def test_index_bam(variables):
 
 
 def test_subsample(variables):
-    targetpath = os.path.join(variables.targetpath, 'blast')
+    targetpath = os.path.join(variables.referencefilepath, 'blast')
     outpath = os.path.join(variables.outputpath, 'blast')
     os.mkdir(outpath)
     outfile = os.path.join(outpath, 'subsampled_reads.fastq.gz')
@@ -194,7 +194,7 @@ def test_fastq_to_fasta(variables):
 
 
 def test_make_blastdb(variables):
-    targetpath = os.path.join(variables.targetpath, 'blast')
+    targetpath = os.path.join(variables.referencefilepath, 'blast')
     command = 'makeblastdb -in {targets} -parse_seqids -max_file_sz 2GB -dbtype nucl -out {output}'.format(
         targets=os.path.join(targetpath, 'baitedtargets.fa'),
         output=os.path.join(targetpath, 'baitedtargets'))
@@ -205,7 +205,7 @@ def test_make_blastdb(variables):
 
 
 def test_blast(variables):
-    targetpath = os.path.join(variables.targetpath, 'blast')
+    targetpath = os.path.join(variables.referencefilepath, 'blast')
     outpath = os.path.join(variables.outputpath, 'blast')
     outfile = os.path.join(outpath, 'blast_results.csv')
     # Use the NCBI BLASTn command line wrapper module from BioPython to set the parameters of the search
@@ -226,7 +226,10 @@ def clean_folder(analysistype):
 
     :param analysistype: the name of the current typing analysis
     """
-    shutil.rmtree(os.path.join(method.sequencepath, analysistype))
+    try:
+        shutil.rmtree(os.path.join(method.sequencepath, analysistype))
+    except FileNotFoundError:
+        pass
     os.remove(os.path.join(method.sequencepath, 'logout'))
     os.remove(os.path.join(method.sequencepath, 'logerr'))
     os.remove(os.path.join(method.sequencepath, 'unit_test_metadata.json'))
@@ -258,24 +261,16 @@ def test_gdcs():
     method.run_gdcs()
     outfile = os.path.join(method.reportpath, '{}.csv'.format(analysistype))
     size = os.stat(outfile)
-    clean_folder(analysistype)
     assert size.st_size > 0
-
-# def test_serosippr():
-#     metadata_update('serosippr')
-#     method.run_serosippr()
+    clean_folder(analysistype)
 
 
 def test_clear_results(variables):
     shutil.rmtree(variables.outputpath)
 
 
-def test_clear_reports():
-    shutil.rmtree(os.path.join(testpath, 'testdata', 'reports'))
-
-
 def test_clear_targets(variables):
-    targetpath = os.path.join(variables.targetpath, 'bait')
+    targetpath = os.path.join(variables.referencefilepath, 'bait')
     os.remove(os.path.join(targetpath, 'baitedtargets.1.bt2'))
     os.remove(os.path.join(targetpath, 'baitedtargets.2.bt2'))
     os.remove(os.path.join(targetpath, 'baitedtargets.3.bt2'))
@@ -287,7 +282,7 @@ def test_clear_targets(variables):
 
 
 def test_clear_blast(variables):
-    targetpath = os.path.join(variables.targetpath, 'blast')
+    targetpath = os.path.join(variables.referencefilepath, 'blast')
     os.remove(os.path.join(targetpath, 'baitedtargets.nsq'))
     os.remove(os.path.join(targetpath, 'baitedtargets.nsi'))
     os.remove(os.path.join(targetpath, 'baitedtargets.nsd'))
