@@ -39,9 +39,9 @@ RUN pip install --upgrade pip
 
 # Install the pipeline
 WORKDIR /home/ubuntu/
-ENV PATH /home/ubuntu/geneSipprV2:$PATH
-RUN git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git
-WORKDIR /home/ubuntu/geneSipprV2
+ENV PATH /home/ubuntu/sipprverse:$PATH
+RUN git clone https://github.com/OLC-Bioinformatics/sipprverse.git
+WORKDIR /home/ubuntu/sipprverse
 RUN conda env create
 
 # TO RUN
