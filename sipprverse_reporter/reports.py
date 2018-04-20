@@ -1,4 +1,4 @@
-#!/usr/bin/env python 3
+#!/usr/bin/env python3
 from accessoryFunctions.accessoryFunctions import make_path, MetadataObject, printtime
 from Bio.Sequencing.Applications import SamtoolsFaidxCommandline
 from Bio.SeqRecord import SeqRecord
