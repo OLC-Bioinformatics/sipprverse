@@ -1,8 +1,8 @@
 name: genesippr
 channels:
   - dranew
-  - biobuilds
   - conda-forge
+  - biobuilds
   - bioconda
   - defaults
 dependencies:
@@ -81,7 +81,7 @@ dependencies:
     - attrs==17.3.0
     - biopython==1.71
     - interop==1.1.4
-    - olctools==0.3.68
+    - olctools==0.3.69
     - pluggy==0.6.0
     - py==1.5.2
     - pysam==0.13
