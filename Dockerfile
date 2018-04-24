@@ -42,6 +42,7 @@ WORKDIR /home/ubuntu/
 ENV PATH /home/ubuntu/sipprverse:$PATH
 RUN git clone https://github.com/OLC-Bioinformatics/sipprverse.git
 WORKDIR /home/ubuntu/sipprverse
+RUN git fetch --tags
 RUN conda env create
 
 # TO RUN
