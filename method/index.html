@@ -3,31 +3,28 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Method - My Docs</title>
   
-
   <link rel="shortcut icon" href="../img/favicon.ico">
-
-  
+  <title>Method Tutorial - sipprverse documentation</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="../css/highlight.css">
-
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Method";
+    var mkdocs_page_name = "Method Tutorial";
+    var mkdocs_page_input_path = "method.md";
+    var mkdocs_page_url = "/method/";
   </script>
   
   <script src="../js/jquery-2.1.1.min.js"></script>
   <script src="../js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="../js/highlight.pack.js"></script>
-  <script src="../js/theme.js"></script> 
-
+  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
   
 </head>
 
@@ -38,7 +35,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href=".." class="icon icon-home"> My Docs</a>
+        <a href=".." class="icon icon-home"> sipprverse documentation</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -47,35 +44,46 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <ul class="current">
+	<ul class="current">
+	  
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="..">Home</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Home</a>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../installation/">Installation</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <a class="" href="../overview/">Overview</a>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">Method</a>
-        
-            <ul>
+            <li class="toctree-l1">
+		
+    <a class="" href="../installation/">Installation</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Method Tutorial</a>
+    <ul class="subnav">
             
-                <li class="toctree-l3"><a href="#method">method</a></li>
-                
-            
-            </ul>
-        
-    </li>
-<li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../sippr/">Sippr Tutorial</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../tests/">Tests</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../typing/">Typing</a>
+	    </li>
           
         </ul>
       </div>
@@ -87,7 +95,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="..">My Docs</a>
+        <a href="..">sipprverse documentation</a>
       </nav>
 
       
@@ -99,8 +107,11 @@
     
       
     
-    <li>Method</li>
+    <li>Method Tutorial</li>
     <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/OLC-Bioinformatics/sipprverse/edit/master/docs/method.md"
+          class="icon icon-github"> Edit on GitHub</a>
       
     </li>
   </ul>
@@ -109,13 +120,68 @@
           <div role="main">
             <div class="section">
               
-                <h5 id="method">method</h5>
+                <p>The method pipeline is designed to run with a minimum of three supplied parameters:</p>
+<pre><code>* path in which report folder is to be created (-o)
+* path to reference target database (-r)
+* path to mounted MiSeq folder (-m)
+* name of MiSeq run to process (-f)
+</code></pre>
+<p><code>method.py -o /output/path -r /reference/target/path -m /path/to/miseq -f run name</code></p>
+<pre><code>usage: method.py [-h] -o OUTPUTPATH -r REFERENCEFILEPATH -m MISEQPATH -f
+                 MISEQFOLDER [-n NUMTHREADS] [-d DESTINATIONFASTQ]
+                 [-r1 READLENGTHFORWARD] [-r2 READLENGTHREVERSE]
+                 [-c CUSTOMSAMPLESHEET] [-P PROJECTNAME] [-C]
+
+Perform FASTQ creation and typing
+
+optional arguments:
+  -h, --help            
+                        show this help message and exit
+  -o, --outputpath OUTPUTPATH
+                        Path to directory in which report folder is to be created
+  -r, --referencefilepath REFERENCEFILEPATH
+                        Provide the location of the folder containing the target files
+  -m, --miseqpath MISEQPATH
+                        Path of the folder containing MiSeq run data folder
+  -f, --miseqfolder MISEQFOLDER
+                        Name of the folder containing MiSeq run data
+  -n, --numthreads NUMTHREADS
+                        Number of threads. Default is the number of cores in the system
+  -d, --destinationfastq DESTINATIONFASTQ
+                        Optional folder path to store .fastq files created using the 
+                        fastqCreation module. Defaults to outputpath/miseqfolder
+  -r1, --readlengthforward READLENGTHFORWARD
+                        Length of forward reads to use. Can specify &quot;full&quot; to
+                        take the full length of forward reads specified on the
+                        SampleSheet. Default value is &quot;full&quot;
+  -r2, --readlengthreverse READLENGTHREVERSE
+                        Length of reverse reads to use. Can specify &quot;full&quot; to
+                        take the full length of reverse reads specified on the
+                        SampleSheet. Default value is &quot;full&quot;
+  -c, --customsamplesheet CUSTOMSAMPLESHEET
+                        Path of folder containing a custom sample sheet (still
+                        must be named &quot;SampleSheet.csv&quot;)
+  -P, --projectName PROJECTNAME
+                        A name for the analyses. If nothing is provided, then
+                        the &quot;Sample_Project&quot; field in the provided sample
+                        sheet will be used. Please note that bcl2fastq creates
+                        subfolders using the project name, so if multiple
+                        names are provided, the results will be split as into
+                        multiple projects
+  -C, --copy            
+                        Normally, the program will create symbolic links of
+                        the files into the sequence path, however, the are
+                        occasions when it is necessary to copy the files
+                        instead
+</code></pre>
               
             </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../sippr/" class="btn btn-neutral float-right" title="Sippr Tutorial">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../installation/" class="btn btn-neutral" title="Installation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -132,7 +198,7 @@
 
   Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-	  
+      
         </div>
       </div>
 
@@ -140,15 +206,23 @@
 
   </div>
 
-<div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/OLC-Bioinformatics/sipprverse/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
         <span><a href="../installation/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
+        <span style="margin-left: 15px"><a href="../sippr/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
     </span>
 </div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/require.js"></script>
+      <script src="../search/search.js"></script>
 
 </body>
 </html>

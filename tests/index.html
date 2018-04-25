@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Installation - sipprverse documentation</title>
+  <title>Tests - sipprverse documentation</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -17,9 +17,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Installation";
-    var mkdocs_page_input_path = "installation.md";
-    var mkdocs_page_url = "/installation/";
+    var mkdocs_page_name = "Tests";
+    var mkdocs_page_input_path = "tests.md";
+    var mkdocs_page_url = "/tests/";
   </script>
   
   <script src="../js/jquery-2.1.1.min.js"></script>
@@ -57,29 +57,9 @@
     <a class="" href="../overview/">Overview</a>
 	    </li>
           
-            <li class="toctree-l1 current">
+            <li class="toctree-l1">
 		
-    <a class="current" href="./">Installation</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l2"><a href="#dependencies">Dependencies</a></li>
-    
-
-    <li class="toctree-l2"><a href="#install-targets">Install targets</a></li>
-    
-
-    <li class="toctree-l2"><a href="#install-pipeline">Install pipeline</a></li>
-    
-        <ul>
-        
-            <li><a class="toctree-l3" href="#conda-method">Conda method</a></li>
-        
-            <li><a class="toctree-l3" href="#docker-method">Docker method</a></li>
-        
-        </ul>
-    
-
-    </ul>
+    <a class="" href="../installation/">Installation</a>
 	    </li>
           
             <li class="toctree-l1">
@@ -92,9 +72,12 @@
     <a class="" href="../sippr/">Sippr Tutorial</a>
 	    </li>
           
-            <li class="toctree-l1">
+            <li class="toctree-l1 current">
 		
-    <a class="" href="../tests/">Tests</a>
+    <a class="current" href="./">Tests</a>
+    <ul class="subnav">
+            
+    </ul>
 	    </li>
           
             <li class="toctree-l1">
@@ -124,10 +107,10 @@
     
       
     
-    <li>Installation</li>
+    <li>Tests</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/OLC-Bioinformatics/sipprverse/edit/master/docs/installation.md"
+        <a href="https://github.com/OLC-Bioinformatics/sipprverse/edit/master/docs/tests.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -137,44 +120,13 @@
           <div role="main">
             <div class="section">
               
-                <h3 id="dependencies">Dependencies</h3>
-<ul>
-<li>Linux system</li>
-<li><a href="https://conda.io/docs/user-guide/install/linux.html">Conda</a> and/or <a href="https://www.docker.com/">Docker</a></li>
-<li><a href="https://ndownloader.figshare.com/files/9918805">Target files</a></li>
-<li>Mounted MiSeq (for method only)</li>
-</ul>
-<h3 id="install-targets">Install targets</h3>
-<p><code>wget -O targets.tar.gz https://ndownloader.figshare.com/files/9918805 &amp;&amp; tar xf targets.tar.gz &amp;&amp; rm targets.tar.gz</code></p>
-<h3 id="install-pipeline">Install pipeline</h3>
-<h4 id="conda-method">Conda method</h4>
-<p>The way I install conda:</p>
-<pre><code>wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-bash miniconda.sh -b -p $HOME/miniconda
-export PATH=&quot;$HOME/miniconda/bin:$PATH&quot;
-conda config --set always_yes yes
-conda update -q conda
+                <p>A test script and test datasets are included in the repository to ensure that installation of the script and dependencies 
+was successful. To run the unit tests (make sure that the genesippr conda environment is active):</p>
+<pre><code>cd sipprverse
+pytest
 </code></pre>
 
-<p>The easiest way to install sipprverse is to download the source code <a href="https://github.com/OLC-Bioinformatics/sipprverse.git">GitHub Link</a></p>
-<pre><code>git clone https://github.com/OLC-Bioinformatics/sipprverse.git
-cd sipprverse
-export PATH=&quot;/path/to/repository/sipprverse:$PATH&quot;
-conda env create -f environment.yml
-source activate genesippr
-</code></pre>
-
-<h4 id="docker-method">Docker method</h4>
-<p>Docker must already be installed</p>
-<p>The docker image relies on conda to install all the dependencies, so the genesippr environment must be sourced within 
-the container prior to launch. The supplied command below launches container, immediately sources the environment, and runs the 
-pipeline, but it is also possible to run those commands separately from within the container. For additional details on the run
-command, please see <a href="tutorial.md">the tutorial</a>.</p>
-<pre><code>git clone https://github.com/OLC-Bioinformatics/sipprverse.git
-cd sipprverse
-docker build -t sipprverse:latest .
-docker run -it --name sipprverse --rm sipprverse:latest /bin/bash -c &quot;source activate genesippr &amp;&amp; sippr.py -s /path/to/sequences -r /path/to/database&quot;
-</code></pre>
+<p>If any test fails, check the output to see where the issues occurred</p>
               
             </div>
           </div>
@@ -182,10 +134,10 @@ docker run -it --name sipprverse --rm sipprverse:latest /bin/bash -c &quot;sourc
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../method/" class="btn btn-neutral float-right" title="Method Tutorial">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../typing/" class="btn btn-neutral float-right" title="Typing">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../overview/" class="btn btn-neutral" title="Overview"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../sippr/" class="btn btn-neutral" title="Sippr Tutorial"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -213,10 +165,10 @@ docker run -it --name sipprverse --rm sipprverse:latest /bin/bash -c &quot;sourc
           <a href="https://github.com/OLC-Bioinformatics/sipprverse/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
-        <span><a href="../overview/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../sippr/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../method/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../typing/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

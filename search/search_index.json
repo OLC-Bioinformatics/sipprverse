@@ -2,123 +2,33 @@
     "docs": [
         {
             "location": "/",
-            "text": "Welcome to MkDocs\n\n\nFor full documentation visit \nmkdocs.org\n.\n\n\nCommands\n\n\n\n\nmkdocs new [dir-name]\n - Create a new project.\n\n\nmkdocs serve\n - Start the live-reloading docs server.\n\n\nmkdocs build\n - Build the documentation site.\n\n\nmkdocs gh-deploy\n- Deploy the GitHub pages site\n\n\nmkdocs help\n - Print this help message.\n\n\n\n\nProject layout\n\n\nmkdocs.yml    # The configuration file.\ndocs/\n    index.md  # The documentation homepage.\n    ...       # Other markdown pages, images and other files.\n\n\n\nmethod",
-            "title": "Welcome to MkDocs"
+            "text": "sipprverse\n\n\nGitHub Repo\n\n\n\n\nThis pipeline is designed to automatically create and type FASTQ-formatted files during an active run of an \nIllumina MiSeq. Alternatively, it can perform typing given a folder containing FASTQ-formatted files.",
+            "title": "Home"
         },
         {
-            "location": "/#welcome-to-mkdocs",
-            "text": "For full documentation visit  mkdocs.org .",
-            "title": "Welcome to MkDocs"
+            "location": "/#sipprverse",
+            "text": "",
+            "title": "sipprverse"
         },
         {
-            "location": "/#commands",
-            "text": "mkdocs new [dir-name]  - Create a new project.  mkdocs serve  - Start the live-reloading docs server.  mkdocs build  - Build the documentation site.  mkdocs gh-deploy - Deploy the GitHub pages site  mkdocs help  - Print this help message.",
-            "title": "Commands"
+            "location": "/#github-repo",
+            "text": "This pipeline is designed to automatically create and type FASTQ-formatted files during an active run of an \nIllumina MiSeq. Alternatively, it can perform typing given a folder containing FASTQ-formatted files.",
+            "title": "GitHub Repo"
         },
         {
-            "location": "/#project-layout",
-            "text": "mkdocs.yml    # The configuration file.\ndocs/\n    index.md  # The documentation homepage.\n    ...       # Other markdown pages, images and other files.  method",
-            "title": "Project layout"
+            "location": "/overview/",
+            "text": "",
+            "title": "Overview"
         },
         {
             "location": "/installation/",
-            "text": "Installation\n\n\nSystem Requirements\n\n\nDebian Linux\n\n\nQuick Install\n\n\ngit clone https://github.com/OLC-Bioinformatics/geneSipprV2.git\n\n\ncd geneSipprV2\n\n\nNOW:\n\n\nUsing the Dockerfile\n\n\ndocker build -t <IMAGE_NAME .\n\n\ndocker -it --rm -v <DESIRED VOLUME>:<DESTINATION> --name <CONTAINER_NAME> <IMAGE_NAME>\n\n\nOR\n\n\nManual install\n\n\nThis requires a few prerequisites:\n\n\nThe following dependencies can be obtained with apt\n\n\n\n\npython-dev\n\n\ncurl\n\n\npython3-pip\n\n\nfastx-toolkit\n\n\nncbi-blast+\n\n\n\n\nInstallation of conda is more involved:\n\n\n\n\nconda\n\n\n\n\ncurl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh\n        && bash /tmp/miniconda.sh -bfp /usr/local\n        && rm -rf /tmp/miniconda.sh\n        && conda install -y python=3\n        && conda update conda\n\n\n\n\nUse the conda environment\n\n\nconda env create -f environment.yml\n\n\nsource activate genesippr\n\n\nOR\n\n\nInstall packages manually\n\n\nInstall bcl2fastq\n\n\nconda install -c dranew bcl2fastq\n\n\nUpgrade pip\n\n\npip3 install --upgrade pip\n\n\nInstall pysam\n\n\npip3 install pysam==0.13\n\n\nInstall biopython\n\n\npip3 install biopython==1.70\n\n\nInstall samtools\n\n\nconda install -c bioconda samtools\n\n\nInstall seqtk\n\n\nconda install -c bioconda seqtk\n\n\nInstall psutil\n\n\nconda install -c anaconda psutil\n\n\nInstall bbmap\n\n\nconda install -c bioconda bbmap\n \n\n\nInstall bowtie2\n\n\nconda install -c bioconda bowtie2\n\n\nInstall OLCTools\n\n\npip3 install OLCTools==0.3.15\n\n\nInstall latest genesippr package\n\n\npip3 install sipprverse==0.0.22\n\n\nAdd the geneSipprV2 folder to the $PATH\n\n\nTest install\n\n\npip3 install -U pytest\n\n\npytest\n\n\nInstall targets\n\n\nwget -O targets.tar.gz https://ndownloader.figshare.com/files/9918805 && tar xf targets.tar.gz && rm targets.tar.gz\n\n\nRun the method\n\n\nmethod.py <PATH> -t <PATH TO TARGETS> -b -m <PATH TO MISEQ> -f <RUN NAME>",
+            "text": "Dependencies\n\n\n\n\nLinux system\n\n\nConda\n and/or \nDocker\n\n\nTarget files\n\n\nMounted MiSeq (for method only)\n\n\n\n\nInstall targets\n\n\nwget -O targets.tar.gz https://ndownloader.figshare.com/files/9918805 && tar xf targets.tar.gz && rm targets.tar.gz\n\n\nInstall pipeline\n\n\nConda method\n\n\nThe way I install conda:\n\n\nwget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh\nbash miniconda.sh -b -p $HOME/miniconda\nexport PATH=\"$HOME/miniconda/bin:$PATH\"\nconda config --set always_yes yes\nconda update -q conda\n\n\n\n\nThe easiest way to install sipprverse is to download the source code \nGitHub Link\n\n\ngit clone https://github.com/OLC-Bioinformatics/sipprverse.git\ncd sipprverse\nexport PATH=\"/path/to/repository/sipprverse:$PATH\"\nconda env create -f environment.yml\nsource activate genesippr\n\n\n\n\nDocker method\n\n\nDocker must already be installed\n\n\nThe docker image relies on conda to install all the dependencies, so the genesippr environment must be sourced within \nthe container prior to launch. The supplied command below launches container, immediately sources the environment, and runs the \npipeline, but it is also possible to run those commands separately from within the container. For additional details on the run\ncommand, please see \nthe tutorial\n.\n\n\ngit clone https://github.com/OLC-Bioinformatics/sipprverse.git\ncd sipprverse\ndocker build -t sipprverse:latest .\ndocker run -it --name sipprverse --rm sipprverse:latest /bin/bash -c \"source activate genesippr && sippr.py -s /path/to/sequences -r /path/to/database\"",
             "title": "Installation"
         },
         {
-            "location": "/installation/#installation",
-            "text": "",
-            "title": "Installation"
-        },
-        {
-            "location": "/installation/#system-requirements",
-            "text": "Debian Linux",
-            "title": "System Requirements"
-        },
-        {
-            "location": "/installation/#quick-install",
-            "text": "git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git  cd geneSipprV2  NOW:",
-            "title": "Quick Install"
-        },
-        {
-            "location": "/installation/#using-the-dockerfile",
-            "text": "docker build -t <IMAGE_NAME .  docker -it --rm -v <DESIRED VOLUME>:<DESTINATION> --name <CONTAINER_NAME> <IMAGE_NAME>  OR",
-            "title": "Using the Dockerfile"
-        },
-        {
-            "location": "/installation/#manual-install",
-            "text": "This requires a few prerequisites:  The following dependencies can be obtained with apt   python-dev  curl  python3-pip  fastx-toolkit  ncbi-blast+   Installation of conda is more involved:   conda   curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh\n        && bash /tmp/miniconda.sh -bfp /usr/local\n        && rm -rf /tmp/miniconda.sh\n        && conda install -y python=3\n        && conda update conda",
-            "title": "Manual install"
-        },
-        {
-            "location": "/installation/#use-the-conda-environment",
-            "text": "conda env create -f environment.yml  source activate genesippr  OR",
-            "title": "Use the conda environment"
-        },
-        {
-            "location": "/installation/#install-packages-manually",
-            "text": "",
-            "title": "Install packages manually"
-        },
-        {
-            "location": "/installation/#install-bcl2fastq",
-            "text": "conda install -c dranew bcl2fastq",
-            "title": "Install bcl2fastq"
-        },
-        {
-            "location": "/installation/#upgrade-pip",
-            "text": "pip3 install --upgrade pip",
-            "title": "Upgrade pip"
-        },
-        {
-            "location": "/installation/#install-pysam",
-            "text": "pip3 install pysam==0.13",
-            "title": "Install pysam"
-        },
-        {
-            "location": "/installation/#install-biopython",
-            "text": "pip3 install biopython==1.70",
-            "title": "Install biopython"
-        },
-        {
-            "location": "/installation/#install-samtools",
-            "text": "conda install -c bioconda samtools",
-            "title": "Install samtools"
-        },
-        {
-            "location": "/installation/#install-seqtk",
-            "text": "conda install -c bioconda seqtk",
-            "title": "Install seqtk"
-        },
-        {
-            "location": "/installation/#install-psutil",
-            "text": "conda install -c anaconda psutil",
-            "title": "Install psutil"
-        },
-        {
-            "location": "/installation/#install-bbmap",
-            "text": "conda install -c bioconda bbmap",
-            "title": "Install bbmap"
-        },
-        {
-            "location": "/installation/#install-bowtie2",
-            "text": "conda install -c bioconda bowtie2",
-            "title": "Install bowtie2"
-        },
-        {
-            "location": "/installation/#install-olctools",
-            "text": "pip3 install OLCTools==0.3.15",
-            "title": "Install OLCTools"
-        },
-        {
-            "location": "/installation/#install-latest-genesippr-package",
-            "text": "pip3 install sipprverse==0.0.22  Add the geneSipprV2 folder to the $PATH",
-            "title": "Install latest genesippr package"
-        },
-        {
-            "location": "/installation/#test-install",
-            "text": "pip3 install -U pytest  pytest",
-            "title": "Test install"
+            "location": "/installation/#dependencies",
+            "text": "Linux system  Conda  and/or  Docker  Target files  Mounted MiSeq (for method only)",
+            "title": "Dependencies"
         },
         {
             "location": "/installation/#install-targets",
@@ -126,19 +36,39 @@
             "title": "Install targets"
         },
         {
-            "location": "/installation/#run-the-method",
-            "text": "method.py <PATH> -t <PATH TO TARGETS> -b -m <PATH TO MISEQ> -f <RUN NAME>",
-            "title": "Run the method"
+            "location": "/installation/#install-pipeline",
+            "text": "",
+            "title": "Install pipeline"
+        },
+        {
+            "location": "/installation/#conda-method",
+            "text": "The way I install conda:  wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh\nbash miniconda.sh -b -p $HOME/miniconda\nexport PATH=\"$HOME/miniconda/bin:$PATH\"\nconda config --set always_yes yes\nconda update -q conda  The easiest way to install sipprverse is to download the source code  GitHub Link  git clone https://github.com/OLC-Bioinformatics/sipprverse.git\ncd sipprverse\nexport PATH=\"/path/to/repository/sipprverse:$PATH\"\nconda env create -f environment.yml\nsource activate genesippr",
+            "title": "Conda method"
+        },
+        {
+            "location": "/installation/#docker-method",
+            "text": "Docker must already be installed  The docker image relies on conda to install all the dependencies, so the genesippr environment must be sourced within \nthe container prior to launch. The supplied command below launches container, immediately sources the environment, and runs the \npipeline, but it is also possible to run those commands separately from within the container. For additional details on the run\ncommand, please see  the tutorial .  git clone https://github.com/OLC-Bioinformatics/sipprverse.git\ncd sipprverse\ndocker build -t sipprverse:latest .\ndocker run -it --name sipprverse --rm sipprverse:latest /bin/bash -c \"source activate genesippr && sippr.py -s /path/to/sequences -r /path/to/database\"",
+            "title": "Docker method"
         },
         {
             "location": "/method/",
-            "text": "method",
-            "title": "Method"
+            "text": "The method pipeline is designed to run with a minimum of three supplied parameters:\n\n\n* path in which report folder is to be created (-o)\n* path to reference target database (-r)\n* path to mounted MiSeq folder (-m)\n* name of MiSeq run to process (-f)\n\n\n\nmethod.py -o /output/path -r /reference/target/path -m /path/to/miseq -f run name\n\n\nusage: method.py [-h] -o OUTPUTPATH -r REFERENCEFILEPATH -m MISEQPATH -f\n                 MISEQFOLDER [-n NUMTHREADS] [-d DESTINATIONFASTQ]\n                 [-r1 READLENGTHFORWARD] [-r2 READLENGTHREVERSE]\n                 [-c CUSTOMSAMPLESHEET] [-P PROJECTNAME] [-C]\n\nPerform FASTQ creation and typing\n\noptional arguments:\n  -h, --help            \n                        show this help message and exit\n  -o, --outputpath OUTPUTPATH\n                        Path to directory in which report folder is to be created\n  -r, --referencefilepath REFERENCEFILEPATH\n                        Provide the location of the folder containing the target files\n  -m, --miseqpath MISEQPATH\n                        Path of the folder containing MiSeq run data folder\n  -f, --miseqfolder MISEQFOLDER\n                        Name of the folder containing MiSeq run data\n  -n, --numthreads NUMTHREADS\n                        Number of threads. Default is the number of cores in the system\n  -d, --destinationfastq DESTINATIONFASTQ\n                        Optional folder path to store .fastq files created using the \n                        fastqCreation module. Defaults to outputpath/miseqfolder\n  -r1, --readlengthforward READLENGTHFORWARD\n                        Length of forward reads to use. Can specify \"full\" to\n                        take the full length of forward reads specified on the\n                        SampleSheet. Default value is \"full\"\n  -r2, --readlengthreverse READLENGTHREVERSE\n                        Length of reverse reads to use. Can specify \"full\" to\n                        take the full length of reverse reads specified on the\n                        SampleSheet. Default value is \"full\"\n  -c, --customsamplesheet CUSTOMSAMPLESHEET\n                        Path of folder containing a custom sample sheet (still\n                        must be named \"SampleSheet.csv\")\n  -P, --projectName PROJECTNAME\n                        A name for the analyses. If nothing is provided, then\n                        the \"Sample_Project\" field in the provided sample\n                        sheet will be used. Please note that bcl2fastq creates\n                        subfolders using the project name, so if multiple\n                        names are provided, the results will be split as into\n                        multiple projects\n  -C, --copy            \n                        Normally, the program will create symbolic links of\n                        the files into the sequence path, however, the are\n                        occasions when it is necessary to copy the files\n                        instead",
+            "title": "Method Tutorial"
         },
         {
-            "location": "/method/#method",
+            "location": "/sippr/",
+            "text": "The sippr pipeline is designed to run with a minimum of three supplied parameters:\n\n\n* path in which report folder is to be created (-o)\n* path to FASTQ sequence data (-s)\n* path to reference database (-r)\n\n\n\nsippr.py -o /output/path -s /sequence/path -r /reference/target/path\n\n\nusage: sippr.py [-h] -o OUTPUTPATH -s SEQUENCEPATH [-r REFERENCEFILEPATH]\n                [-n NUMTHREADS] [-u CUSTOMCUTOFFS] [-S]\n\nPerform modelling of parameters for GeneSipping\n\noptional arguments:\n  -h, --help            show this help message and exit\n  -o,  --outputpath OUTPUTPATH\n                        Path to directory in which report folder is to be\n                        created\n  -s, --sequencepath SEQUENCEPATH\n                        Path of .fastq(.gz) files to process.\n  -r, --referencefilepath REFERENCEFILEPATH\n                        Provide the location of the folder containing the\n                        pipeline accessory files (reference genomes, MLST\n                        data, etc.\n  -n, --numthreads NUMTHREADS\n                        Number of threads. Default is the number of cores in\n                        the system\n  -u, --customcutoffs CUSTOMCUTOFFS\n                        Custom cutoff values\n  -S, --serotype        Perform serotype analysis on samples determined to be\n                        Escherichia",
+            "title": "Sippr Tutorial"
+        },
+        {
+            "location": "/tests/",
+            "text": "A test script and test datasets are included in the repository to ensure that installation of the script and dependencies \nwas successful. To run the unit tests (make sure that the genesippr conda environment is active):\n\n\ncd sipprverse\npytest\n\n\n\n\nIf any test fails, check the output to see where the issues occurred",
+            "title": "Tests"
+        },
+        {
+            "location": "/typing/",
             "text": "",
-            "title": "method"
+            "title": "Typing"
         }
     ]
 }
