@@ -115,7 +115,7 @@ class SixteenS(object):
             # If the metadata has been passed from the method script, self.pipeline must still be false in order to
             # get Sippr() to function correctly, but the metadata shouldn't be recreated
             try:
-                eq = vars(self.runmetadata)['samples']
+                _ = vars(self.runmetadata)['samples']
             except KeyError:
                 # Create the objects to be used in the analyses
                 objects = Objectprep(self)
@@ -474,7 +474,10 @@ class SixteenS(object):
         except AttributeError:
             self.reverselength = 'full'
         self.numreads = 2 if self.reverselength != 0 else 1
-        self.customsamplesheet = args.customsamplesheet
+        try:
+            self.customsamplesheet = args.customsamplesheet
+        except AttributeError:
+            self.customsamplesheet = False
         # Set the custom cutoff value
         self.cutoff = cutoff
         # Use the argument for the number of threads to use, or default to the number of cpus in the system

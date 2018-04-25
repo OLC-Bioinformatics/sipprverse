@@ -1,104 +1,50 @@
-##### Installation
+### Dependencies
 
-### System Requirements
-Debian Linux
+* Linux system
+* [Conda](https://conda.io/docs/user-guide/install/linux.html) and/or [Docker](https://www.docker.com/)
+* [Target files](https://ndownloader.figshare.com/files/9918805)
+* Mounted MiSeq (for method only)
 
-
-### Quick Install
-
-`git clone https://github.com/OLC-Bioinformatics/geneSipprV2.git`
-
-`cd geneSipprV2`
-
-NOW:
-
-#### Using the Dockerfile
-
-`docker build -t <IMAGE_NAME .`
-
-`docker -it --rm -v <DESIRED VOLUME>:<DESTINATION> --name <CONTAINER_NAME> <IMAGE_NAME>`
-
-OR
-
-
-#### Manual install
-
-This requires a few prerequisites:
-
-The following dependencies can be obtained with apt
-
-- python-dev
-- curl
-- python3-pip
-
-Installation of conda is more involved:
-
-- conda
-
-`curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda.sh`
-
-`bash miniconda.sh -bp $HOME/miniconda`
-
-`export PATH="$HOME/miniconda/bin:$PATH`
-
-`conda install -y python=3`
-
-`conda update conda`
-
-##### Use the conda environment
-
-
-`conda env create -f environment.yml`
-
-`source activate genesippr`
-
-OR
-
-##### Install packages manually
-
-###### Install bcl2fastq
-`conda install -c dranew bcl2fastq=2.19.0=1`
-
-###### Upgrade pip
-`pip3 install --upgrade pip`
-
-###### Install pysam
-`pip3 install pysam==0.13`
-
-###### Install biopython 
-`pip3 install biopython==1.70`
-
-###### Install samtools
-`conda install -c bioconda samtools=1.6=0`
-
-###### Install seqtk
-`conda install -c bioconda seqtk=1.2=0`
-
-###### Install psutil
-`conda install -c anaconda psutil=5.4.1=py35h2e39a06_0`
-
-###### Install bbmap 
-`conda install -c bioconda bbmap=37.66=0` 
-
-###### Install bowtie2 
-`conda install -c bioconda bowtie2=2.3.3.1=py35pl5.22.0_0`
-
-###### Install OLCTools
-`pip3 install OLCTools==0.3.19`
-
-###### Install latest genesippr package
-`pip3 install sipprverse==0.0.27`
-
-Add the geneSipprV2 folder to the $PATH
-
-## Test install
-`sudo pip3 install -U pytest`
-
-`pytest`
-
-## Install targets
+### Install targets
 
 `wget -O targets.tar.gz https://ndownloader.figshare.com/files/9918805 && tar xf targets.tar.gz && rm targets.tar.gz`
 
-## Run the method
-`method.py <PATH> -t <PATH TO TARGETS> -b -m <PATH TO MISEQ> -f <RUN NAME>`
+### Install pipeline
+
+#### Conda method
+
+The way I install conda:
+
+```
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+bash miniconda.sh -b -p $HOME/miniconda
+export PATH="$HOME/miniconda/bin:$PATH"
+conda config --set always_yes yes
+conda update -q conda
+```
+
+The easiest way to install sipprverse is to download the source code [GitHub Link](https://github.com/OLC-Bioinformatics/sipprverse.git)
+
+```
+git clone https://github.com/OLC-Bioinformatics/sipprverse.git
+cd sipprverse
+export PATH="/path/to/repository/sipprverse:$PATH"
+conda env create -f environment.yml
+source activate genesippr
+```
+
+#### Docker method
+
+Docker must already be installed
+
+The docker image relies on conda to install all the dependencies, so the genesippr environment must be sourced within 
+the container prior to launch. The supplied command below launches container, immediately sources the environment, and runs the 
+pipeline, but it is also possible to run those commands separately from within the container. For additional details on the run
+command, please see [the tutorial](tutorial.md).
+
+```
+git clone https://github.com/OLC-Bioinformatics/sipprverse.git
+cd sipprverse
+docker build -t sipprverse:latest .
+docker run -it --name sipprverse --rm sipprverse:latest /bin/bash -c "source activate genesippr && sippr.py -s /path/to/sequences -r /path/to/database"
+```

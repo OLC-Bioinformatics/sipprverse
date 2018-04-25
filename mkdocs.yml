@@ -1,2 +1,13 @@
-site_name: My Docs
+site_name: sipprverse documentation
 theme: readthedocs
+
+repo_url: 'https://github.com/OLC-Bioinformatics/sipprverse'
+
+pages:
+    - Home: 'index.md'
+    - Overview: 'overview.md'
+    - Installation: 'installation.md'
+    - Method Tutorial: 'method.md'
+    - Sippr Tutorial: 'sippr.md'
+    - Tests: 'tests.md'
+    - Typing: 'typing.md'

@@ -1,20 +1,8 @@
-# Welcome to MkDocs
+### sipprverse
 
-For full documentation visit [mkdocs.org](http://mkdocs.org).
+### [GitHub Repo](https://github.com/OLC-Bioinformatics/sipprverse)
 
-## Commands
+[![Build Status](https://travis-ci.org/OLC-Bioinformatics/sipprverse.svg?branch=master)](https://travis-ci.org/OLC-Bioinformatics/sipprverse)
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs gh-deploy`- Deploy the GitHub pages site
-* `mkdocs help` - Print this help message.
-
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
-        
-[method](method.md)
+This pipeline is designed to automatically create and type FASTQ-formatted files during an active run of an 
+Illumina MiSeq. Alternatively, it can perform typing given a folder containing FASTQ-formatted files.

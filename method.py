@@ -305,37 +305,32 @@ if __name__ == '__main__':
     commit = subprocess.Popen('cd {} && git rev-parse --short HEAD'.format(homepath),
                               shell=True, stdout=subprocess.PIPE).communicate()[0].rstrip()
     # Parser for arguments
-    parser = ArgumentParser(description='Perform modelling of parameters for GeneSipping')
+    parser = ArgumentParser(description='Perform FASTQ creation and typing')
     parser.add_argument('-o', '--outputpath',
                         required=True,
                         help='Path to directory in which report folder is to be created')
     parser.add_argument('-r', '--referencefilepath',
-                        help='Provide the location of the folder containing the pipeline accessory files (reference '
-                             'genomes, MLST data, etc.')
-    parser.add_argument('-n', '--numthreads',
-                        help='Number of threads. Default is the number of cores in the system')
-    parser.add_argument('-b', '--bcl2fastq',
-                        action='store_true',
-                        help='Optionally run bcl2fastq on an in-progress Illumina MiSeq run. Must include:'
-                             'miseqpath, and miseqfolder arguments, and optionally readlengthforward, '
-                             'readlengthreverse, and projectName arguments.')
+                        required=True,
+                        help='Provide the location of the folder containing the target files')
     parser.add_argument('-m', '--miseqpath',
                         required=True,
                         help='Path of the folder containing MiSeq run data folder')
     parser.add_argument('-f', '--miseqfolder',
                         required=True,
                         help='Name of the folder containing MiSeq run data')
+    parser.add_argument('-n', '--numthreads',
+                        help='Number of threads. Default is the number of cores in the system')
     parser.add_argument('-d', '--destinationfastq',
                         help='Optional folder path to store .fastq files created using the fastqCreation module. '
-                             'Defaults to path/miseqfolder')
+                             'Defaults to outputpath/miseqfolder')
     parser.add_argument('-r1', '--readlengthforward',
                         default='full',
                         help='Length of forward reads to use. Can specify "full" to take the full length of '
-                             'forward reads specified on the SampleSheet')
+                             'forward reads specified on the SampleSheet. Default value is "full"')
     parser.add_argument('-r2', '--readlengthreverse',
                         default='full',
                         help='Length of reverse reads to use. Can specify "full" to take the full length of '
-                             'reverse reads specified on the SampleSheet')
+                             'reverse reads specified on the SampleSheet. Default value is "full"')
     parser.add_argument('-c', '--customsamplesheet',
                         help='Path of folder containing a custom sample sheet (still must be named "SampleSheet.csv")')
     parser.add_argument('-P', '--projectName',
