@@ -86,9 +86,9 @@ class Mash(object):
     def mash(self):
         while True:
             sample = self.mashqueue.get()
-            # , stdout=self.fnull, stderr=self.fnull
+            #
             if not os.path.isfile(sample[self.analysistype].mashresults):
-                call(sample.commands.mash, shell=True)
+                call(sample.commands.mash, shell=True, stdout=self.fnull, stderr=self.fnull)
             self.mashqueue.task_done()
 
     def parse(self):
@@ -109,33 +109,61 @@ class Mash(object):
                         # Populate the dictionary with the accession: tax id e.g. GCF_001298055: Helicobacter pullorum
                         refdict[data[0].split('.')[0]] = data[7]
         for sample in self.metadata:
-
-            try:
-                # Open the results and extract the first line of data
-                mashdata = open(sample[self.analysistype].mashresults).readline().rstrip()
-                # Split on tabs
-                data = mashdata.split('\t')
-                referenceid, queryid, sample[self.analysistype].mashdistance, sample[self.analysistype]. \
-                    pvalue, sample[self.analysistype].nummatches = data
-                # Extract the name of the refseq assembly from the mash outputs, and split as necessary e.g.
-                # GCF_000008865.1_ASM886v1_genomic.fna.gz becomes GCF_000008865
-                refid = referenceid.split('.')[0]
-                # Find the genus and species of the sample using the dictionary of refseq summaries
-                sample[self.analysistype].closestrefseq = refdict[refid]
-                sample[self.analysistype].closestrefseqgenus = sample[self.analysistype].closestrefseq.split()[0]
-                sample[self.analysistype].closestrefseqspecies = sample[self.analysistype].closestrefseq.split()[1]
-            except (KeyError, ValueError):
+            # Initialise a list to store all the MASH results
+            mashdata = list()
+            # Open the results and extract the data
+            with open(sample[self.analysistype].mashresults, 'r') as results:
+                for line in results:
+                    mashdata.append(line.rstrip())
+            # Ensure that there is at least a single result
+            if mashdata:
+                # Iterate through the data
+                for linedata in mashdata:
+                    try:
+                        # Split on tabs
+                        data = linedata.split('\t')
+                        # Extract the components of the line
+                        referenceid, queryid, sample[self.analysistype].mashdistance, sample[self.analysistype]. \
+                            pvalue, sample[self.analysistype].nummatches = data
+                        # Extract the name of the refseq assembly from the mash outputs, and split as necessary e.g.
+                        # GCF_000008865.1_ASM886v1_genomic.fna.gz becomes GCF_000008865
+                        refid = referenceid.split('.')[0]
+                        # Find the genus and species of the sample using the dictionary of refseq summaries
+                        sample[self.analysistype].closestrefseq = refdict[refid]
+                        sample[self.analysistype].closestrefseqgenus = sample[self.analysistype].closestrefseq.split()[0]
+                        sample[self.analysistype].closestrefseqspecies = sample[self.analysistype].closestrefseq.split()[1]
+                        # Set the closest refseq genus - will be used for all typing that requires the genus to be known
+                        sample.general.referencegenus = sample[self.analysistype].closestrefseqgenus
+                        break
+                    except ValueError:
+                        sample[self.analysistype].closestrefseq = 'NA'
+                        sample[self.analysistype].closestrefseqgenus = 'NA'
+                        sample[self.analysistype].closestrefseqspecies = 'NA'
+                        sample[self.analysistype].mashdistance = 'NA'
+                        sample[self.analysistype].pvalue = 'NA'
+                        sample[self.analysistype].nummatches = 'NA'
+                        sample.general.referencegenus = 'NA'
+                        break
+                    # I have encountered a strain that has a best match with the RefSeq database provided by the
+                    # developers of MASH that doesn't have a corresponding entry in the assembly_summary_refseq.txt
+                    # file downloaded from NCBI. Simply pass on this and look for the next best hit
+                    except KeyError:
+                        pass
+            else:
                 sample[self.analysistype].closestrefseq = 'NA'
                 sample[self.analysistype].closestrefseqgenus = 'NA'
                 sample[self.analysistype].closestrefseqspecies = 'NA'
                 sample[self.analysistype].mashdistance = 'NA'
                 sample[self.analysistype].pvalue = 'NA'
                 sample[self.analysistype].nummatches = 'NA'
-            # Set the closest refseq genus - will be used for all typing that requires the genus to be known
-            sample.general.referencegenus = sample[self.analysistype].closestrefseqgenus
+                sample.general.referencegenus = 'NA'
         self.reporter()
 
     def reporter(self):
+        """
+        Create the MASH report
+        """
+        printtime('Creating {} report'.format(self.analysistype), self.starttime)
         make_path(self.reportpath)
         header = 'Strain,ReferenceGenus,ReferenceFile,ReferenceGenomeMashDistance,Pvalue,NumMatchingHashes\n'
         data = ''
