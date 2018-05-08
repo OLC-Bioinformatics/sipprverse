@@ -104,6 +104,8 @@ class Mash(object):
                 if line.startswith('# assembly_accession'):
                     # Iterate through all the lines with data
                     for accessionline in reffile:
+                        # Replace commas with semicolons
+                        accessionline = accessionline.replace(',', ';')
                         # Split the lines on tabs
                         data = accessionline.split('\t')
                         # Populate the dictionary with the accession: tax id e.g. GCF_001298055: Helicobacter pullorum
@@ -130,8 +132,10 @@ class Mash(object):
                         refid = referenceid.split('.')[0]
                         # Find the genus and species of the sample using the dictionary of refseq summaries
                         sample[self.analysistype].closestrefseq = refdict[refid]
-                        sample[self.analysistype].closestrefseqgenus = sample[self.analysistype].closestrefseq.split()[0]
-                        sample[self.analysistype].closestrefseqspecies = sample[self.analysistype].closestrefseq.split()[1]
+                        sample[self.analysistype].closestrefseqgenus = \
+                            sample[self.analysistype].closestrefseq.split()[0]
+                        sample[self.analysistype].closestrefseqspecies = \
+                            sample[self.analysistype].closestrefseq.split()[1]
                         # Set the closest refseq genus - will be used for all typing that requires the genus to be known
                         sample.general.referencegenus = sample[self.analysistype].closestrefseqgenus
                         break
