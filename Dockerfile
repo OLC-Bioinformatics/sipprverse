@@ -19,7 +19,7 @@ ENV PATH /usr/sbin:$PATH
 RUN useradd -ms /bin/bash/ ubuntu
 USER ubuntu
 
-WORKDIR HOME
+WORKDIR /home/ubuntu
 
 # Install sipping targets
 RUN wget -O targets.tar.gz https://ndownloader.figshare.com/files/11417183 && tar xf targets.tar.gz && rm targets.tar.gz
