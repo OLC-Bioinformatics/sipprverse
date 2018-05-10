@@ -7,7 +7,7 @@
 
 ### Install targets
 
-`wget -O targets.tar.gz https://ndownloader.figshare.com/files/9918805 && tar xf targets.tar.gz && rm targets.tar.gz`
+`wget -O targets.tar.gz https://ndownloader.figshare.com/files/11417183 && tar xf targets.tar.gz && rm targets.tar.gz`
 
 ### Install pipeline
 
