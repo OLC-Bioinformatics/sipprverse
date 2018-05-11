@@ -93,7 +93,7 @@ dependencies:
     - pysam==0.13
     - pytest==3.3.1
     - pyyaml==3.12
-    - sipprverse==0.0.65
+    - sipprverse==0.0.68
     - tornado==4.5.3
     - xlsxwriter==1.0.2
 prefix: /home/adamkoziol/miniconda/envs/genesippr
