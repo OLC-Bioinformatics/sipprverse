@@ -27,18 +27,21 @@ dependencies:
   - bowtie2=2.3.3.1=py35pl5.22.0_0
   - samtools=1.6=0
   - seqtk=1.2=0
+  - blas=1.1=openblas
   - boost=1.64.0=py35_4
   - boost-cpp=1.64.0=1
+  - certifi=2018.4.16=py35_0
   - curl=7.54.1=0
   - gnutls=3.5.15=0
   - libidn11=1.33=0
   - nettle=3.3=0
+  - numpy=1.14.3=py35_blas_openblas_200
+  - openblas=0.2.20=7
   - perl=5.22.0.1=0
   - sqlite=3.13.0=1
   - zlib=1.2.8=3
   - bzip2=1.0.6=h9a117a8_4
   - ca-certificates=2018.03.07=0
-  - certifi=2018.4.16=py35_0
   - cython=0.28.2=py35h14c3975_0
   - fontconfig=2.12.4=h88586e7_1
   - gmp=6.1.2=h6c8ec71_1
@@ -49,6 +52,7 @@ dependencies:
   - libffi=3.2.1=hd88cf55_4
   - libgcc=4.8.5=2
   - libgcc-ng=7.2.0=hdf63c60_3
+  - libgfortran=3.0.0=1
   - libgfortran-ng=7.2.0=hdf63c60_3
   - libssh2=1.8.0=h9cfc8f7_4
   - libstdcxx-ng=7.2.0=hdf63c60_3
@@ -57,7 +61,6 @@ dependencies:
   - mkl_random=1.0.1=py35h629b387_0
   - ncurses=6.1=hf484d3e_0
   - nose=1.3.7=py35hdc64897_2
-  - numpy=1.14.3=py35h14a74c5_0
   - numpy-base=1.14.3=py35hdbf6ddf_0
   - openjdk=8.0.152=h46b5887_1
   - openssl=1.0.2o=h20670df_0
