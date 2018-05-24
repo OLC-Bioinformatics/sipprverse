@@ -306,6 +306,25 @@ class Reports(object):
             report.write(header)
             report.write(data)
 
+    def confindr_reporter(self, analysistype='confindr'):
+        """
+        Creates a final report of all the ConFindr results
+        """
+        # Initialise the data strings
+        data = 'Sample,Genus,NumContamSNVs,NumUniqueKmers,ContamStatus\n'
+        with open(os.path.join(self.reportpath, analysistype + '.csv'), 'w') as report:
+            # Iterate through all the results
+            for sample in self.runmetadata.samples:
+                # Populate the string with the appropriate variables
+                data += '{strain},{genus},{num},{unique},{status}\n'\
+                    .format(strain=sample.name,
+                            genus=sample[analysistype].genus,
+                            num=sample[analysistype].num_contaminated_snvs,
+                            unique=sample[analysistype].unique_kmers,
+                            status=sample[analysistype].contam_status)
+            # Write the string to the report
+            report.write(data)
+
     def methodreporter(self):
         """
         Create final reports collating results from all the individual iterations through the method pipeline
@@ -329,6 +348,7 @@ class Reports(object):
         self.genusspecific()
         self.sixteensreporter()
         self.gdcsreporter()
+        self.confindr_reporter()
 
     def __init__(self, inputobject):
         self.starttime = inputobject.starttime
