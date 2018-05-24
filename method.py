@@ -4,6 +4,7 @@ from accessoryFunctions.metadataprinter import MetadataPrinter
 from sixteenS.sixteens_full import SixteenS as SixteensFull
 from sipprverse_reporter.reports import Reports
 from spadespipeline.typingclasses import GDCS
+import spadespipeline.quality as quality
 from sipprCommon.create_sample_sheet import SampleSheet
 from sipprCommon.objectprep import Objectprep
 from genesippr.genesippr import GeneSippr
@@ -164,9 +165,17 @@ class Method(object):
         """
         Run the typing methods
         """
+        self.contamination_detection()
         self.run_genesippr()
         self.run_sixteens()
         self.run_gdcs()
+
+    def contamination_detection(self):
+        """
+        Calculate the levels of contamination in the reads
+        """
+        self.qualityobject = quality.Quality(self)
+        self.qualityobject.contamination_finder(self.sequencepath, self.reportpath)
 
     def run_genesippr(self):
         """
@@ -271,6 +280,7 @@ class Method(object):
             self.cpus = multiprocessing.cpu_count()
         self.threads = int()
         self.runmetadata = MetadataObject()
+        self.qualityobject = MetadataObject()
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
         self.analysistype = 'GeneSipprMethod'
         self.copy = args.copy
@@ -337,7 +347,7 @@ if __name__ == '__main__':
                         help='A name for the analyses. If nothing is provided, then the "Sample_Project" field '
                              'in the provided sample sheet will be used. Please note that bcl2fastq creates '
                              'subfolders using the project name, so if multiple names are provided, the results '
-                             'will be split as into multiple projects')
+                             'will be split into multiple projects')
     parser.add_argument('-C', '--copy',
                         action='store_true',
                         help='Normally, the program will create symbolic links of the files into the sequence path, '
