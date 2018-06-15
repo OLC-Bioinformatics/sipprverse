@@ -1,12 +1,14 @@
 #!/usr/bin/python3
-from accessoryFunctions.accessoryFunctions import GenObject, make_path, MetadataObject, printtime
+from accessoryFunctions.accessoryFunctions import make_path, MetadataObject, printtime
 from accessoryFunctions.metadataprinter import MetadataPrinter
-from spadespipeline.typingclasses import Resistance
+from spadespipeline.typingclasses import Resistance, Virulence
 from sixteenS.sixteens_full import SixteenS as SixteensFull
+from MLSTsippr.mlst import GeneSippr as MLSTSippr
+from sipprverse_reporter.reports import Reports
 from sipprCommon.objectprep import Objectprep
 from sipprCommon.sippingmethods import Sippr
 from serosippr.serosippr import SeroSippr
-from sipprverse_reporter.reports import Reports
+import MASHsippr.mash as mash
 from argparse import ArgumentParser
 import multiprocessing
 import subprocess
@@ -29,44 +31,61 @@ class Sipprverse(object):
         self.runmetadata = objects.samples
         self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(self.runmetadata.samples) > 1 \
             else 1
-        # Run the genesippr analyses
-        self.analysistype = 'genesippr'
-        self.targetpath = os.path.join(self.reffilepath, self.analysistype, '')
-        Sippr(self, 0.90)
-        # Create the reports
-        self.reports = Reports(self)
-        Reports.reporter(self.reports)
-        # Run the 16S analyses using the filtered database
-        self.targetpath = self.reffilepath
-        # Run the 16S analyses
-        self.analysistype = 'sixteens_full'
-        SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
-        # ResFinding
-        Resistance(self, self.commit, self.starttime, self.homepath, 'resfinder', 0.90, False, True)
-        # Run the GDCS analysis
-        self.analysistype = 'GDCS'
-        self.pipeline = True
-        self.targetpath = os.path.join(self.targetpath, self.analysistype)
-        Sippr(self, 0.95)
-        # Create the reports
-        Reports.gdcsreporter(self.reports)
+        if self.virulence:
+            vir = Virulence(self, self.commit, self.starttime, self.homepath, 'virulence', 0.95, False, True)
+            vir.reporter()
+        if self.genesippr:
+            # Run the genesippr analyses
+            self.analysistype = 'genesippr'
+            self.targetpath = os.path.join(self.reffilepath, self.analysistype, '')
+            Sippr(self, 0.90)
+            # Create the reports
+            self.reports = Reports(self)
+            Reports.reporter(self.reports)
+        if self.sixteens:
+            # Run the 16S analyses
+            SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
+        if self.mlst:
+            '''
+            Genus-specific
+            '''
+            MLSTSippr(self, self.commit, self.starttime, self.homepath, 'MLST', 1.0, True)
+        if self.rmlst:
+            MLSTSippr(self, self.commit, self.starttime, self.homepath, 'rMLST', 1.0, True)
+        if self.resistance:
+            # ResFinding
+            res = Resistance(self, self.commit, self.starttime, self.homepath, 'resfinder', 0.9, False, True)
+            res.main()
+        if self.closestreference:
+            self.pipeline = True
+            mash.Mash(self, 'mash')
+        if self.gdcs:
+            # Run the GDCS analysis
+            self.analysistype = 'GDCS'
+            self.targetpath = os.path.join(self.targetpath, self.analysistype)
+            Sippr(self, 0.95)
+            # Create the reports
+            Reports.gdcsreporter(self.reports)
         # Optionally perform serotyping
         if self.serotype:
-            # Perform serotyping for samples classified as Escherichia
-            for sample in self.runmetadata.samples:
-                if sample.general.bestassemblyfile != 'NA':
-                    sample.mash = GenObject()
-                    try:
-                        sample.mash.closestrefseqgenus = sample.general.closestrefseqgenus
-                        for genus, species in self.taxonomy.items():
-                            if genus == sample.mash.closestrefseqgenus:
-                                sample.mash.closestrefseqspecies = species
-                    except KeyError:
-                        sample.mash.closestrefseqgenus = 'NA'
-                        sample.mash.closestrefseqspecies = 'NA'
-                else:
-                    sample.mash.closestrefseqgenus = 'NA'
-                    sample.mash.closestrefseqspecies = 'NA'
+            '''
+            Genus-specific
+            '''
+            # # Perform serotyping for samples classified as Escherichia
+            # for sample in self.runmetadata.samples:
+            #     if sample.general.bestassemblyfile != 'NA':
+            #         sample.mash = GenObject()
+            #         try:
+            #             sample.mash.closestrefseqgenus = sample.general.closestrefseqgenus
+            #             for genus, species in self.taxonomy.items():
+            #                 if genus == sample.mash.closestrefseqgenus:
+            #                     sample.mash.closestrefseqspecies = species
+            #         except KeyError:
+            #             sample.mash.closestrefseqgenus = 'NA'
+            #             sample.mash.closestrefseqspecies = 'NA'
+            #     else:
+            #         sample.mash.closestrefseqgenus = 'NA'
+            #         sample.mash.closestrefseqspecies = 'NA'
             SeroSippr(self, self.commit, self.starttime, self.homepath, 'serosippr', 0.95, True)
         # Print the metadata
         printer = MetadataPrinter(self)
@@ -100,10 +119,15 @@ class Sipprverse(object):
         self.cutoff = args.customcutoffs
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
-        try:
-            self.serotype = args.serotype
-        except AttributeError:
-            self.serotype = False
+        self.closestreference = args.closestreference
+        self.gdcs = args.gdcs
+        self.genesippr = args.genesippr
+        self.mlst = args.mlst
+        self.resistance = args.resistance
+        self.rmlst = args.rmlst
+        self.serotype = args.serotype
+        self.sixteens = args.sixteens
+        self.virulence = args.virulence
         self.reports = str()
         self.threads = int()
         self.runmetadata = MetadataObject()
@@ -137,9 +161,42 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--customcutoffs',
                         default=0.90,
                         help='Custom cutoff values')
+    parser.add_argument('-A', '--resistance',
+                        action='store_true',
+                        default=False,
+                        help='Perform AMR analysis on samples')
+    parser.add_argument('-C', '--closestreference',
+                        action='store_true',
+                        default=False,
+                        help='Determine closest RefSeq match with mash')
+    parser.add_argument('-G', '--genesippr',
+                        action='store_true',
+                        default=False,
+                        help='Perform GeneSippr analysis on samples')
+    parser.add_argument('-M', '--mlst',
+                        action='store_true',
+                        default=False,
+                        help='Perform MLST analysis on samples')
+    parser.add_argument('-Q', '--gdcs',
+                        action='store_true',
+                        default=False,
+                        help='Perform GDCS Quality analysis on samples')
+    parser.add_argument('-R', '--rmlst',
+                        action='store_true',
+                        default=False,
+                        help='Perform rMLST analysis on samples')
     parser.add_argument('-S', '--serotype',
                         action='store_true',
+                        default=False,
                         help='Perform serotype analysis on samples determined to be Escherichia')
+    parser.add_argument('-V', '--virulence',
+                        action='store_true',
+                        default=False,
+                        help='Perform virulence analysis on samples')
+    parser.add_argument('-X', '--sixteens',
+                        action='store_true',
+                        default=False,
+                        help='Perform 16S typing of samples')
     # Get the arguments into an object
     arguments = parser.parse_args()
 
