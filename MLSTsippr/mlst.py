@@ -322,8 +322,13 @@ class GeneSippr(object):
                             sample[self.analysistype].sequencetype = seqtype
                             # The number of matches to the profile
                             sample[self.analysistype].matches = list(self.resultprofile[sample.name][seqtype].keys())[0]
+                            # Extract the closest reference genus
+                            try:
+                                genus = sample.general.referencegenus
+                            except KeyError:
+                                genus = sample.general.closestrefseqgenus
                             # If this is the first of one or more sequence types, include the sample name
-                            row += '{},{},{},{},'.format(sample.name, sample.general.referencegenus, seqtype,
+                            row += '{},{},{},{},'.format(sample.name, genus, seqtype,
                                                          sample[self.analysistype].matches)
                             # Iterate through all the genes present in the analyses for the sample
                             for gene in sorted(sample[self.analysistype].allelenames):
@@ -431,7 +436,10 @@ class GeneSippr(object):
         except AttributeError:
             self.reverselength = 'full'
         self.numreads = 2 if self.reverselength != 0 else 1
-        self.customsamplesheet = args.customsamplesheet
+        try:
+            self.customsamplesheet = args.customsamplesheet
+        except AttributeError:
+            self.customsamplesheet = str()
         # Set the custom cutoff value
         self.cutoff = float(cutoff)
         self.logfile = args.logfile
