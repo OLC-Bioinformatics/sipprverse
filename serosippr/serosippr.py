@@ -163,7 +163,10 @@ class SeroSippr(object):
         except AttributeError:
             self.reverselength = 'full'
         self.numreads = 2 if self.reverselength != 0 else 1
-        self.customsamplesheet = args.customsamplesheet
+        try:
+            self.customsamplesheet = args.customsamplesheet
+        except AttributeError:
+            self.customsamplesheet = str()
         self.taxonomy = {'Escherichia': 'coli', 'Listeria': 'monocytogenes', 'Salmonella': 'enterica'}
         self.logfile = args.logfile
         # Set the custom cutoff value
