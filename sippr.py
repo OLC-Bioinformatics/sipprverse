@@ -4,6 +4,7 @@ from accessoryFunctions.metadataprinter import MetadataPrinter
 from spadespipeline.typingclasses import Resistance, Virulence
 from sixteenS.sixteens_full import SixteenS as SixteensFull
 from MLSTsippr.mlst import GeneSippr as MLSTSippr
+from customsippr.customsippr import CustomGenes
 from sipprverse_reporter.reports import Reports
 from sipprCommon.objectprep import Objectprep
 from sipprCommon.sippingmethods import Sippr
@@ -31,13 +32,10 @@ class Sipprverse(object):
         self.runmetadata = objects.samples
         self.threads = int(self.cpus / len(self.runmetadata.samples)) if self.cpus / len(self.runmetadata.samples) > 1 \
             else 1
-        if self.virulence:
-            vir = Virulence(self, self.commit, self.starttime, self.homepath, 'virulence', 0.95, False, True)
-            vir.reporter()
         if self.genesippr:
             # Run the genesippr analyses
             self.analysistype = 'genesippr'
-            self.targetpath = os.path.join(self.reffilepath, self.analysistype, '')
+            self.targetpath = os.path.join(self.reffilepath, self.analysistype)
             Sippr(self, 0.90)
             # Create the reports
             self.reports = Reports(self)
@@ -45,51 +43,57 @@ class Sipprverse(object):
         if self.sixteens:
             # Run the 16S analyses
             SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
-        if self.mlst:
-            '''
-            Genus-specific
-            '''
-            MLSTSippr(self, self.commit, self.starttime, self.homepath, 'MLST', 1.0, True)
         if self.rmlst:
             MLSTSippr(self, self.commit, self.starttime, self.homepath, 'rMLST', 1.0, True)
         if self.resistance:
             # ResFinding
             res = Resistance(self, self.commit, self.starttime, self.homepath, 'resfinder', 0.9, False, True)
             res.main()
+        if self.virulence:
+            vir = Virulence(self, self.commit, self.starttime, self.homepath, 'virulence', 0.95, False, True)
+            vir.reporter()
         if self.closestreference:
             self.pipeline = True
             mash.Mash(self, 'mash')
         if self.gdcs:
             # Run the GDCS analysis
             self.analysistype = 'GDCS'
-            self.targetpath = os.path.join(self.targetpath, self.analysistype)
+            self.targetpath = os.path.join(self.reffilepath, self.analysistype)
             Sippr(self, 0.95)
             # Create the reports
             Reports.gdcsreporter(self.reports)
+        if self.mlst:
+            self.genus_specific()
+            MLSTSippr(self, self.commit, self.starttime, self.homepath, 'MLST', 1.0, True)
         # Optionally perform serotyping
         if self.serotype:
-            '''
-            Genus-specific
-            '''
-            # # Perform serotyping for samples classified as Escherichia
-            # for sample in self.runmetadata.samples:
-            #     if sample.general.bestassemblyfile != 'NA':
-            #         sample.mash = GenObject()
-            #         try:
-            #             sample.mash.closestrefseqgenus = sample.general.closestrefseqgenus
-            #             for genus, species in self.taxonomy.items():
-            #                 if genus == sample.mash.closestrefseqgenus:
-            #                     sample.mash.closestrefseqspecies = species
-            #         except KeyError:
-            #             sample.mash.closestrefseqgenus = 'NA'
-            #             sample.mash.closestrefseqspecies = 'NA'
-            #     else:
-            #         sample.mash.closestrefseqgenus = 'NA'
-            #         sample.mash.closestrefseqspecies = 'NA'
+            self.genus_specific()
             SeroSippr(self, self.commit, self.starttime, self.homepath, 'serosippr', 0.95, True)
+        if self.user_genes:
+            custom = CustomGenes(self)
+            custom.main()
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
+
+    def genus_specific(self):
+        """
+        For genus-specific targets, MLST and serotyping, determine if the closest refseq genus is known - i.e. if 16S
+        analyses have been performed. Perform the analyses if required
+        """
+        # Initialise a variable to store whether the necessary analyses have already been performed
+        closestrefseqgenus = False
+        for sample in self.runmetadata.samples:
+            if sample.general.bestassemblyfile != 'NA':
+                try:
+                    closestrefseqgenus = sample.general.closestrefseqgenus
+                except KeyError:
+                    pass
+        # Perform the 16S analyses as required
+        if not closestrefseqgenus:
+            printtime('Must perform 16S analyses', self.starttime)
+            # Run the 16S analyses
+            SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
         """
@@ -128,6 +132,24 @@ class Sipprverse(object):
         self.serotype = args.serotype
         self.sixteens = args.sixteens
         self.virulence = args.virulence
+        try:
+            self.user_genes = os.path.join(args.user_genes)
+            assert os.path.isfile(self.user_genes), 'Cannot find user-supplied target file: {targets}. Please ' \
+                                                    'double-check name and path of file'\
+                .format(targets=self.user_genes)
+        except TypeError:
+            self.user_genes = args.user_genes
+        # Set all the analyses to True if the full_suite option was selected
+        if args.full_suite:
+            self.closestreference = True
+            self.gdcs = True
+            self.genesippr = True
+            self.mlst = True
+            self.resistance = True
+            self.rmlst = True
+            self.serotype = True
+            self.sixteens = True
+            self.virulence = True
         self.reports = str()
         self.threads = int()
         self.runmetadata = MetadataObject()
@@ -154,13 +176,17 @@ if __name__ == '__main__':
                         required=True,
                         help='Path of .fastq(.gz) files to process.')
     parser.add_argument('-r', '--referencefilepath',
-                        help='Provide the location of the folder containing the pipeline accessory files (reference '
-                             'genomes, MLST data, etc.')
+                        help='Provide the location of the folder containing reference database')
     parser.add_argument('-n', '--numthreads',
                         help='Number of threads. Default is the number of cores in the system')
-    parser.add_argument('-u', '--customcutoffs',
+    parser.add_argument('-c', '--customcutoffs',
                         default=0.90,
                         help='Custom cutoff values')
+    parser.add_argument('-F', '--full_suite',
+                        action='store_true',
+                        default=False,
+                        help='Perform all the built-in GeneSippr analyses (AMR, GDCS, Genesippr, MASH, MLST, '
+                             'rMLST, Serotype, SixteenS, and Virulence')
     parser.add_argument('-A', '--resistance',
                         action='store_true',
                         default=False,
@@ -189,6 +215,9 @@ if __name__ == '__main__':
                         action='store_true',
                         default=False,
                         help='Perform serotype analysis on samples determined to be Escherichia')
+    parser.add_argument('-U', '--user_genes',
+                        default=False,
+                        help='Name and path of user provided (multi-)FASTA file of genes to run against samples')
     parser.add_argument('-V', '--virulence',
                         action='store_true',
                         default=False,
