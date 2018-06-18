@@ -65,7 +65,10 @@ class GeneSippr(object):
             self.targetpath = os.path.join(args.reffilepath, analysistype)
         except AttributeError:
             self.targetpath = os.path.join(args.targetpath, '')
-        self.reportpath = os.path.join(self.path, 'reports')
+        try:
+            self.reportpath = args.reportpath
+        except AttributeError:
+            self.reportpath = os.path.join(self.path, 'reports')
         assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
         try:
@@ -93,7 +96,10 @@ class GeneSippr(object):
         except AttributeError:
             self.reverselength = 'full'
         self.numreads = 2 if self.reverselength != 0 else 1
-        self.customsamplesheet = args.customsamplesheet
+        try:
+            self.customsamplesheet = args.customsamplesheet
+        except AttributeError:
+            self.customsamplesheet = str()
         self.logfile = args.logfile
         # Set the custom cutoff value
         self.cutoff = float(cutoff)
