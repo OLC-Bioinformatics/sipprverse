@@ -6,10 +6,15 @@ from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
 from Bio import SeqIO
 from io import StringIO
+import seaborn as sns
 from glob import glob
+import pandas as pd
 import operator
 import numpy
 import os
+import re
+
+
 __author__ = 'adamkoziol'
 
 
@@ -250,8 +255,6 @@ class Reports(object):
             # Find the .fai file in the target path
             sample[analysistype].faifile = glob(os.path.join(sample[analysistype].targetpath, '*.fai'))[0]
         except IndexError:
-            print(sample.name, sample[analysistype].targetpath)
-            print(sample[analysistype].datastore)
             target_file = glob(os.path.join(sample[analysistype].targetpath, '*.fasta'))[0]
             samindex = SamtoolsFaidxCommandline(reference=target_file)
             map(StringIO, samindex(cwd=sample[analysistype].targetpath))
@@ -375,3 +378,190 @@ class Reports(object):
             self.portallog = inputobject.portallog
         except AttributeError:
             self.portallog = ''
+
+
+class ReportImage(object):
+
+    def main(self):
+        self.dataframe_setup()
+        self.figure_populate(self.outputfolder,
+                             self.image_report,
+                             self.header_list,
+                             self.samples,
+                             'genesippr',
+                             'report',
+                             fail=self.fail)
+        # Quality
+        # figure_populate(self.outputfolder, 'quality.csv', 'quality', 'report')
+
+    def data_sanitise(self, inputstring, header=None):
+        """
+
+        :param inputstring:
+        :param header:
+        :return:
+        """
+        if str(inputstring) == 'nan':
+            outputstring = 0
+        elif '%' in str(inputstring):
+            group = re.findall('(\d+)\..+', str(inputstring))
+            outputstring = group[0]
+        # elif header == 'GDCS':
+        #     num, denom = inputstring.split('/')
+        #     outputstring = str(int(float(num) / float(denom) * 100))
+        elif header == 'Pass/Fail':
+            if str(inputstring) == '+':
+                outputstring = '100'
+            else:
+                outputstring = -100
+                self.fail = True
+        elif header == 'ContamStatus':
+            if str(inputstring) == 'Clean':
+                outputstring = '100'
+            else:
+                outputstring = -100
+                self.fail = True
+        elif header == 'MeanCoverage':
+            cov = float(str(inputstring).split(' ')[0])
+            # print('cov', cov)
+            if cov >= 20:
+                outputstring = 100
+            else:
+                # outputstring = str(int(cov / 20 * 100))
+                outputstring = -100
+                self.fail = True
+        else:
+            outputstring = str(inputstring)
+        # print(header, 'input', inputstring, 'output', outputstring)
+        return outputstring
+
+    def dataframe_setup(self):
+        #
+        genesippr_dict = dict()
+        try:
+            sippr_matrix = pd.read_csv(os.path.join(self.reportpath, 'genesippr.csv'),
+                                       delimiter=',', index_col=0).T.to_dict()
+        except FileNotFoundError:
+            sippr_matrix = dict()
+        # sippr_matrix.set_index('Strain', inplace=True)
+        try:
+            conf_matrix = pd.read_csv(os.path.join(self.reportpath, 'confindr_report.csv'),
+                                      delimiter=',', index_col=0).T.to_dict()
+        except FileNotFoundError:
+            conf_matrix = dict()
+        try:
+            gdcs_matrix = pd.read_csv(os.path.join(self.reportpath, 'GDCS.csv'),
+                                      delimiter=',', index_col=0).T.to_dict()
+        except FileNotFoundError:
+            gdcs_matrix = dict()
+        #
+        for sample in self.metadata:
+            genesippr_dict[sample.name] = dict()
+            try:
+                genesippr_dict[sample.name]['eae'] = self.data_sanitise(sippr_matrix[sample.name]['eae'])
+            except KeyError:
+                genesippr_dict[sample.name]['eae'] = 0
+            try:
+                genesippr_dict[sample.name]['VT1'] = self.data_sanitise(sippr_matrix[sample.name]['VT1'])
+            except KeyError:
+                genesippr_dict[sample.name]['VT1'] = 0
+            try:
+                genesippr_dict[sample.name]['VT2'] = self.data_sanitise(sippr_matrix[sample.name]['VT2'])
+            except KeyError:
+                genesippr_dict[sample.name]['VT2'] = 0
+            try:
+                genesippr_dict[sample.name]['hlyA'] = self.data_sanitise(sippr_matrix[sample.name]['hlyA'])
+            except KeyError:
+                genesippr_dict[sample.name]['hlyA'] = 0
+            try:
+                genesippr_dict[sample.name]['IGS'] = self.data_sanitise(sippr_matrix[sample.name]['IGS'])
+            except KeyError:
+                genesippr_dict[sample.name]['IGS'] = 0
+            try:
+                genesippr_dict[sample.name]['inlJ'] = self.data_sanitise(sippr_matrix[sample.name]['inlJ'])
+            except KeyError:
+                genesippr_dict[sample.name]['inlJ'] = 0
+            try:
+                genesippr_dict[sample.name]['invA'] = self.data_sanitise(sippr_matrix[sample.name]['invA'])
+            except KeyError:
+                genesippr_dict[sample.name]['invA'] = 0
+            try:
+                genesippr_dict[sample.name]['stn'] = self.data_sanitise(sippr_matrix[sample.name]['stn'])
+            except KeyError:
+                genesippr_dict[sample.name]['stn'] = 0
+            # try:
+            #     genesippr_dict[sample.name]['GDCS'] = self.data_sanitise(gdcs_matrix[sample.name]['Matches'],
+            #                                                              header='GDCS')
+            # except KeyError:
+            #     genesippr_dict[sample.name]['GDCS'] = 0
+            try:
+                genesippr_dict[sample.name]['GDCS'] = self.data_sanitise(gdcs_matrix[sample.name]['Pass/Fail'],
+                                                                              header='Pass/Fail')
+            except KeyError:
+                genesippr_dict[sample.name]['GDCS'] = 0
+            try:
+                genesippr_dict[sample.name]['Contamination'] = self.data_sanitise(
+                    conf_matrix[sample.name]['ContamStatus'], header='ContamStatus')
+            except KeyError:
+                genesippr_dict[sample.name]['Contamination'] = 0
+            try:
+                genesippr_dict[sample.name]['Coverage'] = self.data_sanitise(
+                    gdcs_matrix[sample.name]['MeanCoverage'], header='MeanCoverage')
+            except KeyError:
+                genesippr_dict[sample.name]['Coverage'] = 0
+
+        with open(self.image_report, 'w') as csv:
+            data = '{}\n'.format(','.join(self.header_list))
+            for strain in sorted(genesippr_dict):
+                data += '{str},'.format(str=strain)
+                for header in self.header_list[1:]:
+                    data += '{value},'.format(value=genesippr_dict[strain][header])
+
+                data = data.rstrip(',')
+                data += '\n'
+            csv.write(data)
+
+    @staticmethod
+    def figure_populate(outputpath, csv, xlabels, ylabels, analysistype, description, fail=False):
+
+        df = pd.read_csv(
+            os.path.join(outputpath, csv),
+            delimiter=',',
+            index_col=0)
+
+        if description == 'template':
+            cmap = ['#a0a0a0']
+        elif fail:
+            cmap = ['#ff0000', '#a0a0a0', '#00cc00']
+        else:
+            cmap = ['#a0a0a0', '#00cc00']
+
+        plot = sns.heatmap(df,
+                           cbar=False,
+                           linewidths=.5,
+                           cmap=cmap)
+        plot.xaxis.set_ticks_position('top')
+        plot.set_ylabel('')
+        plot.set_xticklabels(xlabels[1:], rotation=90)
+        plot.set_yticklabels(ylabels, rotation=0)
+        # plot.figure.set_subplotpars(top=1.5)
+        fig = plot.get_figure()
+        fig.savefig(os.path.join(outputpath, '{at}_{desc}.png'.format(at=analysistype,
+                                                                      desc=description)),
+                    bbox_inches='tight'
+                    )
+
+    def __init__(self, args, analysistype):
+        self.samplesheetpath = args.samplesheetpath
+        self.reportpath = args.reportpath
+        self.header_list = ['Strain', 'eae', 'VT1', 'VT2',
+                            'hlyA', 'IGS', 'inlJ', 'invA', 'stn',
+                            'GDCS', 'Contamination', 'Coverage']
+
+        self.outputfolder = os.path.join(args.path, 'reports')
+        self.metadata = args.runmetadata.samples
+        self.image_report = os.path.join(self.reportpath, 'genesippr_image_report_{}.csv'.format(analysistype))
+        self.samples = sorted([sample.name for sample in self.metadata])
+        self.genesippr_frame = str()
+        self.fail = False
+        self.main()
