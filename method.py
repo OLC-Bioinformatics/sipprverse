@@ -2,7 +2,7 @@
 from accessoryFunctions.accessoryFunctions import MetadataObject, make_path, printtime
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from sixteenS.sixteens_full import SixteenS as SixteensFull
-from sipprverse_reporter.reports import Reports
+from sipprverse_reporter.reports import Reports, ReportImage
 from spadespipeline.typingclasses import GDCS
 import spadespipeline.quality as quality
 from sipprCommon.create_sample_sheet import SampleSheet
@@ -166,16 +166,19 @@ class Method(object):
         Run the typing methods
         """
         self.contamination_detection()
+        ReportImage(self, 'confindr')
         self.run_genesippr()
+        ReportImage(self, 'genesippr')
         self.run_sixteens()
         self.run_gdcs()
+        ReportImage(self, 'gdcs')
 
     def contamination_detection(self):
         """
         Calculate the levels of contamination in the reads
         """
         self.qualityobject = quality.Quality(self)
-        self.qualityobject.contamination_finder(self.sequencepath, self.reportpath)
+        self.qualityobject.contamination_finder(self.sequencepath, self.reportpath, self.portallog)
 
     def run_genesippr(self):
         """
