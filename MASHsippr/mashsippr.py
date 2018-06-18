@@ -1,9 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+from accessoryFunctions.accessoryFunctions import MetadataObject, printtime
+from sipprCommon.objectprep import Objectprep
+from MASHsippr.mash import Mash
+import multiprocessing
 import subprocess
 import time
-from geneSipprV2.sipprverse.MASHsippr.mash import *
-from sipprCommon.objectprep import Objectprep
-from accessoryFunctions.accessoryFunctions import *
+import os
 
 __author__ = 'adamkoziol'
 
@@ -30,27 +32,17 @@ class MashSippr(object):
         :param startingtime: time the script was started
         :param scriptpath: home path of the script
         """
-        import multiprocessing
         # Initialise variables
         self.commit = str(pipelinecommit)
         self.starttime = startingtime
         self.homepath = scriptpath
         # Define variables based on supplied arguments
-        if args.path.endswith('/'):
-            self.path = args.path
-        else:
-            self.path = os.path.join(args.path, '')
+        self.path = args.path
         assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
-        if args.sequencepath.endswith('/'):
-            self.sequencepath = args.sequencepath
-        else:
-            self.sequencepath = os.path.join(args.sequencepath, '')
+        self.sequencepath = args.sequencepath
         assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
-        if args.targetpath.endswith('/'):
-            self.targetpath = args.targetpath
-        else:
-            self.targetpath = os.path.join(args.targetpath, '')
+        self.targetpath = args.targetpath
         self.reportpath = os.path.join(self.path, 'reports')
         assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
@@ -75,6 +67,7 @@ class MashSippr(object):
         self.copy = False
         # Run the analyses
         self.runner()
+
 
 if __name__ == '__main__':
     # Argument parser for user-inputted values, and a nifty help menu

@@ -4,7 +4,6 @@ from threading import Thread
 from subprocess import call
 from queue import Queue
 import os
-import re
 __author__ = 'adamkoziol'
 
 
@@ -54,6 +53,7 @@ class Mash(object):
         while True:
             sample = self.sketchqueue.get()
             if not os.path.isfile(sample[self.analysistype].sketchfile):
+                #
                 call(sample.commands.sketch, shell=True, stdout=self.fnull, stderr=self.fnull)
             self.sketchqueue.task_done()
 
