@@ -32,6 +32,7 @@ def variables():
     v.customsamplesheet = os.path.join(v.miseqpath, v.miseqfolder, 'SampleSheet.csv')
     v.copy = True
     v.debug = True
+    v.demultiplex = True
     return v
 
 
