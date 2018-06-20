@@ -383,6 +383,9 @@ class Reports(object):
 class ReportImage(object):
 
     def main(self):
+        """
+        Run the methods required to create the genesippr report summary image
+        """
         self.dataframe_setup()
         self.figure_populate(self.outputfolder,
                              self.image_report,
@@ -391,24 +394,19 @@ class ReportImage(object):
                              'genesippr',
                              'report',
                              fail=self.fail)
-        # Quality
-        # figure_populate(self.outputfolder, 'quality.csv', 'quality', 'report')
 
     def data_sanitise(self, inputstring, header=None):
         """
-
-        :param inputstring:
-        :param header:
-        :return:
+        Format the data to be consistent with heatmaps
+        :param inputstring: string containing data to be formatted
+        :param header: class of the data - certain categories have specific formatting requirements
+        :return: the formatted output string
         """
         if str(inputstring) == 'nan':
             outputstring = 0
         elif '%' in str(inputstring):
             group = re.findall('(\d+)\..+', str(inputstring))
             outputstring = group[0]
-        # elif header == 'GDCS':
-        #     num, denom = inputstring.split('/')
-        #     outputstring = str(int(float(num) / float(denom) * 100))
         elif header == 'Pass/Fail':
             if str(inputstring) == '+':
                 outputstring = '100'
@@ -423,27 +421,27 @@ class ReportImage(object):
                 self.fail = True
         elif header == 'MeanCoverage':
             cov = float(str(inputstring).split(' ')[0])
-            # print('cov', cov)
             if cov >= 20:
                 outputstring = 100
             else:
-                # outputstring = str(int(cov / 20 * 100))
                 outputstring = -100
                 self.fail = True
         else:
             outputstring = str(inputstring)
-        # print(header, 'input', inputstring, 'output', outputstring)
         return outputstring
 
     def dataframe_setup(self):
-        #
+        """
+        Set-up a report to store the desired header: sanitized string combinations
+        """
+        # Initialise a dictionary to store the sanitized headers and strings
         genesippr_dict = dict()
+        # Try to open all the reports - use pandas to extract the results from any report that exists
         try:
             sippr_matrix = pd.read_csv(os.path.join(self.reportpath, 'genesippr.csv'),
                                        delimiter=',', index_col=0).T.to_dict()
         except FileNotFoundError:
             sippr_matrix = dict()
-        # sippr_matrix.set_index('Strain', inplace=True)
         try:
             conf_matrix = pd.read_csv(os.path.join(self.reportpath, 'confindr_report.csv'),
                                       delimiter=',', index_col=0).T.to_dict()
@@ -454,7 +452,7 @@ class ReportImage(object):
                                       delimiter=',', index_col=0).T.to_dict()
         except FileNotFoundError:
             gdcs_matrix = dict()
-        #
+        # Populate the header:sanitized string dictionary with results from all strains
         for sample in self.metadata:
             genesippr_dict[sample.name] = dict()
             try:
@@ -489,14 +487,9 @@ class ReportImage(object):
                 genesippr_dict[sample.name]['stn'] = self.data_sanitise(sippr_matrix[sample.name]['stn'])
             except KeyError:
                 genesippr_dict[sample.name]['stn'] = 0
-            # try:
-            #     genesippr_dict[sample.name]['GDCS'] = self.data_sanitise(gdcs_matrix[sample.name]['Matches'],
-            #                                                              header='GDCS')
-            # except KeyError:
-            #     genesippr_dict[sample.name]['GDCS'] = 0
             try:
                 genesippr_dict[sample.name]['GDCS'] = self.data_sanitise(gdcs_matrix[sample.name]['Pass/Fail'],
-                                                                              header='Pass/Fail')
+                                                                         header='Pass/Fail')
             except KeyError:
                 genesippr_dict[sample.name]['GDCS'] = 0
             try:
@@ -509,7 +502,7 @@ class ReportImage(object):
                     gdcs_matrix[sample.name]['MeanCoverage'], header='MeanCoverage')
             except KeyError:
                 genesippr_dict[sample.name]['Coverage'] = 0
-
+        # Create a report from the header: sanitized string dictionary to be used in the creation of the report image
         with open(self.image_report, 'w') as csv:
             data = '{}\n'.format(','.join(self.header_list))
             for strain in sorted(genesippr_dict):
@@ -523,29 +516,48 @@ class ReportImage(object):
 
     @staticmethod
     def figure_populate(outputpath, csv, xlabels, ylabels, analysistype, description, fail=False):
-
+        """
+        Create the report image from the summary report created in self.dataframesetup
+        :param outputpath: Path in which the outputs are to be created
+        :param csv: Name of the report file from which data are to be extracted
+        :param xlabels: List of all the labels to use on the x-axis
+        :param ylabels: List of all the labels to use on the y-axis
+        :param analysistype: String of the analysis type
+        :param description: String describing the analysis: set to either template for the empty heatmap created prior
+        to analyses or report for normal functionality
+        :param fail: Boolean of whether any samples have failed the quality checks - used for determining the palette
+        """
+        # Create a data frame from the summary report
         df = pd.read_csv(
             os.path.join(outputpath, csv),
             delimiter=',',
             index_col=0)
-
+        # Set the palette appropriately - 'template' uses only grey
         if description == 'template':
             cmap = ['#a0a0a0']
+        # 'fail' uses red (fail), grey (not detected), and green (detected/pass)
         elif fail:
             cmap = ['#ff0000', '#a0a0a0', '#00cc00']
+        # Otherwise only use grey (not detected) and green (detected/pass)
         else:
             cmap = ['#a0a0a0', '#00cc00']
-
+        # Use seaborn to create a heatmap of the data
         plot = sns.heatmap(df,
                            cbar=False,
                            linewidths=.5,
                            cmap=cmap)
+        # Move the x-axis to the top of the plot
         plot.xaxis.set_ticks_position('top')
+        # Remove the y-labels
         plot.set_ylabel('')
+        # Set the x-tick labels as a slice of the x-labels list (first entry is not required, as it makes the
+        # report image look crowded. Rotate the x-tick labels 90 degrees
         plot.set_xticklabels(xlabels[1:], rotation=90)
+        # Set the y-tick labels from the supplied list
         plot.set_yticklabels(ylabels, rotation=0)
-        # plot.figure.set_subplotpars(top=1.5)
+        # Create the figure
         fig = plot.get_figure()
+        # Save the figure in .png format, using the bbox_inches='tight' option to ensure that everything is scaled
         fig.savefig(os.path.join(outputpath, '{at}_{desc}.png'.format(at=analysistype,
                                                                       desc=description)),
                     bbox_inches='tight'
@@ -557,7 +569,6 @@ class ReportImage(object):
         self.header_list = ['Strain', 'eae', 'VT1', 'VT2',
                             'hlyA', 'IGS', 'inlJ', 'invA', 'stn',
                             'GDCS', 'Contamination', 'Coverage']
-
         self.outputfolder = os.path.join(args.path, 'reports')
         self.metadata = args.runmetadata.samples
         self.image_report = os.path.join(self.reportpath, 'genesippr_image_report_{}.csv'.format(analysistype))
