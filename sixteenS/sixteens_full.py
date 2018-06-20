@@ -28,7 +28,7 @@ class SixteenSBait(Sippr):
 
     def main(self):
         """
-
+        Run the required methods in the appropriate order
         """
         self.targets()
         self.bait(k=51)
@@ -58,7 +58,7 @@ class SixteenSSipper(Sippr):
 
     def main(self):
         """
-
+        Run the required methods in the appropriate order
         """
         self.targets()
         self.bait()
