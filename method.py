@@ -61,6 +61,9 @@ class Method(object):
         self.forward = int(objects.forward)
         self.reverse = int(objects.reverse)
         self.index = objects.index
+        self.index_length = objects.index_length
+        self.forwardlength = int(objects.forwardlength)
+        self.reverselength = int(objects.reverselength)
         # Store data from the sample sheet header and body
         self.header = objects.header
         self.rundata = objects.run
@@ -83,7 +86,7 @@ class Method(object):
             # Calculate the total number of reads needed for the run (forward + index1 + index2 + reverse). As the index
             # is the modified index used for the bcl2fastq its format is something like: AGGCAGAA-GCGTAAGA. Count only
             # the alphanumeric characters.
-            self.sum = self.forward + sum(count.isalpha() for count in self.index) + self.reverse
+            self.sum = self.forwardlength + self.index_length + self.reverselength
             # Ensuring that the forward length is set to full - for testing only. In a real analysis, the forward length
             # has to be full due to the way that the sequencing is performed
             self.forwardlength = 'full'
@@ -130,7 +133,7 @@ class Method(object):
             # If the sequencing run is not yet complete, continue to pull data from the MiSeq as it is created
             else:
                 # Determine the length of reverse reads that can be used
-                self.reverselength = str(len(cycles) - self.forward - sum(count.isalpha() for count in self.index))
+                self.reverselength = str(len(cycles) - self.forwardlength - self.index_length)
                 printtime(
                     'Certain strains did not pass the quality thresholds. Attempting the pipeline with the following '
                     'read lengths: forward {}, reverse {}'.format(self.forwardlength, self.reverselength),
@@ -291,10 +294,12 @@ class Method(object):
             self.debug = args.debug
         except AttributeError:
             self.debug = False
+        self.demultiplex = args.demultiplex
         self.pipeline = False
         self.forward = str()
         self.reverse = str()
         self.index = str()
+        self.index_length = int()
         self.header = dict()
         self.rundata = dict()
         self.completed = list()
@@ -353,8 +358,13 @@ if __name__ == '__main__':
                              'will be split into multiple projects')
     parser.add_argument('-C', '--copy',
                         action='store_true',
+                        default=True,
                         help='Normally, the program will create symbolic links of the files into the sequence path, '
                              'however, the are occasions when it is necessary to copy the files instead')
+    parser.add_argument('-D', '--demultiplex',
+                        action='store_false',
+                        default=True,
+                        help='Optionally disable demultiplexing by bcl2fastq if there is a single sample in the run')
     # Get the arguments into an object
     arguments = parser.parse_args()
     arguments.portallog = os.path.join(arguments.outputpath, 'portal.log')
@@ -367,47 +377,3 @@ if __name__ == '__main__':
 
     # Print a bold, green exit statement
     printtime('Analyses complete', start, option='\033[1;92m', output=arguments.portallog)
-
-"""
--b
--m
-/media/miseq
--f
-170420_M02466_0033_000000000-AYMM9
--r1
-120
--r2
-0
--C
-
-
-/home/adamkoziol/Bioinformatics/sippr/method
--t
-/mnt/nas/bio_requests/8312/newsixteens/targets
--b
--m
-/home/adamkoziol/Bioinformatics/
--f
-161104_M02466_0002_000000000-AV4G5
--r1
-20
--r2
-0
--C
--c
-/home/adamkoziol/Bioinformatics/sippr/method/SampleSheet.csv
-
-
--b
--m
-/home/adamkoziol/Bioinformatics/
--f
-161104_M02466_0002_000000000-AV4G5
--r1
-full
--r2
-full
--c
-/home/adamkoziol/Bioinformatics/sippr/method/SampleSheet.csv
-
-"""
