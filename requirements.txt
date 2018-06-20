@@ -34,7 +34,7 @@ pytz==2018.4
 PyYAML==3.12
 scipy==1.1.0
 seaborn==0.8.1
-sipprverse==0.0.72
+sipprverse==0.0.73
 six==1.11.0
 tex2pix==0.3.1
 tornado==4.5.3
