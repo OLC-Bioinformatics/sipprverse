@@ -326,7 +326,10 @@ class GeneSippr(object):
                             try:
                                 genus = sample.general.referencegenus
                             except KeyError:
-                                genus = sample.general.closestrefseqgenus
+                                try:
+                                    genus = sample.general.closestrefseqgenus
+                                except KeyError:
+                                    genus = 'ND'
                             # If this is the first of one or more sequence types, include the sample name
                             row += '{},{},{},{},'.format(sample.name, genus, seqtype,
                                                          sample[self.analysistype].matches)
