@@ -47,7 +47,7 @@ class Sipprverse(object):
             MLSTSippr(self, self.commit, self.starttime, self.homepath, 'rMLST', 1.0, True)
         if self.resistance:
             # ResFinding
-            res = Resistance(self, self.commit, self.starttime, self.homepath, 'resfinder', 0.9, False, True)
+            res = Resistance(self, self.commit, self.starttime, self.homepath, 'resfinder', 0.70, False, True)
             res.main()
         if self.virulence:
             vir = Virulence(self, self.commit, self.starttime, self.homepath, 'virulence', 0.95, False, True)
@@ -68,7 +68,7 @@ class Sipprverse(object):
         # Optionally perform serotyping
         if self.serotype:
             self.genus_specific()
-            SeroSippr(self, self.commit, self.starttime, self.homepath, 'serosippr', 0.95, True)
+            SeroSippr(self, self.commit, self.starttime, self.homepath, 'serosippr', 0.90, True)
         if self.user_genes:
             custom = CustomGenes(self)
             custom.main()
