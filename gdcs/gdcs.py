@@ -22,9 +22,10 @@ class GDCS(object):
         objects.objectprep()
         self.runmetadata = objects.samples
         # Run the analyses
-        Sippr(self, self.cutoff)
+        sippr = Sippr(self, self.cutoff)
         # Create the reports
         self.reporter()
+        sippr.clear()
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
