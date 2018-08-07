@@ -30,10 +30,11 @@ class GeneSippr(object):
                 objects.objectprep()
                 self.runmetadata = objects.samples
         # Run the analyses
-        Sippr(self, self.cutoff)
+        sippr = Sippr(self, self.cutoff)
         # Create the reports
         reports = Reports(self)
         Reports.reporter(reports, analysistype=self.analysistype)
+        sippr.clear()
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
