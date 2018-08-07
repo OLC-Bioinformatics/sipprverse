@@ -1,13 +1,15 @@
 #!/usr/bin/env python
-import subprocess
-import time
-import os
-from MLSTsippr.sipprmlst import MLSTmap
-from sipprCommon.objectprep import Objectprep
 from accessoryFunctions.accessoryFunctions import printtime, make_dict, dotter, make_path
 from accessoryFunctions.metadataprinter import MetadataPrinter
+from sipprCommon.objectprep import Objectprep
+from MLSTsippr.sipprmlst import MLSTmap
 from collections import defaultdict
+import subprocess
 import operator
+import time
+import os
+
+
 __author__ = 'adamkoziol'
 
 
@@ -28,26 +30,10 @@ class GeneSippr(object):
             objects.objectprep()
             self.runmetadata = objects.samples
         # Run the analyses
-        MLSTmap(self, self.analysistype, self.cutoff)
+        mlst = MLSTmap(self, self.analysistype, self.cutoff)
         # Create the reports
         self.reporter()
-        for sample in self.runmetadata.samples:
-            # Remove large attributes from the object
-            try:
-                delattr(sample[self.analysistype], 'profiledata')
-                delattr(sample[self.analysistype], 'allelenames')
-                delattr(sample[self.analysistype], 'alleles')
-                delattr(sample[self.analysistype], 'faidict')
-                delattr(sample[self.analysistype], 'gaplocations')
-                delattr(sample[self.analysistype], 'maxcoverage')
-                delattr(sample[self.analysistype], 'mincoverage')
-                delattr(sample[self.analysistype], 'resultsgap')
-                delattr(sample[self.analysistype], 'resultssnp')
-                delattr(sample[self.analysistype], 'snplocations')
-                delattr(sample[self.analysistype], 'standarddev')
-                delattr(sample[self.analysistype], 'avgdepth')
-            except KeyError:
-                pass
+        mlst.clear()
         # Print the metadata to a .json file
         MetadataPrinter(self)
 
