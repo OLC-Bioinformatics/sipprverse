@@ -32,7 +32,7 @@ class SixteenSBait(Sippr):
         """
         self.targets()
         self.bait(k=51)
-        self.reversebait()
+        self.reversebait(maskmiddle='t', k=19)
         self.subsample_reads()
 
     def targets(self):
