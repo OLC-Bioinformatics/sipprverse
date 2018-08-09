@@ -168,7 +168,7 @@ if __name__ == '__main__':
     commit = subprocess.Popen('cd {} && git rev-parse --short HEAD'.format(homepath),
                               shell=True, stdout=subprocess.PIPE).communicate()[0].rstrip()
     # Parser for arguments
-    parser = ArgumentParser(description='Perform modelling of parameters for GeneSipping')
+    parser = ArgumentParser(description='Performs GeneSipping on folder of FASTQ files')
     parser.add_argument('-o', '--outputpath',
                         required=True,
                         help='Path to directory in which report folder is to be created')
