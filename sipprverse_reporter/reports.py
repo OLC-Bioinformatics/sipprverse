@@ -69,16 +69,30 @@ class Reports(object):
                 if sample.general.bestassemblyfile != 'NA':
                     # Add the genus/genera found in the sample
                     data += '{},{},'.format(sample.name, ';'.join(sample[analysistype].targetgenera))
+                    best_dict = dict()
                     if sample[analysistype].results:
                         gene_check = list()
+                        # Find the best match for all the hits
+                        for target, pid in sample[analysistype].results.items():
+                            gene_name = target.split('_')[0]
+                            # Initialise the gene name in the dictionary
+                            best_dict[gene_name] = 0
+                            for gene in genelist:
+                                # If the key matches a gene in the list of genes
+                                if gene == gene_name:
+                                    # If the percent identity is better, update the dictionary
+                                    if float(pid) > best_dict[gene]:
+                                        best_dict[gene] = float(pid)
                         for gene in genelist:
                             # If the gene was not found in the sample, print an empty cell in the report
-                            if gene not in [target[0].split('_')[0] for target in sample[analysistype].results.items()]:
+                            try:
+                                best_dict[gene]
+                            except KeyError:
                                 data += ','
                             # Print the required information for the gene
                             for name, identity in sample[analysistype].results.items():
                                 if name.split('_')[0] == gene and gene not in gene_check:
-                                    data += '{}% ({} +/- {}),'.format(identity,
+                                    data += '{}% ({} +/- {}),'.format(best_dict[gene],
                                                                       sample[analysistype].avgdepth[name],
                                                                       sample[analysistype].standarddev[name])
                                     gene_check.append(gene)
