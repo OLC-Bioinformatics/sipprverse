@@ -1,14 +1,18 @@
 name: genesippr
 channels:
   - dranew
-  - biobuilds
   - anaconda
+  - biobuilds
   - conda-forge
   - bioconda
   - olcbioinformatics
   - defaults
 dependencies:
+  - ca-certificates=2018.03.07=0
+  - certifi=2018.8.24=py35_1
+  - harfbuzz=1.8.4=hec2c2bc_0
   - mkl=2019.0=118
+  - openssl=1.0.2p=h14c3975_0
   - fastx-toolkit=0.0.14=pl5.22.0_2
   - bbmap=38.22=h470a237_0
   - blast=2.7.1=h4422958_6
@@ -47,10 +51,8 @@ dependencies:
   - boost=1.67.0=py35h3e44d54_0
   - boost-cpp=1.67.0=h3a22d5f_0
   - bzip2=1.0.6=h470a237_2
-  - ca-certificates=2018.8.24=ha4d7672_0
   - cairo=1.14.12=h276e583_5
   - capnproto=0.6.1=hfc679d8_1
-  - certifi=2018.8.24=py35_1001
   - cffi=1.11.5=py35h5e8e0c9_1
   - chardet=3.0.4=py35_3
   - click=6.7=py_1
@@ -76,7 +78,6 @@ dependencies:
   - gsl=2.4=blas_openblash47a8a8e_1
   - gst-plugins-base=1.8.0=0
   - gstreamer=1.8.0=1
-  - harfbuzz=1.9.0=h08d66d9_0
   - icu=58.2=hfc679d8_0
   - idna=2.7=py35_2
   - jinja2=2.10=py_1
@@ -110,7 +111,6 @@ dependencies:
   - numpy=1.15.2=py35_blas_openblashd3ea46f_0
   - olefile=0.46=py_0
   - openblas=0.2.20=8
-  - openssl=1.0.2p=h470a237_0
   - pandas=0.23.4=py35hf8a1672_0
   - pango=1.40.14=he752989_2
   - patchelf=0.9=hfc679d8_2
