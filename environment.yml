@@ -1,8 +1,8 @@
 name: genesippr
 channels:
+  - biobuilds
   - dranew
   - anaconda
-  - biobuilds
   - conda-forge
   - bioconda
   - olcbioinformatics
@@ -47,7 +47,7 @@ dependencies:
   - boost=1.67.0=py35h3e44d54_0
   - boost-cpp=1.67.0=h3a22d5f_0
   - bzip2=1.0.6=h470a237_2
-  - cairo=1.14.12=he6fea26_5
+  - cairo=1.14.10=0
   - capnproto=0.6.1=hfc679d8_1
   - certifi=2018.8.24=py35_1001
   - cffi=1.11.5=py35h5e8e0c9_1
@@ -76,7 +76,7 @@ dependencies:
   - gsl=2.4=blas_openblash47a8a8e_1
   - gst-plugins-base=1.8.0=0
   - gstreamer=1.8.0=1
-  - harfbuzz=1.9.0=hee26f79_1
+  - harfbuzz=1.7.6=0
   - icu=58.2=hfc679d8_0
   - idna=2.7=py35_2
   - jinja2=2.10=py_1
