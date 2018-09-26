@@ -1,6 +1,6 @@
 package:
   name: sipprverse
-  version: "0.0.76"
+  version: "0.0.77"
 
 source:
   git_url: https://github.com/OLC-Bioinformatics/sipprverse
