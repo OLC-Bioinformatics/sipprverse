@@ -132,6 +132,7 @@ class Sipprverse(object):
         self.serotype = args.serotype
         self.sixteens = args.sixteens
         self.virulence = args.virulence
+        self.averagedepth = args.averagedepth
         try:
             self.user_genes = os.path.join(args.user_genes)
             assert os.path.isfile(self.user_genes), 'Cannot find user-supplied target file: {targets}. Please ' \
@@ -176,7 +177,11 @@ if __name__ == '__main__':
                         required=True,
                         help='Path of .fastq(.gz) files to process.')
     parser.add_argument('-r', '--referencefilepath',
+                        required=True,
                         help='Provide the location of the folder containing reference database')
+    parser.add_argument('-a', '--averagedepth',
+                        default=2,
+                        help='Cutoff value for mapping depth to use when parsing BAM files.')
     parser.add_argument('-n', '--numthreads',
                         help='Number of threads. Default is the number of cores in the system')
     parser.add_argument('-c', '--customcutoffs',

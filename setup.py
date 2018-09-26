@@ -13,4 +13,14 @@ setup(
     description='Object oriented raw read typing software',
     url='https://github.com/OLC-Bioinformatics/sipprverse',
     long_description=open('README.md').read(),
+    install_requires=['olctools',
+                      'biopython',
+                      'pandas',
+                      'seaborn',
+                      'numpy',
+                      'pytest',
+                      'pysam',
+                      'xlsxwriter',
+                      'geneseekr',
+                      'confindr']
 )
