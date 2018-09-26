@@ -10,7 +10,6 @@ before_install:
   - conda update -q conda
   - conda env create -f environment.yml
   - source activate sipprverse
-install:
 
 script:
   - pytest tests/test_method.py
