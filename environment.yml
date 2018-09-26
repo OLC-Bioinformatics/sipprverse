@@ -1,15 +1,18 @@
 name: genesippr
 channels:
   - biobuilds
-  - dranew
   - anaconda
+  - dranew
   - conda-forge
   - bioconda
   - olcbioinformatics
   - defaults
 dependencies:
   - ca-certificates=2018.03.07=0
+  - certifi=2018.8.24=py35_1
   - mkl=2019.0=118
+  - openjdk=8.0.121=1
+  - openssl=1.0.2p=h14c3975_0
   - fastx-toolkit=0.0.14=pl5.22.0_2
   - bbmap=38.22=h470a237_0
   - blast=2.7.1=h4422958_6
@@ -49,7 +52,6 @@ dependencies:
   - bzip2=1.0.6=h470a237_2
   - cairo=1.14.10=0
   - capnproto=0.6.1=hfc679d8_1
-  - certifi=2018.8.24=py35_1001
   - cffi=1.11.5=py35h5e8e0c9_1
   - chardet=3.0.4=py35_3
   - click=6.7=py_1
@@ -110,7 +112,6 @@ dependencies:
   - numpy=1.15.2=py35_blas_openblashd3ea46f_0
   - olefile=0.46=py_0
   - openblas=0.2.20=8
-  - openssl=1.0.2p=h470a237_0
   - pandas=0.23.4=py35hf8a1672_0
   - pango=1.40.14=0
   - patchelf=0.9=hfc679d8_2
@@ -166,7 +167,6 @@ dependencies:
   - libcurl=7.61.0=h1ad7b7a_0
   - libopenblas=0.2.20=h9ac9557_7
   - numpy-base=1.14.3=py35h0ea5e3f_1
-  - openjdk=8.0.152=h46b5887_1
   - bcl2fastq=2.19.0=1
   - boost_lib=1.54.0=1
   - olctools=0.4.7=py35_0
