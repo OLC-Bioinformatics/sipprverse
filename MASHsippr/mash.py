@@ -98,7 +98,8 @@ class Mash(object):
         # Set the name of the file storing the assembly summaries
         referencefile = os.path.join(self.referencefilepath, self.analysistype, 'assembly_summary_refseq.txt')
         # Extract the accession: genus species key: value pairs from the refseq summary file
-        with open(referencefile, encoding='utf-8') as reffile:  # UTF-8 encoding since some special chars in the assembly_summary
+        # UTF-8 encoding since some special chars in the assembly_summary
+        with open(referencefile, encoding='utf-8') as reffile:
             for line in reffile:
                 # Ignore the first couple of lines
                 if line.startswith('# assembly_accession'):
