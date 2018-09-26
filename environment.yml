@@ -1,8 +1,8 @@
 name: genesippr
 channels:
-  - biobuilds
-  - anaconda
   - dranew
+  - anaconda
+  - biobuilds
   - conda-forge
   - bioconda
   - olcbioinformatics
@@ -125,7 +125,7 @@ dependencies:
   - pycosat=0.6.3=py35h470a237_1
   - pycparser=2.19=py_0
   - pyopenssl=18.0.0=py35_0
-  - pyqt=4.11.4=py35_3
+  - pyqt=5.6.0=py35h8210e8a_7
   - pysocks=1.6.8=py35_2
   - python=3.5.5=1
   - python-dateutil=2.7.3=py_0
