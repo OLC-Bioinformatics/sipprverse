@@ -4,7 +4,7 @@ __author__ = 'adamkoziol'
 
 setup(
     name="sipprverse",
-    version="0.0.77",
+    version="0.0.78",
     packages=find_packages(),
     include_package_data=True,
     license='MIT',
