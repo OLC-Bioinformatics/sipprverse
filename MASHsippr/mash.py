@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-from accessoryFunctions.accessoryFunctions import printtime, make_path, GenObject
+from accessoryFunctions.accessoryFunctions import make_path, GenObject, run_subprocess, write_to_logfile
+from click import progressbar
 from threading import Thread
-from subprocess import call
 from queue import Queue
+import logging
 import os
 __author__ = 'adamkoziol'
 
 
 class Mash(object):
     def sketching(self):
-        printtime('Indexing files for {} analysis'.format(self.analysistype), self.starttime)
+        logging.info('Indexing files for {} analysis'.format(self.analysistype))
         # Create the threads for the analysis
         for i in range(self.cpus):
             threads = Thread(target=self.sketch, args=())
@@ -37,13 +38,14 @@ class Mash(object):
                 filelist.write('\n'.join(sample.general.trimmedcorrectedfastqfiles))
 
             # Create the system call
-            sample.commands.sketch = 'mash sketch -m 2 -p {} -l {} -o {}' \
-                .format(self.cpus, sample[self.analysistype].filelist, sample[self.analysistype].sketchfilenoext)
+            sample.commands.sketch = 'mash sketch -m 2 -r -l {file_list} -o {output_file}' \
+                .format(file_list=sample[self.analysistype].filelist,
+                        output_file=sample[self.analysistype].sketchfilenoext)
             # Add each sample to the threads
             try:
                 self.sketchqueue.put(sample)
             except (KeyboardInterrupt, SystemExit):
-                printtime('Received keyboard interrupt, quitting threads', self.starttime)
+                logging.info('Received keyboard interrupt, quitting threads')
                 quit()
         # Join the threads
         self.sketchqueue.join()
@@ -53,32 +55,47 @@ class Mash(object):
         while True:
             sample = self.sketchqueue.get()
             if not os.path.isfile(sample[self.analysistype].sketchfile):
-                #
-                call(sample.commands.sketch, shell=True, stdout=self.fnull, stderr=self.fnull)
+                # Run the command
+                out, err = run_subprocess(sample.commands.sketch)
+                write_to_logfile(out=sample.commands.sketch,
+                                 err=sample.commands.sketch,
+                                 logfile=self.logfile,
+                                 samplelog=sample.general.logout,
+                                 sampleerr=sample.general.logerr,
+                                 analysislog=None,
+                                 analysiserr=None)
+                write_to_logfile(out=out,
+                                 err=err,
+                                 logfile=self.logfile,
+                                 samplelog=sample.general.logout,
+                                 sampleerr=sample.general.logerr,
+                                 analysislog=None,
+                                 analysiserr=None)
             self.sketchqueue.task_done()
 
     def mashing(self):
-        printtime('Performing {} analyses'.format(self.analysistype), self.starttime)
+        logging.info('Performing {} analyses'.format(self.analysistype))
         # Create the threads for the analysis
         for i in range(self.cpus):
                 threads = Thread(target=self.mash, args=())
                 threads.setDaemon(True)
                 threads.start()
         # Populate threads for each gene, genome combination
-        for sample in self.metadata:
-            sample[self.analysistype].mashresults = os.path.join(sample[self.analysistype].reportdir, '{}.tab'.format(
-                sample.name))
+        with progressbar(self.metadata) as bar:
+            for sample in bar:
+                sample[self.analysistype].mashresults = os.path.join(sample[self.analysistype].reportdir, '{}.tab'
+                                                                     .format(sample.name))
 
-            sample.commands.mash = \
-                'mash dist -p {} {} {} | sort -gk3 > {}'.format(self.threads,
-                                                                sample[self.analysistype].refseqsketch,
-                                                                sample[self.analysistype].sketchfile,
-                                                                sample[self.analysistype].mashresults)
-            try:
-                self.mashqueue.put(sample)
-            except (KeyboardInterrupt, SystemExit):
-                printtime('Received keyboard interrupt, quitting threads', self.starttime)
-                quit()
+                sample.commands.mash = \
+                    'mash dist {refseq_sketch} {sample_sketch} | sort -gk3 > {results}'\
+                    .format(refseq_sketch=sample[self.analysistype].refseqsketch,
+                            sample_sketch=sample[self.analysistype].sketchfile,
+                            results=sample[self.analysistype].mashresults)
+                try:
+                    self.mashqueue.put(sample)
+                except (KeyboardInterrupt, SystemExit):
+                    logging.error('Received keyboard interrupt, quitting threads')
+                    quit()
         # Join the threads
         self.mashqueue.join()
         self.parse()
@@ -88,11 +105,26 @@ class Mash(object):
             sample = self.mashqueue.get()
             #
             if not os.path.isfile(sample[self.analysistype].mashresults):
-                call(sample.commands.mash, shell=True, stdout=self.fnull, stderr=self.fnull)
+                # Run the command
+                out, err = run_subprocess(sample.commands.mash)
+                write_to_logfile(out=sample.commands.mash,
+                                 err=sample.commands.mash,
+                                 logfile=self.logfile,
+                                 samplelog=sample.general.logout,
+                                 sampleerr=sample.general.logerr,
+                                 analysislog=None,
+                                 analysiserr=None)
+                write_to_logfile(out=out,
+                                 err=err,
+                                 logfile=self.logfile,
+                                 samplelog=sample.general.logout,
+                                 sampleerr=sample.general.logerr,
+                                 analysislog=None,
+                                 analysiserr=None)
             self.mashqueue.task_done()
 
     def parse(self):
-        printtime('Determining closest refseq genome', self.starttime)
+        logging.info('Determining closest refseq genome')
         # Create a dictionary to store the accession: taxonomy id of refseq genomes
         refdict = dict()
         # Set the name of the file storing the assembly summaries
@@ -168,7 +200,7 @@ class Mash(object):
         """
         Create the MASH report
         """
-        printtime('Creating {} report'.format(self.analysistype), self.starttime)
+        logging.info('Creating {} report'.format(self.analysistype))
         make_path(self.reportpath)
         header = 'Strain,ReferenceGenus,ReferenceFile,ReferenceGenomeMashDistance,Pvalue,NumMatchingHashes\n'
         data = ''
@@ -194,10 +226,9 @@ class Mash(object):
         self.starttime = inputobject.starttime
         self.reportpath = inputobject.reportpath
         self.cpus = inputobject.cpus
-        self.threads = int(self.cpus / len(self.metadata)) if self.cpus / len(self.metadata) > 1 else 1
         self.sketchqueue = Queue(maxsize=self.cpus)
-        self.mashqueue = Queue(maxsize=4)
+        self.mashqueue = Queue(maxsize=self.cpus)
         self.analysistype = analysistype
         self.pipeline = inputobject.pipeline
-        self.fnull = open(os.devnull, 'w')  # define /dev/null
+        self.logfile = inputobject.logfile
         self.sketching()
