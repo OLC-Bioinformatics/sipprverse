@@ -141,11 +141,14 @@ dependencies:
   - gsl=1.16=0
   - pip:
     - chardet==3.0.4
+    - geneseekr==0.1.9
     - idna==2.7
     - interop==1.1.6
+    - olctools==0.5.1
     - psutil==5.4.7
     - rauth==0.7.3
     - requests==2.19.1
+    - sipprverse==0.0.80
     - urllib3==1.23
 prefix: /home/adamkoziol/miniconda/envs/sipprverse
 
