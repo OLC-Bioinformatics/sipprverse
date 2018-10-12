@@ -1,5 +1,5 @@
 #!/usr/bin/env python 3
-from accessoryFunctions.accessoryFunctions import MetadataObject, GenObject, printtime, make_path, write_to_logfile, \
+from accessoryFunctions.accessoryFunctions import MetadataObject, GenObject, make_path, write_to_logfile, \
     run_subprocess
 from sipprCommon.objectprep import Objectprep
 from sipprCommon.sippingmethods import Sippr
@@ -10,6 +10,7 @@ from Bio.Seq import Seq
 import Bio.Application
 from Bio import SeqIO
 from argparse import ArgumentParser
+from click import progressbar
 from subprocess import Popen
 from threading import Thread
 from subprocess import PIPE
@@ -18,6 +19,7 @@ from queue import Queue
 import multiprocessing
 from glob import glob
 import operator
+import logging
 import time
 import os
 
@@ -71,8 +73,6 @@ class SixteenSSipper(Sippr):
         self.indexing()
         # Parse the results
         self.parsing()
-        # Clear out the large attributes that will difficult to handle objects
-        self.clear()
         # Filter out any sequences with cigar features such as internal soft-clipping from the results
         self.clipper()
 
@@ -82,8 +82,7 @@ class SixteenSSipper(Sippr):
         genera-specific FASTA file that will be used for all the reference mapping; it replaces the 'bait file' in the
         code
         """
-        printtime('Performing analysis with {} targets folder'.format(self.analysistype), self.start,
-                  output=self.portallog)
+        logging.info('Performing analysis with {} targets folder'.format(self.analysistype))
         for sample in self.runmetadata:
             if sample.general.bestassemblyfile != 'NA':
                 sample[self.analysistype].targetpath = \
@@ -110,13 +109,13 @@ class SixteenS(object):
         """
         Run the necessary methods in the correct order
         """
-        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime, output=self.portallog)
+        logging.info('Starting {} analysis pipeline'.format(self.analysistype))
         if not self.pipeline:
             # If the metadata has been passed from the method script, self.pipeline must still be false in order to
             # get Sippr() to function correctly, but the metadata shouldn't be recreated
             try:
                 _ = vars(self.runmetadata)['samples']
-            except KeyError:
+            except AttributeError:
                 # Create the objects to be used in the analyses
                 objects = Objectprep(self)
                 objects.objectprep()
@@ -153,22 +152,23 @@ class SixteenS(object):
         Subsample 1000 reads from the baited files
         """
         # Create the threads for the analysis
-        printtime('Subsampling FASTQ reads', self.starttime, output=self.portallog)
+        logging.info('Subsampling FASTQ reads')
         for _ in range(self.cpus):
             threads = Thread(target=self.subsamplethreads, args=())
             threads.setDaemon(True)
             threads.start()
-        for sample in self.runmetadata.samples:
-            if sample.general.bestassemblyfile != 'NA':
-                # Set the name of the subsampled FASTQ file
-                sample[self.analysistype].subsampledfastq = os.path.splitext(sample[self.analysistype].baitedfastq)[0] \
-                                                            + '_subsampled.fastq'
-                # Set the system call
-                sample[self.analysistype].seqtkcall = 'reformat.sh in={} out={} samplereadstarget=1000'\
-                    .format(sample[self.analysistype].baitedfastq,
-                            sample[self.analysistype].subsampledfastq)
-                # Add the sample to the queue
-                self.samplequeue.put(sample)
+        with progressbar(self.runmetadata.samples) as bar:
+            for sample in bar:
+                if sample.general.bestassemblyfile != 'NA':
+                    # Set the name of the subsampled FASTQ file
+                    sample[self.analysistype].subsampledfastq = \
+                        os.path.splitext(sample[self.analysistype].baitedfastq)[0] + '_subsampled.fastq'
+                    # Set the system call
+                    sample[self.analysistype].seqtkcall = 'reformat.sh in={} out={} samplereadstarget=1000'\
+                        .format(sample[self.analysistype].baitedfastq,
+                                sample[self.analysistype].subsampledfastq)
+                    # Add the sample to the queue
+                    self.samplequeue.put(sample)
         self.samplequeue.join()
 
     def subsamplethreads(self):
@@ -193,22 +193,24 @@ class SixteenS(object):
         """
         Convert the subsampled reads to FASTA format using reformat.sh
         """
-        printtime('Converting FASTQ files to FASTA format', self.starttime, output=self.portallog)
+        logging.info('Converting FASTQ files to FASTA format')
         # Create the threads for the analysis
         for _ in range(self.cpus):
             threads = Thread(target=self.fastathreads, args=())
             threads.setDaemon(True)
             threads.start()
-        for sample in self.runmetadata.samples:
-            if sample.general.bestassemblyfile != 'NA':
-                # Set the name as the FASTA file - the same as the FASTQ, but with .fa file extension instead of .fastq
-                sample[self.analysistype].fasta = os.path.splitext(sample[self.analysistype].subsampledfastq)[0] + '.fa'
-                # Set the system call
-                sample[self.analysistype].reformatcall = 'reformat.sh in={fastq} out={fasta}'\
-                    .format(fastq=sample[self.analysistype].subsampledfastq,
-                            fasta=sample[self.analysistype].fasta)
-                # Add the sample to the queue
-                self.fastaqueue.put(sample)
+        with progressbar(self.runmetadata.samples) as bar:
+            for sample in bar:
+                if sample.general.bestassemblyfile != 'NA':
+                    # Set the name as the FASTA file - the same as the FASTQ, but with .fa file extension
+                    sample[self.analysistype].fasta = \
+                        os.path.splitext(sample[self.analysistype].subsampledfastq)[0] + '.fa'
+                    # Set the system call
+                    sample[self.analysistype].reformatcall = 'reformat.sh in={fastq} out={fasta}'\
+                        .format(fastq=sample[self.analysistype].subsampledfastq,
+                                fasta=sample[self.analysistype].fasta)
+                    # Add the sample to the queue
+                    self.fastaqueue.put(sample)
         self.fastaqueue.join()
 
     def fastathreads(self):
@@ -258,30 +260,30 @@ class SixteenS(object):
         """
         Run BLAST analyses of the subsampled FASTQ reads against the NCBI 16S reference database
         """
-        printtime('BLASTing FASTA files against {} database'.format(self.analysistype), self.starttime,
-                  output=self.portallog)
+        logging.info('BLASTing FASTA files against {} database'.format(self.analysistype))
         for _ in range(self.cpus):
             threads = Thread(target=self.blastthreads, args=())
             threads.setDaemon(True)
             threads.start()
-        for sample in self.runmetadata.samples:
-            if sample.general.bestassemblyfile != 'NA':
-                # Set the name of the BLAST report
-                sample[self.analysistype].blastreport = os.path.join(
-                    sample[self.analysistype].outputdir,
-                    '{}_{}_blastresults.csv'.format(sample.name, self.analysistype))
-                # Use the NCBI BLASTn command line wrapper module from BioPython to set the parameters of the search
-                blastn = NcbiblastnCommandline(query=sample[self.analysistype].fasta,
-                                               db=os.path.splitext(sample[self.analysistype].baitfile)[0],
-                                               max_target_seqs=1,
-                                               num_threads=self.threads,
-                                               outfmt="'6 qseqid sseqid positive mismatch gaps "
-                                                      "evalue bitscore slen length qstart qend qseq sstart send sseq'",
-                                               out=sample[self.analysistype].blastreport)
-                # Add a string of the command to the metadata object
-                sample[self.analysistype].blastcall = str(blastn)
-                # Add the object and the command to the BLAST queue
-                self.blastqueue.put((sample, blastn))
+        with progressbar(self.runmetadata.samples) as bar:
+            for sample in bar:
+                if sample.general.bestassemblyfile != 'NA':
+                    # Set the name of the BLAST report
+                    sample[self.analysistype].blastreport = os.path.join(
+                        sample[self.analysistype].outputdir,
+                        '{}_{}_blastresults.csv'.format(sample.name, self.analysistype))
+                    # Use the NCBI BLASTn command line wrapper module from BioPython to set the parameters of the search
+                    blastn = NcbiblastnCommandline(query=sample[self.analysistype].fasta,
+                                                   db=os.path.splitext(sample[self.analysistype].baitfile)[0],
+                                                   max_target_seqs=1,
+                                                   num_threads=self.threads,
+                                                   outfmt="'6 qseqid sseqid positive mismatch gaps evalue "
+                                                          "bitscore slen length qstart qend qseq sstart send sseq'",
+                                                   out=sample[self.analysistype].blastreport)
+                    # Add a string of the command to the metadata object
+                    sample[self.analysistype].blastcall = str(blastn)
+                    # Add the object and the command to the BLAST queue
+                    self.blastqueue.put((sample, blastn))
         self.blastqueue.join()
 
     def blastthreads(self):
@@ -301,7 +303,7 @@ class SixteenS(object):
         """
         Parse the blast results, and store necessary data in dictionaries in sample object
         """
-        printtime('Parsing BLAST results', self.starttime, output=self.portallog)
+        logging.info('Parsing BLAST results')
         # Load the NCBI 16S reference database as a dictionary
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
@@ -363,7 +365,7 @@ class SixteenS(object):
         """
         # Create the path in which the reports are stored
         make_path(self.reportpath)
-        printtime('Creating {} report'.format(self.analysistype), self.starttime)
+        logging.info('Creating {} report'.format(self.analysistype))
         # Initialise the header and data strings
         header = 'Strain,Gene,PercentIdentity,Genus,FoldCoverage\n'
         data = ''
@@ -402,7 +404,7 @@ class SixteenS(object):
                                                    id='{}_{}'.format(sample.name, '16S'),
                                                    description='')
                                 SeqIO.write(record, sequences, 'fasta')
-                    except (KeyError, IndexError):
+                    except (AttributeError, IndexError):
                         data += '{}\n'.format(sample.name)
             # Write the results to the report
             report.write(header)
