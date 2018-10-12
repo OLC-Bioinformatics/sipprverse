@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from accessoryFunctions.accessoryFunctions import printtime, MetadataObject
+from accessoryFunctions.accessoryFunctions import MetadataObject, SetupLogging
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from sipprCommon.objectprep import Objectprep
 from sipprCommon.sippingmethods import Sippr
@@ -7,6 +7,7 @@ from sipprverse_reporter.reports import Reports
 from argparse import ArgumentParser
 import multiprocessing
 import subprocess
+import logging
 import time
 import os
 
@@ -19,7 +20,7 @@ class GeneSippr(object):
         """
         Run the necessary methods in the correct order
         """
-        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
+        logging.info('Starting {} analysis pipeline'.format(self.analysistype))
         if not self.pipeline:
             general = None
             for sample in self.runmetadata.samples:
@@ -30,14 +31,12 @@ class GeneSippr(object):
                 objects.objectprep()
                 self.runmetadata = objects.samples
         # Run the analyses
-        sippr = Sippr(self, self.cutoff)
+        Sippr(self, self.cutoff)
         # Create the reports
         reports = Reports(self)
         Reports.reporter(reports, analysistype=self.analysistype)
-        sippr.clear()
         # Print the metadata
-        printer = MetadataPrinter(self)
-        printer.printmetadata()
+        MetadataPrinter(self)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline, revbait):
         """
@@ -107,7 +106,7 @@ class GeneSippr(object):
         try:
             self.averagedepth = int(args.averagedepth)
         except AttributeError:
-            self.averagedepth = 10
+            self.averagedepth = 2
         try:
             self.copy = args.copy
         except AttributeError:
@@ -192,6 +191,7 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Normally, the program will create symbolic links of the files into the sequence path, '
                              'however, the are occasions when it is necessary to copy the files instead')
+    SetupLogging()
     # Get the arguments into an object
     arguments = parser.parse_args()
     arguments.pipeline = False
@@ -205,4 +205,4 @@ if __name__ == '__main__':
     GeneSippr(arguments, commit, start, homepath, arguments.analysistype, arguments.cutoff, arguments.pipeline, False)
 
     # Print a bold, green exit statement
-    print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')
+    logging.info('Analyses complete')
