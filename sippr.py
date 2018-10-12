@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from accessoryFunctions.accessoryFunctions import make_path, MetadataObject, printtime
+from accessoryFunctions.accessoryFunctions import make_path, MetadataObject, SetupLogging
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from spadespipeline.typingclasses import Resistance, Virulence
 from sixteenS.sixteens_full import SixteenS as SixteensFull
@@ -13,6 +13,7 @@ import MASHsippr.mash as mash
 from argparse import ArgumentParser
 import multiprocessing
 import subprocess
+import logging
 import time
 import os
 
@@ -25,7 +26,7 @@ class Sipprverse(object):
         """
         Run the necessary methods in the correct order
         """
-        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
+        logging.info('Starting {} analysis pipeline'.format(self.analysistype))
         # Create the objects to be used in the analyses
         objects = Objectprep(self)
         objects.objectprep()
@@ -43,18 +44,19 @@ class Sipprverse(object):
         if self.sixteens:
             # Run the 16S analyses
             SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
+        if self.closestreference:
+            self.pipeline = True
+            mash.Mash(self, 'mash')
         if self.rmlst:
             MLSTSippr(self, self.commit, self.starttime, self.homepath, 'rMLST', 1.0, True)
         if self.resistance:
             # ResFinding
-            res = Resistance(self, self.commit, self.starttime, self.homepath, 'resfinder', 0.70, False, True)
+            res = Resistance(self, self.commit, self.starttime, self.homepath, 'resfinder', 0.7, False, True)
             res.main()
         if self.virulence:
+            self.genus_specific()
             vir = Virulence(self, self.commit, self.starttime, self.homepath, 'virulence', 0.95, False, True)
             vir.reporter()
-        if self.closestreference:
-            self.pipeline = True
-            mash.Mash(self, 'mash')
         if self.gdcs:
             # Run the GDCS analysis
             self.analysistype = 'GDCS'
@@ -73,8 +75,7 @@ class Sipprverse(object):
             custom = CustomGenes(self)
             custom.main()
         # Print the metadata
-        printer = MetadataPrinter(self)
-        printer.printmetadata()
+        MetadataPrinter(self)
 
     def genus_specific(self):
         """
@@ -87,13 +88,13 @@ class Sipprverse(object):
             if sample.general.bestassemblyfile != 'NA':
                 try:
                     closestrefseqgenus = sample.general.closestrefseqgenus
-                except KeyError:
+                except AttributeError:
                     pass
         # Perform the 16S analyses as required
         if not closestrefseqgenus:
-            printtime('Must perform 16S analyses', self.starttime)
-            # Run the 16S analyses
-            SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
+            logging.info('Must perform MASH analyses to determine genera of samples')
+            # Run the analyses
+            mash.Mash(self, 'mash')
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
         """
@@ -122,7 +123,7 @@ class Sipprverse(object):
         # Set the custom cutoff value
         self.cutoff = args.customcutoffs
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
-        self.cpus = int(args.numthreads if args.numthreads else multiprocessing.cpu_count())
+        self.cpus = int(args.numthreads)
         self.closestreference = args.closestreference
         self.gdcs = args.gdcs
         self.genesippr = args.genesippr
@@ -183,6 +184,7 @@ if __name__ == '__main__':
                         default=2,
                         help='Cutoff value for mapping depth to use when parsing BAM files.')
     parser.add_argument('-n', '--numthreads',
+                        default=multiprocessing.cpu_count(),
                         help='Number of threads. Default is the number of cores in the system')
     parser.add_argument('-c', '--customcutoffs',
                         default=0.90,
@@ -233,13 +235,10 @@ if __name__ == '__main__':
                         help='Perform 16S typing of samples')
     # Get the arguments into an object
     arguments = parser.parse_args()
-
+    SetupLogging()
     # Define the start time
     start = time.time()
 
     # Run the script
     sippr = Sipprverse(arguments, commit, start, homepath)
     sippr.main()
-
-    # Print a bold, green exit statement
-    print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')
