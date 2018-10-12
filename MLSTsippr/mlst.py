@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-from accessoryFunctions.accessoryFunctions import printtime, make_dict, dotter, make_path
+from accessoryFunctions.accessoryFunctions import make_dict, dotter, make_path, SetupLogging
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from sipprCommon.objectprep import Objectprep
 from MLSTsippr.sipprmlst import MLSTmap
 from collections import defaultdict
 import subprocess
 import operator
+import logging
 import time
 import os
 
@@ -19,7 +20,7 @@ class GeneSippr(object):
         """
         Run the necessary methods in the correct order
         """
-        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
+        logging.info('Starting {} analysis pipeline'.format(self.analysistype))
         # Create the objects to be used in the analyses (if required)
         general = None
         for sample in self.runmetadata.samples:
@@ -30,10 +31,9 @@ class GeneSippr(object):
             objects.objectprep()
             self.runmetadata = objects.samples
         # Run the analyses
-        mlst = MLSTmap(self, self.analysistype, self.cutoff)
+        MLSTmap(self, self.analysistype, self.cutoff)
         # Create the reports
         self.reporter()
-        mlst.clear()
         # Print the metadata to a .json file
         MetadataPrinter(self)
 
@@ -41,7 +41,7 @@ class GeneSippr(object):
         """
         Runs the necessary methods to parse raw read outputs
         """
-        printtime('Preparing reports', self.starttime)
+        logging.info('Preparing reports')
         # Populate self.plusdict in order to reuse parsing code from an assembly-based method
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
@@ -68,7 +68,7 @@ class GeneSippr(object):
 
     def profiler(self):
         """Creates a dictionary from the profile scheme(s)"""
-        printtime('Loading profiles', self.starttime)
+        logging.info('Loading profiles')
         from csv import DictReader
         # Initialise variables
         profiledata = defaultdict(make_dict)
@@ -119,7 +119,7 @@ class GeneSippr(object):
 
     def sequencetyper(self):
         """Determines the sequence type of each strain based on comparisons to sequence type profiles"""
-        printtime('Performing sequence typing', self.starttime)
+        logging.info('Performing sequence typing')
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
                 if type(sample[self.analysistype].allelenames) == list:
@@ -282,7 +282,7 @@ class GeneSippr(object):
 
     def mlstreporter(self):
         """ Parse the results into a report"""
-        printtime('Writing reports', self.starttime)
+        logging.info('Writing reports')
         # Initialise variables
         combinedrow = str()
         reportdirset = set()
@@ -536,7 +536,7 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Normally, the program will create symbolic links of the files into the sequence path, '
                              'however, the are occasions when it is necessary to copy the files instead')
-
+    SetupLogging()
     # Get the arguments into an object
     arguments = parser.parse_args()
     arguments.pipeline = False
