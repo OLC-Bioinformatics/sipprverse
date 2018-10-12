@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from accessoryFunctions.accessoryFunctions import make_path, MetadataObject, printtime
+from accessoryFunctions.accessoryFunctions import make_path, MetadataObject
 from Bio.Sequencing.Applications import SamtoolsFaidxCommandline
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
@@ -10,6 +10,7 @@ import seaborn as sns
 from glob import glob
 import pandas as pd
 import operator
+import logging
 import numpy
 import os
 import re
@@ -25,11 +26,9 @@ class Reports(object):
         Creates a report of the genesippr results
         :param analysistype: The variable to use when accessing attributes in the metadata object
         """
-        printtime('Creating {} report'.format(analysistype), self.starttime, output=self.portallog)
+        logging.info('Creating {} report'.format(analysistype))
         # Create a dictionary to link all the genera with their genes
         genusgenes = dict()
-        genelist = ['eae', 'O26', 'O45', 'O103', 'O111', "O121", 'O145', 'O157', 'VT1', 'VT2', 'VT2f', 'uidA', 'hlyA',
-                    'IGS', 'inlJ', 'invA', 'stn']
         # The organism-specific targets are in .tfa files in the target path
         targetpath = str()
         for sample in self.runmetadata.samples:
@@ -61,7 +60,7 @@ class Reports(object):
         # Create the path in which the reports are stored
         make_path(self.reportpath)
         # The report will have every gene for all genera in the header
-        header = 'Strain,Genus,{},\n'.format(','.join(genelist))
+        header = 'Strain,Genus,{},\n'.format(','.join(self.genelist))
         data = str()
         with open(os.path.join(self.reportpath, analysistype + '.csv'), 'w') as report:
             for sample in self.runmetadata.samples:
@@ -77,13 +76,13 @@ class Reports(object):
                             gene_name = target.split('_')[0]
                             # Initialise the gene name in the dictionary
                             best_dict[gene_name] = 0
-                            for gene in genelist:
+                            for gene in self.genelist:
                                 # If the key matches a gene in the list of genes
                                 if gene == gene_name:
                                     # If the percent identity is better, update the dictionary
                                     if float(pid) > best_dict[gene]:
                                         best_dict[gene] = float(pid)
-                        for gene in genelist:
+                        for gene in self.genelist:
                             # If the gene was not found in the sample, print an empty cell in the report
                             try:
                                 best_dict[gene]
@@ -113,14 +112,9 @@ class Reports(object):
         used for presence/absence
         :param analysistype: The variable to use when accessing attributes in the metadata object
         """
-        # Dictionary containing genera of interest, and the probes in the database
-        genedict = {'Escherichia': ['eae', 'O26', 'O45', 'O103', 'O111', "O121", 'O145', 'O157', 'VT1', 'VT2',
-                                    'VT2f', 'uidA'],
-                    'Listeria': ['hlyA', 'IGS', 'inlJ'],
-                    'Salmonella': ['invA', 'stn']}
         # Dictionary to store all the output strings
         results = dict()
-        for genus, genelist in genedict.items():
+        for genus, genelist in self.genedict.items():
             # Initialise the dictionary with the appropriate genus
             results[genus] = str()
             for sample in self.runmetadata.samples:
@@ -148,7 +142,7 @@ class Reports(object):
             if resultstring:
                 with open(os.path.join(self.reportpath, '{}_genesippr.csv'.format(genus)), 'w') as genusreport:
                     # Write the header to the report - Strain plus add the genes associated with the genus
-                    genusreport.write('Strain,{}\n'.format(','.join(genedict[genus])))
+                    genusreport.write('Strain,{}\n'.format(','.join(self.genedict[genus])))
                     # Write the results to the report
                     genusreport.write(resultstring)
 
@@ -157,7 +151,7 @@ class Reports(object):
         Creates a report of the GDCS results
         :param analysistype: The variable to use when accessing attributes in the metadata object
         """
-        printtime('Creating {} report'.format(analysistype), self.starttime, output=self.portallog)
+        logging.info('Creating {} report'.format(analysistype))
         # Initialise list to store all the GDCS genes, and genera in the analysis
         gdcs = list()
         genera = list()
@@ -388,10 +382,25 @@ class Reports(object):
             self.runmetadata.samples = inputobject.runmetadata.samples
         except AttributeError:
             self.runmetadata.samples = inputobject.runmetadata
-        try:
-            self.portallog = inputobject.portallog
-        except AttributeError:
-            self.portallog = ''
+        # List and dictionary containing genera of interest, and corresponding genus-specific probe names
+        self.genelist = ['asp-Cc', 'cdtB-Cj', 'csrA-Cj', 'hipO-Cj',
+                         'aggR', 'eae', 'hlyAEc', 'O26', 'O45', 'O103', 'O111', "O121", 'O145', 'O157',
+                         'VT1', 'VT2', 'VT2f', 'uidA',
+                         'hlyALm', 'IGS', 'inlJ',
+                         'invA', 'stn',
+                         'entA', 'entB', 'entC', 'entD', 'et_a', 'et_b', 'tsst',
+                         'groEL', 'r72h', 'tdh', 'trh',
+                         'gyrB-Bc1', 'gyrB-Bc2', 'gyrB-Bt', 'Bct16S', 'hblA', 'hblB', 'hblC', 'hblD', 'nheA',
+                         'nheB', 'nheC', 'bceT', 'sph', 'cytK', 'cry1', 'cry2', 'cry4', 'cry9', 'cry10', 'cry11'
+                         ]
+        self.genedict = {'Campylobacter': self.genelist[:4],
+                         'Escherichia': self.genelist[4:18],
+                         'Listeria': self.genelist[18:21],
+                         'Salmonella': self.genelist[21:23],
+                         'Staphylococcus': self.genelist[23:30],
+                         'Vibrio': self.genelist[30:34],
+                         'Bacillus': self.genelist[34:]
+                         }
 
 
 class ReportImage(object):
@@ -474,6 +483,10 @@ class ReportImage(object):
             except KeyError:
                 genesippr_dict[sample.name]['eae'] = 0
             try:
+                genesippr_dict[sample.name]['hlyAEc'] = self.data_sanitise(sippr_matrix[sample.name]['hlyAEc'])
+            except KeyError:
+                genesippr_dict[sample.name]['hlyEc'] = 0
+            try:
                 genesippr_dict[sample.name]['VT1'] = self.data_sanitise(sippr_matrix[sample.name]['VT1'])
             except KeyError:
                 genesippr_dict[sample.name]['VT1'] = 0
@@ -482,9 +495,9 @@ class ReportImage(object):
             except KeyError:
                 genesippr_dict[sample.name]['VT2'] = 0
             try:
-                genesippr_dict[sample.name]['hlyA'] = self.data_sanitise(sippr_matrix[sample.name]['hlyA'])
+                genesippr_dict[sample.name]['hlyALm'] = self.data_sanitise(sippr_matrix[sample.name]['hlyALm'])
             except KeyError:
-                genesippr_dict[sample.name]['hlyA'] = 0
+                genesippr_dict[sample.name]['hlyALm'] = 0
             try:
                 genesippr_dict[sample.name]['IGS'] = self.data_sanitise(sippr_matrix[sample.name]['IGS'])
             except KeyError:
@@ -580,8 +593,8 @@ class ReportImage(object):
     def __init__(self, args, analysistype):
         self.samplesheetpath = args.samplesheetpath
         self.reportpath = args.reportpath
-        self.header_list = ['Strain', 'eae', 'VT1', 'VT2',
-                            'hlyA', 'IGS', 'inlJ', 'invA', 'stn',
+        self.header_list = ['Strain', 'eae', 'hlyAEc', 'VT1', 'VT2',
+                            'hlyALm', 'IGS', 'inlJ', 'invA', 'stn',
                             'GDCS', 'Contamination', 'Coverage']
         self.outputfolder = os.path.join(args.path, 'reports')
         self.metadata = args.runmetadata.samples
