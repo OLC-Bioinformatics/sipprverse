@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-from accessoryFunctions.accessoryFunctions import printtime, GenObject
+from accessoryFunctions.accessoryFunctions import GenObject
 from sipprCommon.sippingmethods import Sippr
+from click import progressbar
 from Bio import SeqIO
 from glob import glob
+import logging
 import os
 __author__ = 'adamkoziol'
 
@@ -10,7 +12,7 @@ __author__ = 'adamkoziol'
 class MLSTmap(Sippr):
 
     def targets(self):
-        printtime('Finding {} target files'.format(self.analysistype), self.start)
+        logging.info('Finding {} target files'.format(self.analysistype))
         #
         alleleset = set()
         for sample in self.runmetadata:
@@ -49,16 +51,12 @@ class MLSTmap(Sippr):
         #
         genedict = dict()
         for combinedfile in alleleset:
-            genedict[combinedfile] = set()
             # Find all the gene names from the combined alleles files
-            for record in SeqIO.parse(open(combinedfile, "rU"), "fasta"):
-                # Determine whether an underscore, or a hyphen is being used to separate the gene name and allele
-                # number, split on the delimiter, and add the gene name to the set
-                if '_' in record.id:
-                    genedict[combinedfile].add(record.id.split('_')[0])
-                elif '-' in record.id:
-                    genedict[combinedfile].add(record.id.split('-')[0])
-        #
+            gene_files = glob(os.path.join(os.path.dirname(combinedfile), '*.tfa'))
+            # Create a set of the allele names
+            allele_names = set([os.path.splitext(os.path.basename(allele_name))[0] for allele_name in gene_files])
+            # Add the set to the dictionary
+            genedict[combinedfile] = allele_names
         for sample in self.runmetadata:
             if sample.general.bestassemblyfile != 'NA':
                 # Add the combined alleles to the profile set
@@ -76,7 +74,7 @@ class MLSTmap(Sippr):
                 sample[self.analysistype].reportdir = os.path.join(sample.general.outputdirectory, self.analysistype)
                 sample[self.analysistype].baitfile = sample[self.analysistype].combinedalleles
 
-        printtime('Indexing {} target file'.format(self.analysistype), self.start)
+        logging.info('Indexing {} target file'.format(self.analysistype))
         # Ensure that the hash file was successfully created
         # Populate the appropriate attributes
         for sample in self.runmetadata:
