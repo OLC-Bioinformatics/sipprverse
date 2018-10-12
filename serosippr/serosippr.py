@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+from accessoryFunctions.accessoryFunctions import MetadataObject, make_path, SetupLogging
+import accessoryFunctions.metadataprinter as metadataprinter
+from sipprCommon.objectprep import Objectprep
+from sipprCommon.sippingmethods import Sippr
 import operator
 import subprocess
-from sipprCommon.sippingmethods import Sippr
-from sipprCommon.objectprep import Objectprep
-from accessoryFunctions.accessoryFunctions import printtime, MetadataObject, make_path
-from accessoryFunctions.metadataprinter import MetadataPrinter
+import logging
 import time
 import os
 __author__ = 'adamkoziol'
@@ -16,24 +17,21 @@ class SeroSippr(object):
         """
         Run the necessary methods in the correct order
         """
-        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime)
+        logging.info('Starting {} analysis pipeline'.format(self.analysistype))
         # Run the analyses
         Sippr(self, self.cutoff)
-        printer = MetadataPrinter(self)
-        printer.printmetadata()
         self.serotype_escherichia()
         self.serotype_salmonella()
         # Create the reports
         self.reporter()
         # Print the metadata
-        printer = MetadataPrinter(self)
-        printer.printmetadata()
+        metadataprinter.MetadataPrinter(self)
 
     def reporter(self):
         """
         Creates a report of the results
         """
-        printtime('Creating {} report'.format(self.analysistype), self.starttime)
+        logging.info('Creating {} report'.format(self.analysistype))
         # Create the path in which the reports are stored
         make_path(self.reportpath)
         header = 'Strain,Serotype\n'
@@ -273,6 +271,7 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--cutoff',
                         default=0.8,
                         help='Custom cutoff values')
+    SetupLogging()
     # Get the arguments into an object
     arguments = parser.parse_args()
     arguments.pipeline = False
