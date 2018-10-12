@@ -4,9 +4,13 @@ __author__ = 'adamkoziol'
 
 setup(
     name="sipprverse",
-    version="0.0.78",
+    version="0.0.79",
     packages=find_packages(),
     include_package_data=True,
+    scripts=[
+	'sippr.py',
+        'method.py'
+	],
     license='MIT',
     author='Adam Koziol',
     author_email='adam.koziol@inspection.gc.ca',
