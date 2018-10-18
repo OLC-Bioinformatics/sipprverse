@@ -236,7 +236,7 @@ class Method(object):
                             sample.general.complete = False
                             allcomplete = False
                             self.incomplete.append(sample.name)
-                except KeyError:
+                except AttributeError:
                     sample.general.complete = True
                     self.completemetadata.append(sample)
             else:
