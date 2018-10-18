@@ -1,4 +1,5 @@
 #!/usr/bin/env python 3
+from accessoryFunctions.accessoryFunctions import make_path
 from Bio.Sequencing.Applications import SamtoolsFaidxCommandline, SamtoolsIndexCommandline, \
     SamtoolsSortCommandline, SamtoolsViewCommandline
 from sipprCommon.bowtie import Bowtie2CommandLine, Bowtie2BuildCommandLine
@@ -7,11 +8,13 @@ from argparse import ArgumentParser
 from subprocess import call
 import multiprocessing
 from time import time
+import psutil
 import pytest
 import shutil
 import sys
 import os
 
+mem = psutil.virtual_memory()
 testpath = os.path.abspath(os.path.dirname(__file__))
 scriptpath = os.path.join(testpath, '..')
 sys.path.append(scriptpath)
@@ -58,6 +61,7 @@ def metadata_update(analysistype):
     :return:
     """
     method.sequencepath = os.path.join(testpath, 'testdata', 'sequences', analysistype)
+    print(method.sequencepath)
     method.reportpath = os.path.join(testpath, 'testdata', 'results', 'reports')
     for sample in method.runmetadata.samples:
         sample.name = 'unit_test'
@@ -72,7 +76,7 @@ def metadata_update(analysistype):
 def test_fastq_bait(variables):
     outfile = os.path.join(variables.outputpath, 'bait', 'baited.fastq')
     targetpath = os.path.join(variables.referencefilepath, 'bait')
-    baitcall = 'bbduk.sh ref={ref} in={input} threads={cpus} outm={out}'.format(
+    baitcall = 'bbduk.sh ref={ref} -Xmx5G in={input} threads={cpus} outm={out}'.format(
         ref=os.path.join(targetpath, 'combinedtargets.fasta'),
         input=os.path.join(targetpath, 'genesippr.fastq.gz'),
         cpus=multiprocessing.cpu_count(),
@@ -86,7 +90,7 @@ def test_fastq_bait(variables):
 def test_reverse_bait(variables):
     outfile = os.path.join(variables.outputpath, 'reverse_bait', 'baited_targets.fasta')
     targetpath = os.path.join(variables.referencefilepath, 'bait')
-    baitcall = 'bbduk.sh ref={ref} in={input} threads={cpus} outm={out}'.format(
+    baitcall = 'bbduk.sh -Xmx5G ref={ref} in={input} threads={cpus} outm={out}'.format(
         ref=os.path.join(targetpath, 'genesippr.fastq.gz'),
         input=os.path.join(targetpath, 'combinedtargets.fasta'),
         cpus=multiprocessing.cpu_count(),
@@ -163,7 +167,7 @@ def test_index_bam(variables):
 def test_subsample(variables):
     targetpath = os.path.join(variables.referencefilepath, 'blast')
     outpath = os.path.join(variables.outputpath, 'blast')
-    os.mkdir(outpath)
+    make_path(outpath)
     outfile = os.path.join(outpath, 'subsampled_reads.fastq.gz')
     cmd = 'reformat.sh in={input} out={output} samplebasestarget=100000'.format(
         input=os.path.join(targetpath, 'reads.fastq.gz'),
@@ -231,8 +235,14 @@ def clean_folder(analysistype):
         shutil.rmtree(os.path.join(method.sequencepath, analysistype))
     except FileNotFoundError:
         pass
-    os.remove(os.path.join(method.sequencepath, 'logout'))
-    os.remove(os.path.join(method.sequencepath, 'logerr'))
+    try:
+        os.remove(os.path.join(method.sequencepath, 'logout'))
+    except FileNotFoundError:
+        pass
+    try:
+        os.remove(os.path.join(method.sequencepath, 'logerr'))
+    except FileNotFoundError:
+        pass
     os.remove(os.path.join(method.sequencepath, 'unit_test_metadata.json'))
 
 
