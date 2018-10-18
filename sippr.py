@@ -26,7 +26,7 @@ class Sipprverse(object):
         """
         Run the necessary methods in the correct order
         """
-        logging.info('Starting {} analysis pipeline'.format(self.analysistype))
+        logging.info('Starting {at} analysis pipeline'.format(at=self.analysistype))
         # Create the objects to be used in the analyses
         objects = Objectprep(self)
         objects.objectprep()
@@ -43,34 +43,73 @@ class Sipprverse(object):
             Reports.reporter(self.reports)
         if self.sixteens:
             # Run the 16S analyses
-            SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
+            SixteensFull(args=self,
+                         pipelinecommit=self.commit,
+                         startingtime=self.starttime,
+                         scriptpath=self.homepath,
+                         analysistype='sixteens_full',
+                         cutoff=0.985)
         if self.closestreference:
             self.pipeline = True
-            mash.Mash(self, 'mash')
+            mash.Mash(inputobject=self,
+                      analysistype='mash')
         if self.rmlst:
-            MLSTSippr(self, self.commit, self.starttime, self.homepath, 'rMLST', 1.0, True)
+            MLSTSippr(args=self,
+                      pipelinecommit=self.commit,
+                      startingtime=self.starttime,
+                      scriptpath=self.homepath,
+                      analysistype='rMLST',
+                      cutoff=1.0,
+                      pipeline=True)
         if self.resistance:
             # ResFinding
-            res = Resistance(self, self.commit, self.starttime, self.homepath, 'resfinder', 0.7, False, True)
+            res = Resistance(args=self,
+                             pipelinecommit=self.commit,
+                             startingtime=self.starttime,
+                             scriptpath=self.homepath,
+                             analysistype='resfinder',
+                             cutoff=0.7,
+                             pipeline=False,
+                             revbait=True)
             res.main()
         if self.virulence:
             self.genus_specific()
-            vir = Virulence(self, self.commit, self.starttime, self.homepath, 'virulence', 0.95, False, True)
+            vir = Virulence(args=self,
+                            pipelinecommit=self.commit,
+                            startingtime=self.starttime,
+                            scriptpath=self.homepath,
+                            analysistype='virulence',
+                            cutoff=0.95,
+                            pipeline=False,
+                            revbait=True)
             vir.reporter()
         if self.gdcs:
             # Run the GDCS analysis
             self.analysistype = 'GDCS'
             self.targetpath = os.path.join(self.reffilepath, self.analysistype)
-            Sippr(self, 0.95)
+            Sippr(inputobject=self,
+                  cutoff=0.95)
             # Create the reports
             Reports.gdcsreporter(self.reports)
         if self.mlst:
             self.genus_specific()
-            MLSTSippr(self, self.commit, self.starttime, self.homepath, 'MLST', 1.0, True)
+            MLSTSippr(args=self,
+                      pipelinecommit=self.commit,
+                      startingtime=self.starttime,
+                      scriptpath=self.homepath,
+                      analysistype='MLST',
+                      cutoff=1.0,
+                      pipeline=True)
         # Optionally perform serotyping
         if self.serotype:
             self.genus_specific()
-            SeroSippr(self, self.commit, self.starttime, self.homepath, 'serosippr', 0.90, True)
+            SeroSippr(args=self,
+                      pipelinecommit=self.commit,
+                      startingtime=self.starttime,
+                      scriptpath=self.homepath,
+                      analysistype='serosippr',
+                      cutoff=0.90,
+                      pipeline=True)
         if self.user_genes:
             custom = CustomGenes(self)
             custom.main()
