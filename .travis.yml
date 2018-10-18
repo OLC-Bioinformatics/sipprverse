@@ -1,6 +1,6 @@
 language: python
 python:
-  - '3.5'
+  - '3.6'
 before_install:
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
@@ -12,4 +12,5 @@ before_install:
   - source activate sipprverse
 
 script:
+  - pytest tests/test_imports.py
   - pytest tests/test_method.py
