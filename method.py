@@ -181,25 +181,38 @@ class Method(object):
         Calculate the levels of contamination in the reads
         """
         self.qualityobject = quality.Quality(self)
-        self.qualityobject.contamination_finder(self.sequencepath, self.reportpath, self.portallog)
+        self.qualityobject.contamination_finder(input_path=self.sequencepath,
+                                                report_path=self.reportpath)
 
     def run_genesippr(self):
         """
         Run the genesippr analyses
         """
-        GeneSippr(self, self.commit, self.starttime, self.homepath, 'genesippr', 0.95, False, False)
+        GeneSippr(args=self,
+                  pipelinecommit=self.commit,
+                  startingtime=self.starttime,
+                  scriptpath=self.homepath,
+                  analysistype='genesippr',
+                  cutoff=0.95,
+                  pipeline=False,
+                  revbait=False)
 
     def run_sixteens(self):
         """
         Run the 16S analyses using the filtered database
         """
-        SixteensFull(self, self.commit, self.starttime, self.homepath, 'sixteens_full', 0.985)
+        SixteensFull(args=self,
+                     pipelinecommit=self.commit,
+                     startingtime=self.starttime,
+                     scriptpath=self.homepath,
+                     analysistype='sixteens_full',
+                     cutoff=0.985)
 
     def run_gdcs(self):
         """
         Run the GDCS analysis
         """
-        GDCS(self)
+        GDCS(inputobject=self)
 
     def complete(self):
         """
