@@ -190,9 +190,9 @@ def test_downsample(variables):
 
 def test_fastq_to_fasta(variables):
     outfile = os.path.join(variables.outputpath, 'blast', 'subsampled_reads.fasta')
-    cmd = 'fastq_to_fasta -i {input} -o {output}'.format(
-        input=os.path.join(os.path.join(variables.outputpath, 'blast', 'subsampled_reads.fastq')),
-        output=outfile)
+    cmd = 'reformat.sh in={input} out={output}' \
+        .format(input=os.path.join(os.path.join(variables.outputpath, 'blast', 'subsampled_reads.fastq')),
+                output=outfile)
     call(cmd, shell=True)
     size = os.stat(outfile)
     assert size.st_size > 0
