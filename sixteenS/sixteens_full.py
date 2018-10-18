@@ -177,7 +177,6 @@ class SixteenS(object):
             # Check to see if the subsampled FASTQ file has already been created
             if not os.path.isfile(sample[self.analysistype].subsampledfastq):
                 # Run the system call
-                # call(sample[self.analysistype].seqtkcall, shell=True, stdout=self.devnull, stderr=self.devnull)
                 out, err = run_subprocess(sample[self.analysistype].seqtkcall)
                 write_to_logfile(sample[self.analysistype].seqtkcall,
                                  sample[self.analysistype].seqtkcall,
