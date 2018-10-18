@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from accessoryFunctions.accessoryFunctions import MetadataObject, make_path, printtime
+from accessoryFunctions.accessoryFunctions import MetadataObject, make_path, printtime, SetupLogging
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from sixteenS.sixteens_full import SixteenS as SixteensFull
 from sipprverse_reporter.reports import Reports, ReportImage
@@ -13,6 +13,7 @@ import multiprocessing
 from time import sleep
 from glob import glob
 import subprocess
+import logging
 import time
 import os
 __author__ = 'adamkoziol'
@@ -26,7 +27,7 @@ class Method(object):
         pass the quality thresholds, continue to periodically run the analyses on these incomplete strains until either
         all strains are complete, or the sequencing run is finished
         """
-        printtime('Starting {} analysis pipeline'.format(self.analysistype), self.starttime, output=self.portallog)
+        logging.info('Starting {} analysis pipeline'.format(self.analysistype))
         self.createobjects()
         # Run the genesipping analyses
         self.methods()
@@ -383,7 +384,7 @@ if __name__ == '__main__':
     arguments.portallog = os.path.join(arguments.outputpath, 'portal.log')
     # Define the start time
     start = time.time()
-
+    SetupLogging()
     # Run the script
     method = Method(arguments, commit, start, homepath)
     method.main()
