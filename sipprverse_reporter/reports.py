@@ -485,7 +485,7 @@ class ReportImage(object):
             try:
                 genesippr_dict[sample.name]['hlyAEc'] = self.data_sanitise(sippr_matrix[sample.name]['hlyAEc'])
             except KeyError:
-                genesippr_dict[sample.name]['hlyEc'] = 0
+                genesippr_dict[sample.name]['hlyAEc'] = 0
             try:
                 genesippr_dict[sample.name]['VT1'] = self.data_sanitise(sippr_matrix[sample.name]['VT1'])
             except KeyError:
