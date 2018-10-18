@@ -211,7 +211,7 @@ class Reports(object):
                                             float(sample[analysistype].avgdepth[gene]))
                                         count += 1
                                     # If the gene was missing from the results attribute, add a - to the cell
-                                    except AttributeError:
+                                    except (KeyError, AttributeError):
                                         sample.general.incomplete = True
                                         specific += '-,'
                             # Calculate the mean depth of the genes and the standard deviation
