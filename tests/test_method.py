@@ -318,6 +318,6 @@ def test_clear_logs(variables):
     for root, folders, files in os.walk(variables.referencefilepath):
         for sub_file in files:
             # Only target log files
-            if '.log' in sub_file and os.path.isfile(sub_file):
+            if '.log' in sub_file:
                 # Remove the file
-                os.remove(sub_file)
+                os.remove(os.path.join(root, sub_file))
