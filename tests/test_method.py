@@ -7,6 +7,7 @@ from Bio.Blast.Applications import NcbiblastnCommandline
 from argparse import ArgumentParser
 from subprocess import call
 import multiprocessing
+from glob import glob
 from time import time
 import psutil
 import pytest
@@ -61,7 +62,6 @@ def metadata_update(analysistype):
     :return:
     """
     method.sequencepath = os.path.join(testpath, 'testdata', 'sequences', analysistype)
-    print(method.sequencepath)
     method.reportpath = os.path.join(testpath, 'testdata', 'results', 'reports')
     for sample in method.runmetadata.samples:
         sample.name = 'unit_test'
@@ -246,6 +246,15 @@ def clean_folder(analysistype):
     os.remove(os.path.join(method.sequencepath, 'unit_test_metadata.json'))
 
 
+def test_confindr():
+    analysistype = 'ConFindr'
+    metadata_update(analysistype)
+    method.contamination_detection()
+    shutil.rmtree(os.path.join(method.sequencepath, 'confindr'))
+    for sample in method.runmetadata.samples:
+        assert sample.confindr.num_contaminated_snvs == 0
+
+
 def test_genesippr():
     analysistype = 'genesippr'
     metadata_update(analysistype)
@@ -302,3 +311,13 @@ def test_clear_blast(variables):
     os.remove(os.path.join(targetpath, 'baitedtargets.nnd'))
     os.remove(os.path.join(targetpath, 'baitedtargets.nin'))
     os.remove(os.path.join(targetpath, 'baitedtargets.nhr'))
+
+
+def test_clear_logs(variables):
+    # Use os.walk to find all log files in the subfolders within the reference file path
+    for root, folders, files in os.walk(variables.referencefilepath):
+        for sub_file in files:
+            # Only target log files
+            if '.log' in sub_file and os.path.isfile(sub_file):
+                # Remove the file
+                os.remove(sub_file)
