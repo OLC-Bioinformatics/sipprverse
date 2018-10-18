@@ -12,5 +12,5 @@ before_install:
   - source activate sipprverse
 
 script:
-  - pytest tests/test_imports.py
-  - pytest tests/test_method.py
+  - python -m pytest tests/test_imports.py
+  - python -m pytest tests/test_method.py
