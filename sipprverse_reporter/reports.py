@@ -134,7 +134,7 @@ class Reports(object):
                                 results[genus] += '-,'
                         results[genus] += '\n'
                 # If the sample is missing the targetgenera attribute, then it is ignored for these reports
-                except KeyError:
+                except AttributeError:
                     pass
         # Create and populate the genus-specific reports
         for genus, resultstring in results.items():
@@ -169,7 +169,7 @@ class Reports(object):
                         for gene in sorted(sample[analysistype].faidict):
                             if gene not in gdcs:
                                 gdcs.append(gene)
-                    except KeyError:
+                    except AttributeError:
                         sample[analysistype].createreport = False
                 else:
                     sample[analysistype].createreport = False
@@ -211,7 +211,7 @@ class Reports(object):
                                             float(sample[analysistype].avgdepth[gene]))
                                         count += 1
                                     # If the gene was missing from the results attribute, add a - to the cell
-                                    except KeyError:
+                                    except AttributeError:
                                         sample.general.incomplete = True
                                         specific += '-,'
                             # Calculate the mean depth of the genes and the standard deviation
