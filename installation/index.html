@@ -72,14 +72,14 @@
                 <li class="toctree-l3"><a href="#dependencies">Dependencies</a></li>
                 
             
-                <li class="toctree-l3"><a href="#install-targets">Install targets</a></li>
-                
-            
                 <li class="toctree-l3"><a href="#install-pipeline">Install pipeline</a></li>
                 
                     <li><a class="toctree-l4" href="#conda-method">Conda method</a></li>
                 
                     <li><a class="toctree-l4" href="#docker-method">Docker method</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#install-targets-after-pipeline-is-set-up">Install targets (after pipeline is set-up)</a></li>
                 
             
             </ul>
@@ -158,8 +158,6 @@
 <li><a href="https://ndownloader.figshare.com/files/9918805">Target files</a></li>
 <li>Mounted MiSeq (for method only)</li>
 </ul>
-<h3 id="install-targets">Install targets</h3>
-<p><code>wget https://ndownloader.figshare.com/files/13216553 &amp;&amp; tar -xf 13216553 &amp;&amp; rm 13216553</code></p>
 <h3 id="install-pipeline">Install pipeline</h3>
 <h4 id="conda-method">Conda method</h4>
 <p>The way I install conda:</p>
@@ -175,7 +173,7 @@ conda update -q conda
 cd sipprverse
 export PATH=&quot;/path/to/repository/sipprverse:$PATH&quot;
 conda env create -f environment.yml
-source activate genesippr
+source activate sipprverse
 </code></pre>
 
 <h4 id="docker-method">Docker method</h4>
@@ -188,6 +186,11 @@ command, please see <a href="tutorial.md">the tutorial</a>.</p>
 cd sipprverse
 docker build -t sipprverse:latest .
 docker run -it --name sipprverse --rm sipprverse:latest /bin/bash -c &quot;source activate genesippr &amp;&amp; sippr.py -s /path/to/sequences -r /path/to/database&quot;
+</code></pre>
+
+<h3 id="install-targets-after-pipeline-is-set-up">Install targets (after pipeline is set-up)</h3>
+<pre><code>source activate sipprverse
+python -m databasesetup.database_setup -v -d /DESIRED/TARGET/PATH -s -c /PATH/TO/rMLST/CREDENTIALS
 </code></pre>
               
             </div>
