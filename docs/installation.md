@@ -5,10 +5,6 @@
 * [Target files](https://ndownloader.figshare.com/files/9918805)
 * Mounted MiSeq (for method only)
 
-### Install targets
-
-`wget -O targets.tar.gz https://ndownloader.figshare.com/files/11417183 && tar xf targets.tar.gz && rm targets.tar.gz`
-
 ### Install pipeline
 
 #### Conda method
@@ -30,7 +26,7 @@ git clone https://github.com/OLC-Bioinformatics/sipprverse.git
 cd sipprverse
 export PATH="/path/to/repository/sipprverse:$PATH"
 conda env create -f environment.yml
-source activate genesippr
+source activate sipprverse
 ```
 
 #### Docker method
@@ -47,4 +43,11 @@ git clone https://github.com/OLC-Bioinformatics/sipprverse.git
 cd sipprverse
 docker build -t sipprverse:latest .
 docker run -it --name sipprverse --rm sipprverse:latest /bin/bash -c "source activate genesippr && sippr.py -s /path/to/sequences -r /path/to/database"
+```
+
+### Install targets (after pipeline is set-up)
+
+```
+source activate sipprverse
+python -m databasesetup.database_setup -v -d /DESIRED/TARGET/PATH -s -c /PATH/TO/rMLST/CREDENTIALS
 ```
