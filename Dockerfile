@@ -19,11 +19,6 @@ ENV PATH /usr/sbin:$PATH
 RUN useradd -ms /bin/bash/ ubuntu
 USER ubuntu
 
-# Install sipping targets
-RUN mkdir -p /home/ubuntu/targets
-WORKDIR /home/ubuntu/targets
-RUN wget -O targets.tar.gz https://ndownloader.figshare.com/files/11417183 && tar xf targets.tar.gz && rm targets.tar.gz
-
 # Install conda
 WORKDIR /home/ubuntu
 RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /home/ubuntu/miniconda.sh
@@ -47,5 +42,9 @@ WORKDIR /home/ubuntu/sipprverse
 RUN git fetch --tags
 RUN conda env create
 
+# TO INSTALL TARGETS
+docker run -u ubuntu -it -v /mnt/nas2:/mnt/nas2 --name genesipprtargets --rm sipprverse:0.0.91 /bin/bash -c "source activate genesippr && python -m databasesetup.database_setup -v -d /DESIRED/TARGET/PATH -s -c /PATH/TO/rMLST/CREDENTIALS"
+
+
 # TO RUN
-# docker run -u ubuntu -it -v /mnt/nas:/mnt/nas --name genesipprmethod --rm sipprverse:latest /bin/bash -c "source activate genesippr && python3 method.py -o /genesipprrun -r /home/ubuntu/targets -m /MiSeqPath -f MiSeqFolder -C"
+# docker run -u ubuntu -it -v /mnt/nas2:/mnt/nas2 --name genesipprmethod --rm sipprverse:0.0.91 /bin/bash -c "source activate genesippr && python method.py -o /genesipprrun -r /DESIRED/TARGET/PATH -m /MiSeqPath -f MiSeqFolder -C"

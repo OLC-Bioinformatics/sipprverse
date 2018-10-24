@@ -1,8 +1,8 @@
 name: sipprverse
 channels:
-  - dranew
   - bioconda
   - conda-forge
+  - dranew
   - defaults
 dependencies:
   - bbmap=38.22=h470a237_0
@@ -41,7 +41,6 @@ dependencies:
   - samtools=1.9=h8ee4bcc_1
   - seqtk=1.3=ha92aebf_0
   - biopython=1.72=py36_0
-  - blas=1.1=openblas
   - boost-cpp=1.68.0=h3a22d5f_0
   - bzip2=1.0.6=h470a237_2
   - ca-certificates=2018.10.15=ha4d7672_0
@@ -61,7 +60,6 @@ dependencies:
   - gmp=6.1.2=hfc679d8_0
   - gnutls=3.5.19=h2a4e5f8_1
   - graphite2=1.3.12=hfc679d8_1
-  - gsl=2.2.1=blas_openblash47a8a8e_5
   - gst-plugins-base=1.12.5=hde13a9d_0
   - gstreamer=1.12.5=h5856ed1_0
   - harfbuzz=1.9.0=h04dbb29_1
@@ -73,7 +71,6 @@ dependencies:
   - libedit=3.1.20170329=haf1bffa_1
   - libffi=3.2.1=hfc679d8_5
   - libgcc=7.2.0=h69d50b8_2
-  - libgcc-ng=7.2.0=hdf63c60_3
   - libgd=2.2.5=h5400f36_4
   - libgfortran=3.0.0=1
   - libgfortran-ng=7.2.0=hdf63c60_3
@@ -86,12 +83,14 @@ dependencies:
   - libwebp=0.5.2=7
   - libxcb=1.13=h470a237_2
   - libxml2=2.9.8=h422b904_5
-  - matplotlib=2.2.3=py36h8e2386c_0
+  - matplotlib=3.0.0=2
+  - matplotlib-base=3.0.0=py36hc039c98_2
+  - mkl_fft=1.0.6=py36_0
+  - mkl_random=1.0.1=py36_0
   - mmtf-python=1.1.2=py_0
   - msgpack-python=0.5.6=py36h2d50403_3
   - ncurses=6.1=hfc679d8_1
   - nettle=3.3=0
-  - numpy=1.15.2=py36_blas_openblashd3ea46f_1
   - olefile=0.46=py_0
   - openblas=0.2.20=8
   - openssl=1.0.2p=h470a237_1
@@ -112,7 +111,6 @@ dependencies:
   - qt=5.6.2=hf70d934_9
   - readline=7.0=haf1bffa_1
   - reportlab=3.5.9=py36h77bcf2c_0
-  - scipy=1.1.0=py36_blas_openblash7943236_201
   - seaborn=0.9.0=py_0
   - setuptools=40.4.3=py36_0
   - sip=4.18.1=py36hfc679d8_0
@@ -135,12 +133,18 @@ dependencies:
   - xorg-xproto=7.0.31=h470a237_7
   - xz=5.2.4=h470a237_1
   - zlib=1.2.11=h470a237_3
+  - blas=1.0=mkl
   - boost=1.67.0=py36_4
+  - gsl=2.2.1=h0c605f7_3
   - intel-openmp=2019.0=118
   - libboost=1.67.0=h46d08c1_4
+  - libgcc-ng=8.2.0=hdf63c60_1
   - mkl=2019.0=118
+  - numpy=1.15.3=py36h1d66e8a_0
+  - numpy-base=1.15.3=py36h81de0dd_0
   - openjdk=8.0.152=h46b5887_1
   - py-boost=1.67.0=py36h04863e7_4
+  - scipy=1.1.0=py36hc49cb51_0
   - bcl2fastq=2.19.0=1
   - boost_lib=1.54.0=1
   - pip:
@@ -161,7 +165,7 @@ dependencies:
     - pytest==3.9.1
     - rauth==0.7.3
     - requests==2.20.0
-    - sipprverse==0.0.91
+    - sipprverse==0.0.92
     - urllib3==1.24
     - xlsxwriter==1.1.1
 prefix: /home/adamkoziol/miniconda3/envs/sipprverse
