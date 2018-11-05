@@ -54,13 +54,14 @@ class Sipprverse(object):
             mash.Mash(inputobject=self,
                       analysistype='mash')
         if self.rmlst:
-            MLSTSippr(args=self,
+            rmlst = MLSTSippr(args=self,
                       pipelinecommit=self.commit,
                       startingtime=self.starttime,
                       scriptpath=self.homepath,
                       analysistype='rMLST',
                       cutoff=1.0,
                       pipeline=True)
+            rmlst.runner()
         if self.resistance:
             # ResFinding
             res = Resistance(args=self,
@@ -93,13 +94,14 @@ class Sipprverse(object):
             Reports.gdcsreporter(self.reports)
         if self.mlst:
             self.genus_specific()
-            MLSTSippr(args=self,
+            mlst = MLSTSippr(args=self,
                       pipelinecommit=self.commit,
                       startingtime=self.starttime,
                       scriptpath=self.homepath,
                       analysistype='MLST',
                       cutoff=1.0,
                       pipeline=True)
+            mlst.runner()
         # Optionally perform serotyping
         if self.serotype:
             self.genus_specific()

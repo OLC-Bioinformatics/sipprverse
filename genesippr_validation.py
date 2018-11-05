@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from accessoryFunctions.accessoryFunctions import printtime, GenObject, make_path, MetadataObject, relative_symlink, run_subprocess
+from accessoryFunctions.accessoryFunctions import GenObject, make_path, MetadataObject, relative_symlink, run_subprocess, SetupLogging
 from biotools import bbtools
 from COWBAT.assembly_pipeline import RunAssemble
 from argparse import ArgumentParser
@@ -7,6 +7,8 @@ import multiprocessing
 from Bio import SeqIO
 from glob import glob
 from time import time
+import logging
+import shutil
 import json
 import os
 __author__ = 'adamkoziol'
@@ -26,7 +28,7 @@ class ReadPrep(object):
         self.read_length_adjust('sampled')
         self.link_reads('sampled')
         self.run_genesippr()
-        self.parse_genesippr()
+        # self.parse_genesippr()
         # self.run_cowbat()
     
     def strains(self):
@@ -138,7 +140,7 @@ class ReadPrep(object):
         Use the PacBio assembly FASTA files to generate simulated reads of appropriate forward and reverse lengths
         at different depths of sequencing using randomreads.sh from the bbtools suite
         """
-        printtime('Read simulation', self.start)
+        logging.info('Read simulation')
         for sample in self.metadata:
             # Create the simulated_reads GenObject
             sample.simulated_reads = GenObject()
@@ -213,16 +215,14 @@ class ReadPrep(object):
                              ) /
                             int(sample.simulated_reads[depth][read_pair].forward_reads.length)
                             )
-                    printtime(
+                    logging.info(
                         'Simulating {num_reads} paired reads for sample {name} with the following parameters:\n'
                         'depth {dp}, forward reads {fl}bp, and reverse reads {rl}bp'
                         .format(num_reads=sample.simulated_reads[depth][read_pair].num_reads,
                                 dp=depth,
                                 name=sample.name,
                                 fl=sample.simulated_reads[depth][read_pair].forward_reads.length,
-                                rl=sample.simulated_reads[depth][read_pair].reverse_reads.length),
-                        self.start
-                    )
+                                rl=sample.simulated_reads[depth][read_pair].reverse_reads.length))
                     # If the reverse reads are set to 0, supply different parameters to randomreads
                     if sample.simulated_reads[depth][read_pair].reverse_reads.length != '0':
                         # Ensure that both the simulated reads, and the trimmed simulated reads files don't
@@ -245,11 +245,13 @@ class ReadPrep(object):
                                              )
                         else:
                             try:
-                                forward_size = os.path.getsize(sample.simulated_reads[depth][read_pair].forward_reads.fastq)
+                                forward_size = os.path.getsize(sample.simulated_reads[depth][read_pair]
+                                                               .forward_reads.fastq)
                             except FileNotFoundError:
                                 forward_size = 0
                             try:
-                                reverse_size = os.path.getsize(sample.simulated_reads[depth][read_pair].reverse_reads.fastq)
+                                reverse_size = os.path.getsize(sample.simulated_reads[depth][read_pair]
+                                                               .reverse_reads.fastq)
                             except FileNotFoundError:
                                 reverse_size = 0
                             if forward_size <= 100 or reverse_size <= 100:
@@ -297,7 +299,7 @@ class ReadPrep(object):
         Trim the reads to the correct length using reformat.sh
         :param analysistype: current analysis type. Will be either 'simulated' or 'sampled'
         """
-        printtime('Trimming {at} reads'.format(at=analysistype), self.start)
+        logging.info('Trimming {at} reads'.format(at=analysistype))
         for sample in self.metadata:
             # Iterate through all the desired depths of coverage
             for depth in self.read_depths:
@@ -305,14 +307,12 @@ class ReadPrep(object):
                     # Create variables using the analysis type. These will be used in setting GenObject attributes
                     read_type = '{at}_reads'.format(at=analysistype)
                     fastq_type = 'trimmed_{at}_fastq'.format(at=analysistype)
-                    printtime(
+                    logging.info(
                         'Trimming forward {at} reads for sample {name} at depth {depth} to length {length}'
                         .format(at=analysistype,
                                 name=sample.name,
                                 depth=depth,
-                                length=sample[read_type][depth][read_pair].forward_reads.length),
-                        self.start
-                    )
+                                length=sample[read_type][depth][read_pair].forward_reads.length))
                     # Create the output path if necessary
                     make_path(os.path.dirname(sample[read_type][depth][read_pair].forward_reads[fastq_type]))
                     if sample[read_type][depth][read_pair].reverse_reads.length != '0':
@@ -338,19 +338,17 @@ class ReadPrep(object):
                         # If the files do not need to be trimmed, create a symlink to the original file
                         relative_symlink(sample[read_type][depth][read_pair].forward_reads.fastq,
                                          os.path.dirname(sample[read_type][depth][read_pair].
-                                                          forward_reads[fastq_type]),
+                                                         forward_reads[fastq_type]),
                                          os.path.basename(sample[read_type][depth][read_pair].
                                                           forward_reads[fastq_type])
                                          )
                     # Same as above, but for the reverse reads
-                    printtime(
+                    logging.info(
                         'Trimming reverse {at} reads for sample {name} at depth {depth} to length {length}'
                         .format(at=analysistype,
                                 name=sample.name,
                                 depth=depth,
-                                length=sample[read_type][depth][read_pair].reverse_reads.length),
-                        self.start
-                    )
+                                length=sample[read_type][depth][read_pair].reverse_reads.length))
                     if sample[read_type][depth][read_pair].reverse_reads.length != '0':
                         # Use the reformat method in the OLCTools bbtools wrapper to trim the reads
                         out, \
@@ -375,7 +373,7 @@ class ReadPrep(object):
         """
         Perform quality trim, and toss reads below appropriate thresholds
         """
-        printtime('Quality trim', self.start)
+        logging.info('Quality trim')
         for sample in self.metadata:
             sample.sampled_reads = GenObject()
             sample.sampled_reads.outputdir = os.path.join(sample.outputdir, 'sampled')
@@ -406,12 +404,11 @@ class ReadPrep(object):
                     # Extract the forward and reverse reads lengths from the read_pair variable
                     sample.sampled_reads[depth][read_pair].forward_reads.length, \
                         sample.sampled_reads[depth][read_pair].reverse_reads.length = read_pair.split('_')
-                    printtime('Performing quality trimming on reads from sample {name} at depth {depth} '
-                              'for minimum read length {forward}'
-                              .format(name=sample.name,
-                                      depth=depth,
-                                      forward=sample.sampled_reads[depth][read_pair].forward_reads.length),
-                              self.start)
+                    logging.info('Performing quality trimming on reads from sample {name} at depth {depth} '
+                                 'for minimum read length {forward}'
+                                 .format(name=sample.name,
+                                         depth=depth,
+                                         forward=sample.sampled_reads[depth][read_pair].forward_reads.length))
                     # Set the attributes for the trimmed forward and reverse reads to use for subsampling
                     sample.sampled_reads[depth][read_pair].trimmed_forwardfastq = \
                         os.path.join(sample.sampled_reads[depth][read_pair].trimmed_dir,
@@ -468,7 +465,7 @@ class ReadPrep(object):
         For each PacBio assembly, sample reads from corresponding FASTQ files for appropriate forward and reverse
         lengths and sequencing depths using reformat.sh from the bbtools suite
         """
-        printtime('Read sampling', self.start)
+        logging.info('Read sampling')
         for sample in self.metadata:
             # Iterate through all the desired depths of coverage
             for depth in self.read_depths:
@@ -490,16 +487,14 @@ class ReadPrep(object):
                                      .format(name=sample.name,
                                              depth=depth,
                                              read_pair=read_pair))
-                    printtime(
+                    logging.info(
                         'Sampling {num_reads} paired reads for sample {name} with the following parameters:\n'
                         'depth {dp}, forward reads {fl}bp, and reverse reads {rl}bp'
                         .format(num_reads=sample.simulated_reads[depth][read_pair].num_reads,
                                 dp=depth,
                                 name=sample.name,
                                 fl=sample.sampled_reads[depth][read_pair].forward_reads.length,
-                                rl=sample.sampled_reads[depth][read_pair].reverse_reads.length),
-                        self.start
-                    )
+                                rl=sample.sampled_reads[depth][read_pair].reverse_reads.length))
                     # Use the reformat method in the OLCTools bbtools wrapper
                     # Note that upsample=t is used to ensure that the target number of reads (samplereadstarget) is met
                     if not os.path.isfile(sample.sampled_reads[depth][read_pair].forward_reads.trimmed_sampled_fastq):
@@ -533,7 +528,7 @@ class ReadPrep(object):
         the reads created for each sample, and will be processed with GeneSippr and COWBAT pipelines
         :param analysistype: Current analysis type. Will either be 'simulated' or 'sampled'
         """
-        printtime('Linking {at} reads'.format(at=analysistype), self.start)
+        logging.info('Linking {at} reads'.format(at=analysistype))
         for sample in self.metadata:
             # Create the output directories
             genesippr_dir = os.path.join(self.path, 'genesippr', sample.name)
@@ -580,12 +575,15 @@ class ReadPrep(object):
         """
         Run GeneSippr on each of the samples
         """
-        printtime('GeneSippr', self.start)
+        logging.info('GeneSippr')
         # These unfortunate hard coded paths appear to be necessary
-        activate = 'source $HOME/miniconda3/bin/activate $HOME/miniconda3/envs/genesippr'
+        testpath = os.path.abspath(os.path.dirname(__file__))
+        env_path = shutil.which('bbduk.sh')
+        logging.warning((testpath, env_path))
+        activate = 'source $HOME/miniconda3/bin/activate $HOME/miniconda3/envs/sipprverse'
         sippr_path = '$HOME/PycharmProjects/sipprverse/sippr.py'
         for sample in self.metadata:
-            printtime(sample.name, self.start)
+            logging.info(sample.name)
 
             # Run the pipeline. Check to make sure that the serosippr report, which is created last doesn't exist
             if not os.path.isfile(os.path.join(sample.genesippr_dir, 'reports', 'genesippr.csv')):
@@ -595,16 +593,17 @@ class ReadPrep(object):
                             seqpath=sample.genesippr_dir,
                             refpath=self.referencefilepath
                             )
+                logging.critical(cmd)
                 # Create another shell script to execute within the PlasmidExtractor conda environment
                 template = "#!/bin/bash\n{} && {}".format(activate, cmd)
-                pointfinder_script = os.path.join(sample.genesippr_dir, 'run_pointfinder.sh')
-                with open(pointfinder_script, 'w+') as file:
+                genesippr_script = os.path.join(sample.genesippr_dir, 'run_genesippr.sh')
+                with open(genesippr_script, 'w+') as file:
                     file.write(template)
                 # Modify the permissions of the script to allow it to be run on the node
-                self.make_executable(pointfinder_script)
+                self.make_executable(genesippr_script)
                 # Run shell script
-                os.system('/bin/bash {}'.format(pointfinder_script))
-                quit()
+                # os.system('/bin/bash {}'.format(genesippr_script))
+                # quit()
 
     def parse_genesippr(self):
         """
@@ -660,7 +659,7 @@ class ReadPrep(object):
         """
         Run COWBAT on all the samples
         """
-        printtime('COWBAT', self.start)
+        logging.info('COWBAT')
         # Create a MetadataObject to spoof ArgumentParser supplied arguments
         args = MetadataObject()
         args.referencefilepath = self.referencefilepath
@@ -708,9 +707,10 @@ if __name__ == '__main__':
                         required=True,
                         help='Provide the location of the folder containing the pipeline accessory files (reference '
                              'genomes, MLST data, etc.')
+    SetupLogging(debug=True)
     # Get the arguments into an object
     arguments = parser.parse_args()
     arguments.start = time()
     prep = ReadPrep(arguments)
     prep.main()
-    printtime('Analyses Complete!', arguments.start)
+    logging.info('Analyses Complete!', arguments.start)
