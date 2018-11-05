@@ -23,36 +23,10 @@ class GDCS(object):
         self.runmetadata = objects.samples
         # Run the analyses
         sippr = Sippr(self, self.cutoff)
-        # Create the reports
-        self.reporter()
         sippr.clear()
         # Print the metadata
         printer = MetadataPrinter(self)
         printer.printmetadata()
-
-    def reporter(self):
-        """
-        Creates a report of the results
-        """
-        # Create the path in which the reports are stored
-        make_path(self.reportpath)
-        header = 'Strain,Gene,PercentIdentity,FoldCoverage\n'
-        data = ''
-        with open('{}/{}.csv'.format(self.reportpath, self.analysistype), 'w') as report:
-            for sample in self.runmetadata.samples:
-                data += sample.name + ','
-                if sample[self.analysistype].results:
-                    multiple = False
-                    for name, identity in sample[self.analysistype].results.items():
-                        if not multiple:
-                            data += '{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
-                        else:
-                            data += ',{},{},{}\n'.format(name, identity, sample[self.analysistype].avgdepth[name])
-                        multiple = True
-                else:
-                    data += '\n'
-            report.write(header)
-            report.write(data)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath):
         """
