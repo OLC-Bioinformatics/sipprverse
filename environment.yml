@@ -83,8 +83,8 @@ dependencies:
   - libwebp=0.5.2=7
   - libxcb=1.13=h470a237_2
   - libxml2=2.9.8=h422b904_5
-  - matplotlib=3.0.0=2
-  - matplotlib-base=3.0.0=py36hc039c98_2
+  - matplotlib=3.0.1=h8a2030e_1
+  - matplotlib-base=3.0.1=py36hc039c98_1
   - mkl_fft=1.0.6=py36_0
   - mkl_random=1.0.1=py36_0
   - mmtf-python=1.1.2=py_0
