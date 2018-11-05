@@ -4,10 +4,12 @@ from accessoryFunctions.metadataprinter import MetadataPrinter
 from sipprCommon.objectprep import Objectprep
 from MLSTsippr.sipprmlst import MLSTmap
 from collections import defaultdict
+import multiprocessing
 import subprocess
 import operator
 import logging
 import time
+import sys
 import os
 
 
@@ -44,9 +46,13 @@ class GeneSippr(object):
         logging.info('Preparing reports')
         # Populate self.plusdict in order to reuse parsing code from an assembly-based method
         for sample in self.runmetadata.samples:
+            self.plusdict[sample.name] = dict()
+            self.matchdict[sample.name] = dict()
             if sample.general.bestassemblyfile != 'NA':
                 for gene in sample[self.analysistype].allelenames:
+                    self.plusdict[sample.name][gene] = dict()
                     for allele, percentidentity in sample[self.analysistype].results.items():
+
                         if gene in allele:
                             # Split the allele number from the gene name using the appropriate delimiter
                             if '_' in allele:
@@ -55,13 +61,18 @@ class GeneSippr(object):
                                 splitter = '-'
                             else:
                                 splitter = ''
+                            self.matchdict[sample.name].update({gene: allele.split(splitter)[-1]})
                             # Create the plusdict dictionary as in the assembly-based (r)MLST method. Allows all the
                             # parsing and sequence typing code to be reused.
                             try:
-                                self.plusdict[sample.name][gene][allele.split(splitter)[1]][percentidentity] \
+                                self.plusdict[sample.name][gene][allele.split(splitter)[-1]][percentidentity] \
                                     = sample[self.analysistype].avgdepth[allele]
-                            except IndexError:
-                                pass
+                            except KeyError:
+                                self.plusdict[sample.name][gene][allele.split(splitter)[-1]] = dict()
+                                self.plusdict[sample.name][gene][allele.split(splitter)[-1]][percentidentity] \
+                                    = sample[self.analysistype].avgdepth[allele]
+                    if gene not in self.matchdict[sample.name]:
+                        self.matchdict[sample.name].update({gene: 'N'})
         self.profiler()
         self.sequencetyper()
         self.mlstreporter()
@@ -72,8 +83,8 @@ class GeneSippr(object):
         from csv import DictReader
         # Initialise variables
         profiledata = defaultdict(make_dict)
+        reverse_profiledata = dict()
         profileset = set()
-        genedict = dict()
         # Find all the unique profiles to use with a set
         for sample in self.runmetadata.samples:
             if sample.general.bestassemblyfile != 'NA':
@@ -82,12 +93,14 @@ class GeneSippr(object):
 
         # Extract the profiles for each set
         for sequenceprofile in profileset:
+            reverse_profiledata[sequenceprofile] = dict()
             # Clear the list of genes
-            genelist = list()
+            geneset = set()
+            # Calculate the total number of genes in the typing scheme
             for sample in self.runmetadata.samples:
                 if sample.general.bestassemblyfile != 'NA':
                     if sequenceprofile == sample[self.analysistype].profile:
-                        genelist = [allele for allele in sample[self.analysistype].alleles]
+                        geneset = {allele for allele in sample[self.analysistype].alleles}
             try:
                 # Open the sequence profile file as a dictionary
                 profile = DictReader(open(sequenceprofile), dialect='excel-tab')
@@ -97,25 +110,21 @@ class GeneSippr(object):
                 profile = DictReader(open(sequenceprofile))
             # Iterate through the rows
             for row in profile:
-                # Iterate through the genes
-                for gene in genelist:
-                    # Add the sequence profile, and type, the gene name and the allele number to the dictionary
-                    try:
-                        profiledata[sequenceprofile][row['ST']][gene] = row[gene]
-                    except KeyError:
-                        try:
-                            profiledata[sequenceprofile][row['rST']][gene] = row[gene]
-                        except KeyError:
-                            raise
-            # Add the gene list to a dictionary
-            genedict[sequenceprofile] = sorted(genelist)
+                # Populate the profile dictionary with profile number: {gene: allele}. Use the first field name,
+                # which will be either ST, or rST as the key to determine the profile number value
+                allele_comprehension = {gene: allele for gene, allele in row.items() if gene in geneset}
+                st = row[profile.fieldnames[0]]
+                profiledata[sequenceprofile][st] = allele_comprehension
+                # Create a 'reverse' dictionary using the the allele comprehension as the key, and
+                # the sequence type as the value - can be used if exact matches are ever desired
+                reverse_profiledata[sequenceprofile].update({frozenset(allele_comprehension.items()): st})
             # Add the profile data, and gene list to each sample
             for sample in self.runmetadata.samples:
                 if sample.general.bestassemblyfile != 'NA':
                     if sequenceprofile == sample[self.analysistype].profile:
                         # Populate the metadata with the profile data
                         sample[self.analysistype].profiledata = profiledata[sample[self.analysistype].profile]
-                        dotter()
+                        sample[self.analysistype].reverse_profiledata = reverse_profiledata[sequenceprofile]
 
     def sequencetyper(self):
         """Determines the sequence type of each strain based on comparisons to sequence type profiles"""
@@ -131,7 +140,34 @@ class GeneSippr(object):
                     if sample[self.analysistype].profile != 'NA':
                         # Create the profiledata variable to avoid writing self.profiledata[self.analysistype]
                         profiledata = sample[self.analysistype].profiledata
-                        # For each gene in plusdict[genome]
+                        # Find exact matches
+                        # try:
+                        #     # sequencetype = sample[self.analysistype].reverse_profiledata[self.matchdict[genome]]
+                        #     sequencetype = sample[self.analysistype]
+                        # .reverse_profiledata[frozenset(self.matchdict[genome].items())]
+                        # except KeyError:
+                        #     pass
+                        # Calculate the number of allele matches between each sequence type and the results
+                        best_seqtype = dict()
+                        for sequencetype in sample[self.analysistype].profiledata:
+                            # Initialise a counter
+                            count = 0
+                            # Iterate through each gene for the sequence type
+                            for gene, refallele in sample[self.analysistype].profiledata[sequencetype].items():
+                                # Use the gene to extract the calculated allele
+                                allele = self.matchdict[genome][gene]
+                                # Increment the count on a match
+                                if refallele == allele:
+                                    count += 1
+                            # Add the sequence type to the set of sequence types with the number of matches as the key
+                            try:
+                                best_seqtype[count].add(sequencetype)
+                            except KeyError:
+                                best_seqtype[count] = set()
+                                best_seqtype[count].add(sequencetype)
+                        # Find the highest number of matches from the dictionary
+                        best = sorted(best_seqtype.items(), key=operator.itemgetter(0), reverse=True)[0][1]
+                        # Deal with multiple allele matches
                         for gene in sample[self.analysistype].allelenames:
                             # Clear the appropriate count and lists
                             multiallele = list()
@@ -158,7 +194,7 @@ class GeneSippr(object):
                             except IndexError:
                                 self.bestdict[genome][gene]['NA'] = 0
                             # Find the profile with the most alleles in common with the query genome
-                            for sequencetype in profiledata:
+                            for sequencetype in best:
                                 # The number of genes in the analysis
                                 header = len(profiledata[sequencetype])
                                 # refallele is the allele number of the sequence type
@@ -279,6 +315,11 @@ class GeneSippr(object):
                 sample[self.analysistype].matchestosequencetype = 'NA'
                 sample[self.analysistype].mismatchestosequencetype = 'NA'
                 sample[self.analysistype].sequencetype = 'NA'
+            # Clear out the reverse_profiledata attribute - frozen sets can not be .json encoded
+            try:
+                delattr(sample[self.analysistype], 'reverse_profiledata')
+            except AttributeError:
+                pass
 
     def mlstreporter(self):
         """ Parse the results into a report"""
@@ -311,10 +352,10 @@ class GeneSippr(object):
                             # Extract the closest reference genus
                             try:
                                 genus = sample.general.referencegenus
-                            except KeyError:
+                            except AttributeError:
                                 try:
                                     genus = sample.general.closestrefseqgenus
-                                except KeyError:
+                                except AttributeError:
                                     genus = 'ND'
                             # If this is the first of one or more sequence types, include the sample name
                             row += '{},{},{},{},'.format(sample.name, genus, seqtype,
@@ -379,7 +420,6 @@ class GeneSippr(object):
         :param cutoff: percent identity cutoff for matches
         :param pipeline: boolean of whether this script needs to run as part of a particular assembly pipeline
         """
-        import multiprocessing
         # Initialise variables
         self.commit = str(pipelinecommit)
         self.starttime = startingtime
@@ -394,9 +434,18 @@ class GeneSippr(object):
         assert os.path.isdir(self.sequencepath), u'Sequence path  is not a valid directory {0!r:s}' \
             .format(self.sequencepath)
         try:
-            self.targetpath = os.path.join(args.reffilepath, analysistype)
+            if pipeline:
+                self.targetpath = os.path.join(args.reffilepath, analysistype)
+            else:
+                self.targetpath = os.path.join(args.reffilepath)
         except AttributeError:
-            self.targetpath = os.path.join(args.targetpath, '')
+            self.targetpath = os.path.join(args.targetpath)
+        if pipeline:
+            if 'mlst' in self.targetpath.lower():
+                if 'rmlst' in self.targetpath.lower():
+                    self.targetpath = os.path.join(os.path.dirname(self.targetpath), 'rMLST')
+                elif 'mlst' in self.targetpath.lower():
+                    self.targetpath = os.path.join(os.path.dirname(self.targetpath), 'MLST')
         assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
         self.reportpath = os.path.join(self.path, 'reports')
@@ -459,18 +508,18 @@ class GeneSippr(object):
         elif analysistype.lower() == 'rmlst':
             self.analysistype = 'rmlst'
         else:
-            import sys
             sys.stderr.write('Please ensure that you specified a valid option for the analysis type. You entered {}. '
                              'The only acceptable options currently are mlst and rmlst.'.format(args.analysistype))
             quit()
-        self.plusdict = defaultdict(make_dict)
+        self.plusdict = dict()
+        self.matchdict = dict()
         self.bestdict = defaultdict(make_dict)
         self.bestmatch = defaultdict(int)
         self.mlstseqtype = defaultdict(make_dict)
         self.resultprofile = defaultdict(make_dict)
         self.referenceprofile = defaultdict(make_dict)
         # Run the analyses
-        self.runner()
+        # self.runner()
 
 
 if __name__ == '__main__':
