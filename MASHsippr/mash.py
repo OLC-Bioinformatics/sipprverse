@@ -38,10 +38,13 @@ class Mash(object):
                 filelist.write('\n'.join(sample.general.trimmedcorrectedfastqfiles))
 
             # Create the system call
-            if '.fasta' in sample.general.trimmedcorrectedfastqfiles[0]:
-                sample.commands.sketch = 'mash sketch -l {file_list} -o {output_file}' \
-                    .format(file_list=sample[self.analysistype].filelist,
-                            output_file=sample[self.analysistype].sketchfilenoext)
+            try:
+                if '.fasta' in sample.general.trimmedcorrectedfastqfiles[0]:
+                    sample.commands.sketch = 'mash sketch -l {file_list} -o {output_file}' \
+                        .format(file_list=sample[self.analysistype].filelist,
+                                output_file=sample[self.analysistype].sketchfilenoext)
+            except IndexError:
+                sample.commands.sketch = str()
             # IF the inputs are FASTQ files, add the -m flag: Minimum copies of each k-mer required to pass noise
             # filter for reads
             else:
