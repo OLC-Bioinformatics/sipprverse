@@ -41,6 +41,9 @@ class ReadPrep(object):
                 oln, seqid = line.split(',')
                 self.straindict[oln] = seqid.rstrip()
                 self.strainset.add(oln)
+                logging.debug(oln)
+                if self.debug:
+                    break
 
     def sequence_prep(self):
         """
@@ -55,7 +58,6 @@ class ReadPrep(object):
             metadata = MetadataObject()
             # Set the sample name to be the file name of the sequence by removing the path and file extension
             sample_name = os.path.splitext(os.path.basename(sample))[0]
-            # try:
             if sample_name in self.strainset:
                 # Extract the OLNID from the dictionary using the SEQID
                 samplename = self.straindict[sample_name]
@@ -86,8 +88,6 @@ class ReadPrep(object):
                     metadata = self.read_json(json_metadata)
                 # Add the metadata object to the list of objects
                 self.metadata.append(metadata)
-            # except KeyError:
-            #     pass
 
     @staticmethod
     def write_json(metadata):
@@ -575,13 +575,15 @@ class ReadPrep(object):
         """
         Run GeneSippr on each of the samples
         """
+        from pathlib import Path
+        home = str(Path.home())
         logging.info('GeneSippr')
         # These unfortunate hard coded paths appear to be necessary
-        testpath = os.path.abspath(os.path.dirname(__file__))
-        env_path = shutil.which('bbduk.sh')
-        logging.warning((testpath, env_path))
-        activate = 'source $HOME/miniconda3/bin/activate $HOME/miniconda3/envs/sipprverse'
-        sippr_path = '$HOME/PycharmProjects/sipprverse/sippr.py'
+        miniconda_path = os.path.join(home, 'miniconda3')
+        miniconda_path = miniconda_path if os.path.isdir(miniconda_path) else os.path.join(home, 'miniconda')
+        logging.debug(miniconda_path)
+        activate = 'source {mp}/bin/activate {mp}/envs/sipprverse'.format(mp=miniconda_path)
+        sippr_path = '{mp}/envs/sipprverse/bin/sippr.py'.format(mp=miniconda_path)
         for sample in self.metadata:
             logging.info(sample.name)
 
@@ -595,14 +597,15 @@ class ReadPrep(object):
                             )
                 logging.critical(cmd)
                 # Create another shell script to execute within the PlasmidExtractor conda environment
-                template = "#!/bin/bash\n{} && {}".format(activate, cmd)
+                template = "#!/bin/bash\n{activate} && {cmd}".format(activate=activate,
+                                                                     cmd=cmd)
                 genesippr_script = os.path.join(sample.genesippr_dir, 'run_genesippr.sh')
                 with open(genesippr_script, 'w+') as file:
                     file.write(template)
                 # Modify the permissions of the script to allow it to be run on the node
                 self.make_executable(genesippr_script)
                 # Run shell script
-                # os.system('/bin/bash {}'.format(genesippr_script))
+                os.system('/bin/bash {}'.format(genesippr_script))
                 # quit()
 
     def parse_genesippr(self):
@@ -676,21 +679,31 @@ class ReadPrep(object):
             cowbat = RunAssemble(args)
             cowbat.main()
 
-    def __init__(self, args):
-        self.start = args.start
-        self.path = os.path.join(args.path)
-        self.referencefilepath = os.path.join(args.referencefilepath)
+    def __init__(self, start, path, referencefilepath, debug):
+        """
+
+        :param start: Time at which the analyses were started
+        :param path: Location in which analyses are to be performed
+        :param referencefilepath: Location of reference database
+        :param debug: Boolean for whether debug level logging enabled, and whether a toy dataset should be used
+        """
+        self.start = start
+        self.path = os.path.join(path)
+        self.referencefilepath = os.path.join(referencefilepath)
         self.fastapath = os.path.join(self.path, 'fasta')
         self.fastqpath = os.path.join(self.path, 'fastq')
-        # self.read_lengths = ['50_0']
-        # self.read_depths = ['10']
-        self.read_lengths = ['50_0', '50_50', '50_75', '50_100', '50_150', '50_250', '50_300',
-                             '75_0', '75_50', '75_75', '75_100', '75_150', '75_250', '75_300',
-                             '100_0', '100_50', '100_75', '100_100', '100_150', '100_250', '100_300',
-                             '150_0', '150_50', '150_75', '150_100', '150_150', '150_250', '150_300',
-                             '250_0', '250_50', '250_75', '250_100', '250_150', '250_250', '250_300',
-                             '300_0', '300_50', '300_75', '300_100', '300_150', '300_250', '300_300']
-        self.read_depths = ['10', '20', '30', '40', '50']
+        self.debug = debug
+        if self.debug:
+            self.read_lengths = ['50_0']
+            self.read_depths = ['10']
+        else:
+            self.read_lengths = ['50_0', '50_50', '50_75', '50_100', '50_150', '50_250', '50_300',
+                                 '75_0', '75_50', '75_75', '75_100', '75_150', '75_250', '75_300',
+                                 '100_0', '100_50', '100_75', '100_100', '100_150', '100_250', '100_300',
+                                 '150_0', '150_50', '150_75', '150_100', '150_150', '150_250', '150_300',
+                                 '250_0', '250_50', '250_75', '250_100', '250_150', '250_250', '250_300',
+                                 '300_0', '300_50', '300_75', '300_100', '300_150', '300_250', '300_300']
+            self.read_depths = ['10', '20', '30', '40', '50']
         self.straindict = dict()
         self.strainset = set()
         self.metadata = list()
@@ -707,10 +720,18 @@ if __name__ == '__main__':
                         required=True,
                         help='Provide the location of the folder containing the pipeline accessory files (reference '
                              'genomes, MLST data, etc.')
-    SetupLogging(debug=True)
+    parser.add_argument('-d', '--debug',
+                        default=False,
+                        action='store_true',
+                        help='Run the pipeline in debug mode. Will enable more logging. Currently will use a '
+                             'greatly decreased range of read lengths and read depths')
     # Get the arguments into an object
     arguments = parser.parse_args()
+    SetupLogging(debug=arguments.debug)
     arguments.start = time()
-    prep = ReadPrep(arguments)
+    prep = ReadPrep(start=arguments.start,
+                    path=arguments.path,
+                    referencefilepath=arguments.referencefilepath,
+                    debug=arguments.debug)
     prep.main()
-    logging.info('Analyses Complete!', arguments.start)
+    logging.info('Analyses Complete!')

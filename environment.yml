@@ -153,7 +153,7 @@ dependencies:
     - chardet==3.0.4
     - click==7.0
     - confindr==0.4.3
-    - geneseekr==0.2.2
+    - geneseekr==0.2.3
     - idna==2.7
     - interop==1.1.6
     - more-itertools==4.3.0
@@ -165,7 +165,7 @@ dependencies:
     - pytest==3.9.1
     - rauth==0.7.3
     - requests==2.20.0
-    - sipprverse==0.0.94
+    - sipprverse==0.0.95
     - urllib3==1.24
     - xlsxwriter==1.1.1
 prefix: /home/adamkoziol/miniconda3/envs/sipprverse

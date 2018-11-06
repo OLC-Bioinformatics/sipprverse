@@ -43,8 +43,10 @@ RUN git fetch --tags
 RUN conda env create
 
 # TO INSTALL TARGETS
-docker run -u ubuntu -it -v /mnt/nas2:/mnt/nas2 --name genesipprtargets --rm sipprverse:0.0.91 /bin/bash -c "source activate genesippr && python -m databasesetup.database_setup -v -d /DESIRED/TARGET/PATH -s -c /PATH/TO/rMLST/CREDENTIALS"
+#docker run -u ubuntu -it -v /mnt/nas2:/mnt/nas2 --name genesipprtargets --rm sipprverse:VERSION /bin/bash -c "source activate sipprverse && python -m databasesetup.database_setup -v -d /DESIRED/TARGET/PATH -s -c /PATH/TO/rMLST/CREDENTIALS"
 
+# TO RUN METHOD
+# docker run -u ubuntu -it -v /mnt/nas2:/mnt/nas2 --name genesipprmethod --rm sipprverse:VERSION /bin/bash -c "source activate sipprverse && python method.py -o /genesipprrun -r /DESIRED/TARGET/PATH -m /MiSeqPath -f MiSeqFolder -C"
 
-# TO RUN
-# docker run -u ubuntu -it -v /mnt/nas2:/mnt/nas2 --name genesipprmethod --rm sipprverse:0.0.91 /bin/bash -c "source activate genesippr && python method.py -o /genesipprrun -r /DESIRED/TARGET/PATH -m /MiSeqPath -f MiSeqFolder -C"
+# TO RUN SIPPR
+# docker run -u ubuntu -it -v /mnt/nas2:/mnt/nas2 --name genesippr --rm sipprverse:VERSION /bin/bash -c "source activate sipprverse && python sippr.py -o /OUTPUT_PATH -r /DESIRED/TARGET/PATH -F"
