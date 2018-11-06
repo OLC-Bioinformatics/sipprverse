@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from accessoryFunctions.accessoryFunctions import GenObject, make_path, MetadataObject, relative_symlink, run_subprocess, SetupLogging
 from biotools import bbtools
-from COWBAT.assembly_pipeline import RunAssemble
+# from COWBAT.assembly_pipeline import RunAssemble
 from argparse import ArgumentParser
 import multiprocessing
 from Bio import SeqIO
@@ -658,26 +658,26 @@ class ReadPrep(object):
         mode |= (mode & 0o444) >> 2
         os.chmod(path, mode)
 
-    def run_cowbat(self):
-        """
-        Run COWBAT on all the samples
-        """
-        logging.info('COWBAT')
-        # Create a MetadataObject to spoof ArgumentParser supplied arguments
-        args = MetadataObject()
-        args.referencefilepath = self.referencefilepath
-        args.numreads = 2
-        args.preprocess = False
-        args.startingtime = self.start
-        args.customsamplesheet = False
-        args.threads = multiprocessing.cpu_count() - 1
-        args.commit = b''
-        args.homepath = ''
-        for sample in self.metadata:
-            args.sequencepath = sample.cowbat_dir
-            # Run the pipeline
-            cowbat = RunAssemble(args)
-            cowbat.main()
+    # def run_cowbat(self):
+    #     """
+    #     Run COWBAT on all the samples
+    #     """
+    #     logging.info('COWBAT')
+    #     # Create a MetadataObject to spoof ArgumentParser supplied arguments
+    #     args = MetadataObject()
+    #     args.referencefilepath = self.referencefilepath
+    #     args.numreads = 2
+    #     args.preprocess = False
+    #     args.startingtime = self.start
+    #     args.customsamplesheet = False
+    #     args.threads = multiprocessing.cpu_count() - 1
+    #     args.commit = b''
+    #     args.homepath = ''
+    #     for sample in self.metadata:
+    #         args.sequencepath = sample.cowbat_dir
+    #         # Run the pipeline
+    #         cowbat = RunAssemble(args)
+    #         cowbat.main()
 
     def __init__(self, start, path, referencefilepath, debug):
         """
