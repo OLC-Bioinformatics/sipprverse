@@ -39,18 +39,19 @@ class Mash(object):
 
             # Create the system call
             try:
-                if '.fasta' in sample.general.trimmedcorrectedfastqfiles[0]:
+                if sample.general.trimmedcorrectedfastqfiles[0].endswith('.fasta'):
                     sample.commands.sketch = 'mash sketch -l {file_list} -o {output_file}' \
+                        .format(file_list=sample[self.analysistype].filelist,
+                                output_file=sample[self.analysistype].sketchfilenoext)
+                # IF the inputs are FASTQ files, add the -m flag: Minimum copies of each k-mer required to pass noise
+                # filter for reads
+                else:
+                    sample.commands.sketch = 'mash sketch -m 2 -r -l {file_list} -o {output_file}' \
                         .format(file_list=sample[self.analysistype].filelist,
                                 output_file=sample[self.analysistype].sketchfilenoext)
             except IndexError:
                 sample.commands.sketch = str()
-            # IF the inputs are FASTQ files, add the -m flag: Minimum copies of each k-mer required to pass noise
-            # filter for reads
-            else:
-                sample.commands.sketch = 'mash sketch -m 2 -r -l {file_list} -o {output_file}' \
-                    .format(file_list=sample[self.analysistype].filelist,
-                            output_file=sample[self.analysistype].sketchfilenoext)
+
             # Add each sample to the threads
             try:
                 self.sketchqueue.put(sample)
