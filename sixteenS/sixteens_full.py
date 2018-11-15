@@ -341,22 +341,22 @@ class SixteenS(object):
                         # Extract the top result, and set it as the genus of the sample
                         sample[self.analysistype].genus = sample[self.analysistype].sortedgenera[0][0]
                         # Previous code relies on having the closest refseq genus, so set this as above
-                        sample.general.closestrefseqgenus = sample[self.analysistype].genus
+                        # sample.general.closestrefseqgenus = sample[self.analysistype].genus
                     except IndexError:
                         # Populate attributes with 'NA'
                         sample[self.analysistype].sortedgenera = 'NA'
                         sample[self.analysistype].genus = 'NA'
-                        sample.general.closestrefseqgenus = 'NA'
+                        # sample.general.closestrefseqgenus = 'NA'
                 else:
                     # Populate attributes with 'NA'
                     sample[self.analysistype].sortedgenera = 'NA'
                     sample[self.analysistype].genus = 'NA'
-                    sample.general.closestrefseqgenus = 'NA'
+                    # sample.general.closestrefseqgenus = 'NA'
             else:
                 # Populate attributes with 'NA'
                 sample[self.analysistype].sortedgenera = 'NA'
                 sample[self.analysistype].genus = 'NA'
-                sample.general.closestrefseqgenus = 'NA'
+                # sample.general.closestrefseqgenus = 'NA'
 
     def reporter(self):
         """
@@ -368,7 +368,7 @@ class SixteenS(object):
         # Initialise the header and data strings
         header = 'Strain,Gene,PercentIdentity,Genus,FoldCoverage\n'
         data = ''
-        with open(os.path.join(self.reportpath, self.analysistype + '.csv'), 'w') as report:
+        with open(self.sixteens_report, 'w') as report:
             with open(os.path.join(self.reportpath, self.analysistype + '_sequences.fa'), 'w') as sequences:
                 for sample in self.runmetadata.samples:
                     # Initialise
@@ -408,6 +408,48 @@ class SixteenS(object):
             # Write the results to the report
             report.write(header)
             report.write(data)
+
+    def report_parse(self):
+        """
+
+        :return:
+        """
+        test = SixteenSBait(self)
+        test.targets()
+        with open(self.sixteens_report, 'r') as report:
+            for line in report:
+                try:
+                    strain, sixteens, pid, genus, fold_coverage = line.split(',')
+                except ValueError:
+                    strain = line.rstrip()
+                    genus = 'NA'
+                    sixteens = str()
+                    pid = '0'
+                    fold_coverage = '0'
+                for sample in self.runmetadata.samples:
+                    if sample.name == strain:
+                        sample.general.closestrefseqgenus = genus
+                        sample[self.analysistype].genus = genus
+                        sample[self.analysistype].avgdepth = dict()
+                        sample[self.analysistype].avgdepth[sixteens] = fold_coverage.rstrip()
+                        if genus != 'NA':
+                            sample[self.analysistype].results = {sixteens: pid}
+                        else:
+                            sample[self.analysistype].results = dict()
+        sequences = SeqIO.parse(self.sixteens_sequences, 'fasta')
+        for record in sequences:
+            name = record.id.split('_16S')[0]
+            for sample in self.runmetadata.samples:
+                if name == sample.name:
+                    sample[self.analysistype].sequences = dict()
+                    for sixteens in sample[self.analysistype].avgdepth:
+                        sample[self.analysistype].sequences[sixteens] = str(record.seq)
+        for sample in self.runmetadata.samples:
+            try:
+                if sample[self.analysistype].sequences:
+                    pass
+            except AttributeError:
+                sample[self.analysistype].sequences = dict()
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff):
         """
@@ -502,8 +544,14 @@ class SixteenS(object):
                            'evalue', 'bit_score', 'subject_length', 'alignment_length',
                            'query_start', 'query_end', 'query_sequence',
                            'subject_start', 'subject_end', 'subject_sequence']
-        # Run the analyses
-        self.runner()
+        #
+        self.sixteens_report = os.path.join(self.reportpath, self.analysistype + '.csv')
+        self.sixteens_sequences = os.path.join(self.reportpath, self.analysistype + '_sequences.fa')
+        if not os.path.isfile(self.sixteens_report):
+            # Run the analyses
+            self.runner()
+        else:
+            self.report_parse()
 
 
 if __name__ == '__main__':
