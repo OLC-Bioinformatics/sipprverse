@@ -8,6 +8,7 @@ import spadespipeline.quality as quality
 from sipprCommon.create_sample_sheet import SampleSheet
 from sipprCommon.objectprep import Objectprep
 from genesippr.genesippr import GeneSippr
+import MASHsippr.mash as mash
 from argparse import ArgumentParser
 import multiprocessing
 from time import sleep
@@ -178,6 +179,7 @@ class Method(object):
         self.run_genesippr()
         ReportImage(self, 'genesippr')
         self.run_sixteens()
+        self.run_mash()
         self.run_gdcs()
         ReportImage(self, 'gdcs')
 
@@ -212,6 +214,14 @@ class Method(object):
                      scriptpath=self.homepath,
                      analysistype='sixteens_full',
                      cutoff=0.985)
+
+    def run_mash(self):
+        """
+        Run MASH to determine the closest refseq genomes
+        """
+        self.pipeline = True
+        mash.Mash(inputobject=self,
+                  analysistype='mash')
 
     def run_gdcs(self):
         """

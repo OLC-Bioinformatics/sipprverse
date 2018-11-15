@@ -243,7 +243,10 @@ def clean_folder(analysistype):
         os.remove(os.path.join(method.sequencepath, 'logerr'))
     except FileNotFoundError:
         pass
-    os.remove(os.path.join(method.sequencepath, 'unit_test_metadata.json'))
+    try:
+        os.remove(os.path.join(method.sequencepath, 'unit_test_metadata.json'))
+    except FileNotFoundError:
+        pass
 
 
 def test_confindr():
@@ -269,6 +272,16 @@ def test_sixteens():
     analysistype = 'sixteens_full'
     metadata_update(analysistype)
     method.run_sixteens()
+    outfile = os.path.join(method.reportpath, '{}.csv'.format(analysistype))
+    size = os.stat(outfile)
+    clean_folder(analysistype)
+    assert size.st_size > 0
+
+
+def test_mash():
+    analysistype = 'mash'
+    metadata_update(analysistype)
+    method.run_mash()
     outfile = os.path.join(method.reportpath, '{}.csv'.format(analysistype))
     size = os.stat(outfile)
     clean_folder(analysistype)
