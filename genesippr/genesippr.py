@@ -106,7 +106,7 @@ class GeneSippr(object):
         try:
             self.averagedepth = int(args.averagedepth)
         except AttributeError:
-            self.averagedepth = 2
+            self.averagedepth = 5
         try:
             self.copy = args.copy
         except AttributeError:
@@ -185,7 +185,7 @@ if __name__ == '__main__':
                         default=0.8,
                         help='Custom cutoff values')
     parser.add_argument('-a', '--averagedepth',
-                        default=10,
+                        default=5,
                         help='Supply an integer of the minimum mapping depth in order to return a positive result ')
     parser.add_argument('-C', '--copy',
                         action='store_true',
