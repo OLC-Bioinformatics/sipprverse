@@ -37,7 +37,9 @@ class Sipprverse(object):
             # Run the genesippr analyses
             self.analysistype = 'genesippr'
             self.targetpath = os.path.join(self.reffilepath, self.analysistype)
-            Sippr(self, 0.90)
+            Sippr(inputobject=self,
+                  cutoff=0.90,
+                  averagedepth=5)
             # Create the reports
             self.reports = Reports(self)
             Reports.reporter(self.reports)
@@ -55,12 +57,12 @@ class Sipprverse(object):
                       analysistype='mash')
         if self.rmlst:
             rmlst = MLSTSippr(args=self,
-                      pipelinecommit=self.commit,
-                      startingtime=self.starttime,
-                      scriptpath=self.homepath,
-                      analysistype='rMLST',
-                      cutoff=1.0,
-                      pipeline=True)
+                              pipelinecommit=self.commit,
+                              startingtime=self.starttime,
+                              scriptpath=self.homepath,
+                              analysistype='rMLST',
+                              cutoff=1.0,
+                              pipeline=True)
             rmlst.runner()
         if self.resistance:
             # ResFinding
@@ -95,12 +97,12 @@ class Sipprverse(object):
         if self.mlst:
             self.genus_specific()
             mlst = MLSTSippr(args=self,
-                      pipelinecommit=self.commit,
-                      startingtime=self.starttime,
-                      scriptpath=self.homepath,
-                      analysistype='MLST',
-                      cutoff=1.0,
-                      pipeline=True)
+                             pipelinecommit=self.commit,
+                             startingtime=self.starttime,
+                             scriptpath=self.homepath,
+                             analysistype='MLST',
+                             cutoff=1.0,
+                             pipeline=True)
             mlst.runner()
         # Optionally perform serotyping
         if self.serotype:
@@ -150,16 +152,16 @@ class Sipprverse(object):
         self.homepath = scriptpath
         self.args = args
         # Define variables based on supplied arguments
-        self.path = os.path.join(args.outputpath)
+        self.path = os.path.abspath(os.path.join(args.outputpath))
         assert os.path.isdir(self.path), u'Supplied path is not a valid directory {0!r:s}'.format(self.path)
-        self.sequencepath = os.path.join(args.sequencepath)
+        self.sequencepath = os.path.abspath(os.path.join(args.sequencepath))
         self.seqpath = self.sequencepath
-        self.targetpath = os.path.join(args.referencefilepath)
+        self.targetpath = os.path.abspath(os.path.join(args.referencefilepath))
         # ref file path is used to work with submodule code with a different naming scheme
         self.reffilepath = self.targetpath
         self.reportpath = os.path.join(self.path, 'reports')
         make_path(self.reportpath)
-        assert os.path.isdir(self.targetpath), u'Target path is not a valid directory {0!r:s}' \
+        assert os.path.isdir(self.targetpath), 'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
         # Set the custom cutoff value
         self.cutoff = args.customcutoffs
@@ -222,7 +224,7 @@ if __name__ == '__main__':
                         required=True,
                         help='Provide the location of the folder containing reference database')
     parser.add_argument('-a', '--averagedepth',
-                        default=2,
+                        default=5,
                         help='Cutoff value for mapping depth to use when parsing BAM files.')
     parser.add_argument('-n', '--numthreads',
                         default=multiprocessing.cpu_count(),
