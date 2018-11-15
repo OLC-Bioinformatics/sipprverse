@@ -328,11 +328,11 @@ class ReadPrep(object):
                                                'forcetrimright':
                                                    sample[read_type][depth][read_pair].forward_reads.length}
                                             )
-                        # Remove the untrimmed reads
-                        try:
-                            os.remove(sample[read_type][depth][read_pair].forward_reads.fastq)
-                        except FileNotFoundError:
-                            pass
+                        # # Remove the untrimmed reads
+                        # try:
+                        #     os.remove(sample[read_type][depth][read_pair].forward_reads.fastq)
+                        # except FileNotFoundError:
+                        #     pass
 
                     else:
                         # If the files do not need to be trimmed, create a symlink to the original file
@@ -361,11 +361,11 @@ class ReadPrep(object):
                                             **{'ziplevel': '9',
                                                'forcetrimright':
                                                    sample[read_type][depth][read_pair].reverse_reads.length})
-                        # Remove the untrimmed reads
-                        try:
-                            os.remove(sample[read_type][depth][read_pair].reverse_reads.fastq)
-                        except FileNotFoundError:
-                            pass
+                        # # Remove the untrimmed reads
+                        # try:
+                        #     os.remove(sample[read_type][depth][read_pair].reverse_reads.fastq)
+                        # except FileNotFoundError:
+                        #     pass
             # Update the JSON file
             self.write_json(sample)
 
