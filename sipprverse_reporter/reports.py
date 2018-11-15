@@ -41,7 +41,6 @@ class Reports(object):
                 # Append the gene names to the genus-specific list
                 try:
                     genusgenes[organism].add(record.id.split('_')[0])
-                except (KeyError, IndexError):
                     genusgenes[organism] = set()
                     genusgenes[organism].add(record.id.split('_')[0])
         # Determine from which genera the gene hits were sourced
@@ -248,10 +247,10 @@ class Reports(object):
                                         std='{:.2f}'.format(sample[analysistype].stddev),
                                         fail=quality,
                                         gdcs=specific)
-                        # Any samples with a best assembly of 'NA' are considered incomplete.
-                        else:
-                            data += '{},{},,,-\n'.format(sample.name, sample.general.closestrefseqgenus)
-                            sample.general.incomplete = True
+                        # # Any samples with a best assembly of 'NA' are considered incomplete.
+                        # else:
+                        #     data += '{},{},,,-\n'.format(sample.name, sample.general.closestrefseqgenus)
+                        #     sample.general.incomplete = True
                     elif sample.general.closestrefseqgenus == 'NA':
                         data += '{}\n'.format(sample.name)
                         sample.general.incomplete = True
