@@ -182,6 +182,7 @@ class Mash(object):
                             sample[self.analysistype].closestrefseq.split()[1]
                         # Set the closest refseq genus - will be used for all typing that requires the genus to be known
                         sample.general.referencegenus = sample[self.analysistype].closestrefseqgenus
+                        sample.general.closestrefseqgenus = sample[self.analysistype].closestrefseqgenus
                         break
                     except ValueError:
                         sample[self.analysistype].closestrefseq = 'NA'
@@ -191,6 +192,7 @@ class Mash(object):
                         sample[self.analysistype].pvalue = 'NA'
                         sample[self.analysistype].nummatches = 'NA'
                         sample.general.referencegenus = 'NA'
+                        sample.general.closestrefseqgenus = 'NA'
                         break
                     # I have encountered a strain that has a best match with the RefSeq database provided by the
                     # developers of MASH that doesn't have a corresponding entry in the assembly_summary_refseq.txt
@@ -205,6 +207,8 @@ class Mash(object):
                 sample[self.analysistype].pvalue = 'NA'
                 sample[self.analysistype].nummatches = 'NA'
                 sample.general.referencegenus = 'NA'
+                sample.general.closestrefseqgenus = 'NA'
+
         self.reporter()
 
     def reporter(self):
