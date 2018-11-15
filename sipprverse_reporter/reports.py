@@ -41,6 +41,7 @@ class Reports(object):
                 # Append the gene names to the genus-specific list
                 try:
                     genusgenes[organism].add(record.id.split('_')[0])
+                except (KeyError, IndexError):
                     genusgenes[organism] = set()
                     genusgenes[organism].add(record.id.split('_')[0])
         # Determine from which genera the gene hits were sourced
