@@ -31,6 +31,8 @@ class Method(object):
         self.createobjects()
         # Run the genesipping analyses
         self.methods()
+        for sample in self.runmetadata.samples:
+            logging.critical(sample.name)
         # Determine if the analyses are complete
         self.complete()
         self.additionalsipping()
@@ -169,6 +171,8 @@ class Method(object):
         """
         Run the typing methods
         """
+        for sample in self.runmetadata.samples:
+            logging.warning(sample.name)
         self.contamination_detection()
         ReportImage(self, 'confindr')
         self.run_genesippr()
@@ -262,7 +266,10 @@ class Method(object):
         self.starttime = startingtime
         self.homepath = scriptpath
         # Define variables based on supplied arguments
-        self.path = os.path.join(args.outputpath)
+        if args.outputpath.startswith('~'):
+            self.path = os.path.expanduser(args.outputpath)
+        else:
+            self.path = os.path.abspath(os.path.join(args.outputpath))
         make_path(self.path)
         assert os.path.isdir(self.path), 'Supplied path is not a valid directory {0!r:s}'.format(self.path)
         try:
@@ -273,9 +280,12 @@ class Method(object):
             os.remove(self.portallog)
         except FileNotFoundError:
             pass
-        self.sequencepath = os.path.join(self.path, 'sequences')
+        self.sequencepath =os.path.join(self.path, 'sequences')
         self.seqpath = self.sequencepath
-        self.targetpath = os.path.join(args.referencefilepath)
+        if args.referencefilepath.startswith('~'):
+            self.targetpath = os.path.expanduser(args.referencefilepath)
+        else:
+            self.targetpath = os.path.abspath(os.path.join(args.referencefilepath))
         # ref file path is used to work with sub module code with a different naming scheme
         self.reffilepath = self.targetpath
         self.reportpath = os.path.join(self.path, 'reports')
@@ -283,14 +293,24 @@ class Method(object):
         assert os.path.isdir(self.targetpath), 'Target path is not a valid directory {0!r:s}' \
             .format(self.targetpath)
         self.bcltofastq = True
-        self.miseqpath = args.miseqpath
+        if args.miseqpath.startswith('~'):
+            self.miseqpath = os.path.expanduser(args.miseqpath)
+        else:
+            self.miseqpath = os.path.abspath(args.miseqpath)
+        logging.critical(self.miseqpath)
         self.miseqfolder = args.miseqfolder
         # self.fastqdestination = args.destinationfastq
         self.fastqdestination = str()
         self.forwardlength = args.readlengthforward
         self.reverselength = args.readlengthreverse
         self.numreads = 2 if self.reverselength != 0 else 1
-        self.customsamplesheet = args.customsamplesheet
+        try:
+            if args.customsamplesheet.startswith('~'):
+                self.customsamplesheet = os.path.expanduser(args.customsamplesheet)
+            else:
+                self.customsamplesheet = os.path.abspath(os.path.join(args.customsamplesheet))
+        except AttributeError:
+            self.customsamplesheet = None
         # Set the custom cutoff value
         self.cutoff = float()
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
@@ -352,9 +372,6 @@ if __name__ == '__main__':
                         help='Name of the folder containing MiSeq run data')
     parser.add_argument('-n', '--numthreads',
                         help='Number of threads. Default is the number of cores in the system')
-    parser.add_argument('-d', '--destinationfastq',
-                        help='Optional folder path to store .fastq files created using the fastqCreation module. '
-                             'Defaults to outputpath/miseqfolder')
     parser.add_argument('-r1', '--readlengthforward',
                         default='full',
                         help='Length of forward reads to use. Can specify "full" to take the full length of '
