@@ -326,7 +326,10 @@ class ReadPrep(object):
                                             returncmd=True,
                                             **{'ziplevel': '9',
                                                'forcetrimright':
-                                                   sample[read_type][depth][read_pair].forward_reads.length}
+                                                   sample[read_type][depth][read_pair].forward_reads.length,
+                                               'tossbrokenreads': 't',
+                                               'tossjunk': 't'
+                                               }
                                             )
                         # # Remove the untrimmed reads
                         # try:
@@ -360,7 +363,10 @@ class ReadPrep(object):
                                             returncmd=True,
                                             **{'ziplevel': '9',
                                                'forcetrimright':
-                                                   sample[read_type][depth][read_pair].reverse_reads.length})
+                                                   sample[read_type][depth][read_pair].reverse_reads.length,
+                                               'tossbrokenreads': 't',
+                                               'tossjunk': 't'
+                                               })
                         # # Remove the untrimmed reads
                         # try:
                         #     os.remove(sample[read_type][depth][read_pair].reverse_reads.fastq)
