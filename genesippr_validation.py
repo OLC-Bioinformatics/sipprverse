@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 from accessoryFunctions.accessoryFunctions import GenObject, make_path, MetadataObject, relative_symlink, run_subprocess, SetupLogging
 from biotools import bbtools
-# from COWBAT.assembly_pipeline import RunAssemble
+# from cowbat.assembly_pipeline import RunAssemble
 from argparse import ArgumentParser
-import multiprocessing
 from Bio import SeqIO
 from glob import glob
 from time import time
 import logging
-import shutil
+import psutil
 import json
 import os
 __author__ = 'adamkoziol'
@@ -240,6 +239,7 @@ class ReadPrep(object):
                                              out_fastq=sample.simulated_reads[depth][read_pair].forward_reads.fastq,
                                              paired=True,
                                              returncmd=True,
+                                             mem=self.mem,
                                              **{'ziplevel': '9',
                                                 'illuminanames': 't'}
                                              )
@@ -324,6 +324,7 @@ class ReadPrep(object):
                                             reverse_in=None,
                                             forward_out=sample[read_type][depth][read_pair].forward_reads[fastq_type],
                                             returncmd=True,
+                                            mem=self.mem,
                                             **{'ziplevel': '9',
                                                'forcetrimright':
                                                    sample[read_type][depth][read_pair].forward_reads.length,
@@ -361,6 +362,7 @@ class ReadPrep(object):
                                             reverse_in=None,
                                             forward_out=sample[read_type][depth][read_pair].reverse_reads[fastq_type],
                                             returncmd=True,
+                                            mem=self.mem,
                                             **{'ziplevel': '9',
                                                'forcetrimright':
                                                    sample[read_type][depth][read_pair].reverse_reads.length,
@@ -462,6 +464,7 @@ class ReadPrep(object):
                                                .forward_reads.length,
                                                forcetrimleft=0,
                                                returncmd=True,
+                                               mem=self.mem,
                                                **{'ziplevel': '9'})
             # Update the JSON file
             self.write_json(sample)
@@ -512,11 +515,14 @@ class ReadPrep(object):
                                             forward_out=sample.sampled_reads[depth][read_pair].forward_reads.fastq,
                                             reverse_out=sample.sampled_reads[depth][read_pair].reverse_reads.fastq,
                                             returncmd=True,
+                                            mem=self.mem,
                                             **{'samplereadstarget': sample.simulated_reads[depth][read_pair].num_reads,
                                                'upsample': 't',
                                                'minlength':
                                                    sample.sampled_reads[depth][read_pair].forward_reads.length,
-                                               'ziplevel': '9'
+                                               'ziplevel': '9',
+                                               'tossbrokenreads': 't',
+                                               'tossjunk': 't'
                                                }
                                             )
                     # # Remove the trimmed reads, as they are no longer necessary
@@ -713,6 +719,7 @@ class ReadPrep(object):
         self.straindict = dict()
         self.strainset = set()
         self.metadata = list()
+        self.mem = int(0.85 * float(psutil.virtual_memory().total))
 
 
 if __name__ == '__main__':
