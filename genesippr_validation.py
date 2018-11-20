@@ -239,9 +239,9 @@ class ReadPrep(object):
                                              out_fastq=sample.simulated_reads[depth][read_pair].forward_reads.fastq,
                                              paired=True,
                                              returncmd=True,
-                                             mem=self.mem,
                                              **{'ziplevel': '9',
-                                                'illuminanames': 't'}
+                                                'illuminanames': 't',
+                                                'Xmx': self.mem}
                                              )
                         else:
                             try:
@@ -324,12 +324,12 @@ class ReadPrep(object):
                                             reverse_in=None,
                                             forward_out=sample[read_type][depth][read_pair].forward_reads[fastq_type],
                                             returncmd=True,
-                                            mem=self.mem,
                                             **{'ziplevel': '9',
                                                'forcetrimright':
                                                    sample[read_type][depth][read_pair].forward_reads.length,
                                                'tossbrokenreads': 't',
-                                               'tossjunk': 't'
+                                               'tossjunk': 't',
+                                               'Xmx': self.mem
                                                }
                                             )
                         # # Remove the untrimmed reads
@@ -362,12 +362,12 @@ class ReadPrep(object):
                                             reverse_in=None,
                                             forward_out=sample[read_type][depth][read_pair].reverse_reads[fastq_type],
                                             returncmd=True,
-                                            mem=self.mem,
                                             **{'ziplevel': '9',
                                                'forcetrimright':
                                                    sample[read_type][depth][read_pair].reverse_reads.length,
                                                'tossbrokenreads': 't',
-                                               'tossjunk': 't'
+                                               'tossjunk': 't',
+                                               'Xmx': self.mem
                                                })
                         # # Remove the untrimmed reads
                         # try:
@@ -464,8 +464,8 @@ class ReadPrep(object):
                                                .forward_reads.length,
                                                forcetrimleft=0,
                                                returncmd=True,
-                                               mem=self.mem,
-                                               **{'ziplevel': '9'})
+                                               **{'ziplevel': '9',
+                                                  'Xmx': self.mem})
             # Update the JSON file
             self.write_json(sample)
 
@@ -515,14 +515,14 @@ class ReadPrep(object):
                                             forward_out=sample.sampled_reads[depth][read_pair].forward_reads.fastq,
                                             reverse_out=sample.sampled_reads[depth][read_pair].reverse_reads.fastq,
                                             returncmd=True,
-                                            mem=self.mem,
                                             **{'samplereadstarget': sample.simulated_reads[depth][read_pair].num_reads,
                                                'upsample': 't',
                                                'minlength':
                                                    sample.sampled_reads[depth][read_pair].forward_reads.length,
                                                'ziplevel': '9',
                                                'tossbrokenreads': 't',
-                                               'tossjunk': 't'
+                                               'tossjunk': 't',
+                                               'Xmx': self.mem
                                                }
                                             )
                     # # Remove the trimmed reads, as they are no longer necessary

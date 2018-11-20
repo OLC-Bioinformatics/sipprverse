@@ -4,7 +4,7 @@ __author__ = 'adamkoziol'
 
 setup(
     name="sipprverse",
-    version="0.1.03",
+    version="0.1.04",
     packages=find_packages(),
     include_package_data=True,
     scripts=[
