@@ -139,9 +139,9 @@ dependencies:
   - intel-openmp=2019.0=118
   - libboost=1.67.0=h46d08c1_4
   - libgcc-ng=8.2.0=hdf63c60_1
-  - mkl=2019.1=144
+  - mkl=2018.0.3=1
   - numpy=1.15.3=py36h1d66e8a_0
-  - numpy-base=1.15.3=py36h81de0dd_0
+  - numpy-base=1.15.4=py36h81de0dd_0
   - openjdk=8.0.152=h46b5887_1
   - py-boost=1.67.0=py36h04863e7_4
   - scipy=1.1.0=py36hc49cb51_0
@@ -165,7 +165,7 @@ dependencies:
     - pytest==3.9.1
     - rauth==0.7.3
     - requests==2.20.0
-    - sipprverse==0.2.00
+    - sipprverse==0.2.01
     - urllib3==1.24
     - xlsxwriter==1.1.1
 prefix: /home/adamkoziol/miniconda3/envs/sipprverse
