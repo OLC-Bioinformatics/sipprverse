@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from accessoryFunctions.accessoryFunctions import make_dict, dotter, make_path, SetupLogging
+from accessoryFunctions.accessoryFunctions import make_dict, dotter, GenObject, make_path, SetupLogging
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from sipprCommon.objectprep import Objectprep
 from MLSTsippr.sipprmlst import MLSTmap
@@ -22,22 +22,26 @@ class GeneSippr(object):
         """
         Run the necessary methods in the correct order
         """
-        logging.info('Starting {} analysis pipeline'.format(self.analysistype))
-        # Create the objects to be used in the analyses (if required)
-        general = None
-        for sample in self.runmetadata.samples:
-            general = getattr(sample, 'general')
-        if general is None:
-            # Create the objects to be used in the analyses
-            objects = Objectprep(self)
-            objects.objectprep()
-            self.runmetadata = objects.samples
-        # Run the analyses
-        MLSTmap(self, self.analysistype, self.cutoff)
-        # Create the reports
-        self.reporter()
-        # Print the metadata to a .json file
-        MetadataPrinter(self)
+        if os.path.isfile(self.report):
+            self.report_parse()
+        else:
+            logging.info('Starting {} analysis pipeline'.format(self.analysistype))
+            quit()
+            # Create the objects to be used in the analyses (if required)
+            general = None
+            for sample in self.runmetadata.samples:
+                general = getattr(sample, 'general')
+            if general is None:
+                # Create the objects to be used in the analyses
+                objects = Objectprep(self)
+                objects.objectprep()
+                self.runmetadata = objects.samples
+            # Run the analyses
+            MLSTmap(self, self.analysistype, self.cutoff)
+            # Create the reports
+            self.reporter()
+            # Print the metadata to a .json file
+            MetadataPrinter(self)
 
     def reporter(self):
         """
@@ -410,6 +414,62 @@ class GeneSippr(object):
                     # Write the results to this report
                     combinedreport.write(combinedrow)
 
+    def report_parse(self):
+        """
+        If the pipeline has previously been run on these data, instead of reading through the results, parse the
+        report instead
+        """
+        # Initialise lists
+        header_list = list()
+        report_strains = list()
+        # Read in the report
+        with open(self.report, 'r') as report:
+            for line in report:
+                # As the report will have a header line for every separate strain, extract this header
+                # e.g. Strain,Genus,SequenceType,Matches,adk,fumC,gyrB,icd,mdh,purA,recA
+                if line.startswith('Strain'):
+                    header_list = line.rstrip().split(',')
+                # Find the outputs for each sample
+                for sample in self.runmetadata.samples:
+                    if sample.name in line:
+                        # List of strains present in the report - will be used for finding strains not in the report
+                        report_strains.append(sample.name)
+                        # Split the results on commas e.g.:2016-SEQ-1217,Escherichia,2223,7,6,11,5,8,7,8,2
+                        results = line.rstrip().split(',')
+                        # Create the GenObject
+                        setattr(sample, self.analysistype, GenObject())
+                        # Populate the attributes
+                        sample[self.analysistype].sequencetype = results[2]
+                        try:
+                            sample[self.analysistype].matches = int(results[3])
+                        except TypeError:
+                            sample[self.analysistype].matches = results[3]
+                        # Initialise a dictionary to store the typing data
+                        sample[self.analysistype].results = dict()
+                        # Iterate through the gene:allele combination present in header[index]: results[index]
+                        # The header has genes starting in the 5th column, so start the list splice there
+                        iterator = 4
+                        for allele in results[4:]:
+                            # Ensure that there is an allele
+                            if allele:
+                                # Recreate the gene_allele format present in the standard .results attribute
+                                # e.g. mdh_5
+                                gene_allele = '{gene}_{allele}'.format(gene=header_list[iterator],
+                                                                       allele=allele.split(' ')[0])
+                                # Set the percent identity for this gene_allele combination to 100%
+                                sample[self.analysistype].results[gene_allele] = 100
+                                iterator += 1
+                        # While there can be multiple partial matches, the alleles present in the strain will remain
+                        # the same, so the loop can be broken here
+                        break
+        # Populate strains not in the report with 'empty' GenObject with appropriate attributes
+        for sample in self.runmetadata.samples:
+            if sample.name not in report_strains:
+                setattr(sample, self.analysistype, GenObject())
+                sample[self.analysistype].sequencetype = 'ND'
+                sample[self.analysistype].matches = 0
+                sample[self.analysistype].results = dict()
+
     def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline):
         """
         :param args: command line arguments
@@ -518,6 +578,7 @@ class GeneSippr(object):
         self.mlstseqtype = defaultdict(make_dict)
         self.resultprofile = defaultdict(make_dict)
         self.referenceprofile = defaultdict(make_dict)
+        self.report = os.path.join(self.reportpath, self.analysistype + '.csv')
         # Run the analyses
         # self.runner()
 
