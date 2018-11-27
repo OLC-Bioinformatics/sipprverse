@@ -26,7 +26,6 @@ class GeneSippr(object):
             self.report_parse()
         else:
             logging.info('Starting {} analysis pipeline'.format(self.analysistype))
-            quit()
             # Create the objects to be used in the analyses (if required)
             general = None
             for sample in self.runmetadata.samples:
