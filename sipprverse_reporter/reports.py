@@ -398,7 +398,7 @@ class Reports(object):
                          'hlyALm', 'IGS', 'inlJ',
                          'invA', 'stn',
                          'entA', 'entB', 'entC', 'entD', 'et_a', 'et_b', 'tsst',
-                         'groEL', 'r72h', 'tdh', 'trh',
+                         'groEL', 'r72h', 'tdh', 'tlh', 'trh',
                          'gyrB-Bc1', 'gyrB-Bc2', 'gyrB-Bt', 'Bct16S', 'hblA', 'hblB', 'hblC', 'hblD', 'nheA',
                          'nheB', 'nheC', 'bceT', 'sph', 'cytK', 'cry1', 'cry2', 'cry4', 'cry9', 'cry10', 'cry11'
                          ]
@@ -407,8 +407,8 @@ class Reports(object):
                          'Listeria': self.genelist[18:21],
                          'Salmonella': self.genelist[21:23],
                          'Staphylococcus': self.genelist[23:30],
-                         'Vibrio': self.genelist[30:34],
-                         'Bacillus': self.genelist[34:]
+                         'Vibrio': self.genelist[30:35],
+                         'Bacillus': self.genelist[35:]
                          }
 
 
