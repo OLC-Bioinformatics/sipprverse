@@ -5,6 +5,7 @@ from spadespipeline.typingclasses import Resistance, Virulence
 from sixteenS.sixteens_full import SixteenS as SixteensFull
 from MLSTsippr.mlst import GeneSippr as MLSTSippr
 from customsippr.customsippr import CustomGenes
+from pointsippr.pointsippr import PointSippr
 from sipprverse_reporter.reports import Reports
 from sipprCommon.objectprep import Objectprep
 from sipprCommon.sippingmethods import Sippr
@@ -77,15 +78,14 @@ class Sipprverse(object):
             res.main()
         if self.virulence:
             self.genus_specific()
-            vir = Virulence(args=self,
-                            pipelinecommit=self.commit,
-                            startingtime=self.starttime,
-                            scriptpath=self.homepath,
-                            analysistype='virulence',
-                            cutoff=0.95,
-                            pipeline=False,
-                            revbait=True)
-            vir.reporter()
+            Virulence(args=self,
+                      pipelinecommit=self.commit,
+                      startingtime=self.starttime,
+                      scriptpath=self.homepath,
+                      analysistype='virulence',
+                      cutoff=0.95,
+                      pipeline=False,
+                      revbait=True)
         if self.gdcs:
             # Run the GDCS analysis
             self.analysistype = 'GDCS'
@@ -104,7 +104,7 @@ class Sipprverse(object):
                              cutoff=1.0,
                              pipeline=True)
             mlst.runner()
-        # Optionally perform serotyping
+        # Serotyping
         if self.serotype:
             self.genus_specific()
             SeroSippr(args=self,
@@ -114,6 +114,17 @@ class Sipprverse(object):
                       analysistype='serosippr',
                       cutoff=0.90,
                       pipeline=True)
+        # Point mutation detection
+        if self.pointfinder:
+            self.genus_specific()
+            PointSippr(args=self,
+                       pipelinecommit=self.commit,
+                       startingtime=self.starttime,
+                       scriptpath=self.homepath,
+                       analysistype='pointfinder',
+                       cutoff=0.85,
+                       pipeline=True,
+                       revbait=True)
         if self.user_genes:
             custom = CustomGenes(self)
             custom.main()
@@ -136,6 +147,7 @@ class Sipprverse(object):
         # Perform the 16S analyses as required
         if not closestrefseqgenus:
             logging.info('Must perform MASH analyses to determine genera of samples')
+            self.pipeline = True
             # Run the analyses
             mash.Mash(self, 'mash')
 
@@ -171,6 +183,7 @@ class Sipprverse(object):
         self.gdcs = args.gdcs
         self.genesippr = args.genesippr
         self.mlst = args.mlst
+        self.pointfinder = args.pointfinder
         self.resistance = args.resistance
         self.rmlst = args.rmlst
         self.serotype = args.serotype
@@ -190,6 +203,7 @@ class Sipprverse(object):
             self.gdcs = True
             self.genesippr = True
             self.mlst = True
+            self.pointfinder = True
             self.resistance = True
             self.rmlst = True
             self.serotype = True
@@ -253,6 +267,10 @@ if __name__ == '__main__':
                         action='store_true',
                         default=False,
                         help='Perform MLST analysis on samples')
+    parser.add_argument('-P', '--pointfinder',
+                        action='store_true',
+                        default=False,
+                        help='Perform PointFinder analyses')
     parser.add_argument('-Q', '--gdcs',
                         action='store_true',
                         default=False,
@@ -283,5 +301,8 @@ if __name__ == '__main__':
     start = time.time()
 
     # Run the script
-    sippr = Sipprverse(arguments, commit, start, homepath)
+    sippr = Sipprverse(args=arguments,
+                       pipelinecommit=commit,
+                       startingtime=start,
+                       scriptpath=homepath)
     sippr.main()
