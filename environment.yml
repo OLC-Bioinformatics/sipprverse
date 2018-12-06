@@ -166,7 +166,7 @@ dependencies:
     - pytest==3.9.1
     - rauth==0.7.3
     - requests==2.20.0
-    - sipprverse==0.2.14
+    - sipprverse==0.2.15
     - urllib3==1.24
     - xlsxwriter==1.1.1
 prefix: /home/adamkoziol/miniconda3/envs/sipprverse
