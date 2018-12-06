@@ -4,7 +4,7 @@ biopython==1.72
 certifi==2018.10.15
 chardet==3.0.4
 Click==7.0
-confindr==0.4.3
+confindr==0.4.7
 cycler==0.10.0
 Cython==0.29
 geneseekr==0.2.7
@@ -18,7 +18,7 @@ mmtf-python==1.1.2
 more-itertools==4.3.0
 msgpack==0.5.6
 numpy==1.15.4
-OLCTools==0.6.6
+OLCTools==0.6.7
 olefile==0.46
 pandas==0.23.4
 patsy==0.5.0
@@ -36,7 +36,7 @@ reportlab==3.5.9
 requests==2.20.0
 scipy==1.1.0
 seaborn==0.9.0
-sipprverse==0.2.13
+sipprverse==0.2.14
 six==1.11.0
 statsmodels==0.9.0
 tornado==5.1.1
