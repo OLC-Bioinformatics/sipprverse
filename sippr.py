@@ -87,12 +87,14 @@ class Sipprverse(object):
                       pipeline=False,
                       revbait=True)
         if self.gdcs:
+            self.genus_specific()
             # Run the GDCS analysis
             self.analysistype = 'GDCS'
             self.targetpath = os.path.join(self.reffilepath, self.analysistype)
             Sippr(inputobject=self,
                   cutoff=0.95)
             # Create the reports
+            self.reports = Reports(self)
             Reports.gdcsreporter(self.reports)
         if self.mlst:
             self.genus_specific()

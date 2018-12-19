@@ -298,10 +298,10 @@ class PointSippr(GeneSippr):
             summary_string = str()
         summary_string += '{seq},'.format(seq=seqid)
         # Read in the predictions
+        logging.error(summary_dict[genus]['table']['header'].split(',')[:-1])
         with open(summary_dict[genus]['table']['output'], 'r') as outputs:
-            for line in outputs:
-                #
-                for header_value in summary_dict[genus]['table']['header'].split(',')[:-1]:
+            for header_value in summary_dict[genus]['table']['header'].split(',')[:-1]:
+                for line in outputs:
                     if line.startswith('{hv}\n'.format(hv=header_value)):
                         # Iterate through the lines following the match
                         for subline in outputs:
@@ -319,6 +319,8 @@ class PointSippr(GeneSippr):
                             else:
                                 break
                             break
+                # Reset the file iterator to the first line in preparation for the next header
+                outputs.seek(0)
         # Ensure that there were results to report
         if summary_string:
             if not summary_string.endswith('\n'):
