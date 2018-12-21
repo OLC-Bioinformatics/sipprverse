@@ -298,7 +298,6 @@ class PointSippr(GeneSippr):
             summary_string = str()
         summary_string += '{seq},'.format(seq=seqid)
         # Read in the predictions
-        logging.error(summary_dict[genus]['table']['header'].split(',')[:-1])
         with open(summary_dict[genus]['table']['output'], 'r') as outputs:
             for header_value in summary_dict[genus]['table']['header'].split(',')[:-1]:
                 for line in outputs:
