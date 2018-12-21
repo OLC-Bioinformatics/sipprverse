@@ -32,8 +32,6 @@ class Method(object):
         self.createobjects()
         # Run the genesipping analyses
         self.methods()
-        for sample in self.runmetadata.samples:
-            logging.critical(sample.name)
         # Determine if the analyses are complete
         self.complete()
         self.additionalsipping()
@@ -172,8 +170,6 @@ class Method(object):
         """
         Run the typing methods
         """
-        for sample in self.runmetadata.samples:
-            logging.warning(sample.name)
         self.contamination_detection()
         ReportImage(self, 'confindr')
         self.run_genesippr()
@@ -290,7 +286,7 @@ class Method(object):
             os.remove(self.portallog)
         except FileNotFoundError:
             pass
-        self.sequencepath =os.path.join(self.path, 'sequences')
+        self.sequencepath = os.path.join(self.path, 'sequences')
         self.seqpath = self.sequencepath
         if args.referencefilepath.startswith('~'):
             self.targetpath = os.path.expanduser(args.referencefilepath)
@@ -307,9 +303,7 @@ class Method(object):
             self.miseqpath = os.path.expanduser(args.miseqpath)
         else:
             self.miseqpath = os.path.abspath(args.miseqpath)
-        logging.critical(self.miseqpath)
         self.miseqfolder = args.miseqfolder
-        # self.fastqdestination = args.destinationfastq
         self.fastqdestination = str()
         self.forwardlength = args.readlengthforward
         self.reverselength = args.readlengthreverse
