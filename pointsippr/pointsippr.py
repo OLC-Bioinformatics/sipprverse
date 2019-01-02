@@ -199,27 +199,23 @@ class PointSippr(GeneSippr):
                 self.summary_dict[sample.general.referencegenus]['results']['output'] = \
                     glob(os.path.join(sample[self.analysistype].pointfinder_outputs, '{seq}*results.tsv'
                                       .format(seq=sample.name)))[0]
-                # Process the predictions
-                self.write_report(summary_dict=self.summary_dict,
-                                  seqid=sample.name,
-                                  genus=sample.general.referencegenus,
-                                  key='prediction')
-                # Process the results summary
-                self.write_report(summary_dict=self.summary_dict,
-                                  seqid=sample.name,
-                                  genus=sample.general.referencegenus,
-                                  key='results')
-
-                # Process the table summary
-                self.write_table_report(summary_dict=self.summary_dict,
-                                        seqid=sample.name,
-                                        genus=sample.general.referencegenus)
             except IndexError:
-                # Process the results summary even if there were no outputs
-                self.write_report(summary_dict=self.summary_dict,
-                                  seqid=sample.name,
-                                  genus=sample.general.referencegenus,
-                                  key='results')
+                pass
+            # Process the predictions
+            self.write_report(summary_dict=self.summary_dict,
+                              seqid=sample.name,
+                              genus=sample.general.referencegenus,
+                              key='prediction')
+            # Process the results summary
+            self.write_report(summary_dict=self.summary_dict,
+                              seqid=sample.name,
+                              genus=sample.general.referencegenus,
+                              key='results')
+
+            # Process the table summary
+            self.write_table_report(summary_dict=self.summary_dict,
+                                    seqid=sample.name,
+                                    genus=sample.general.referencegenus)
 
     @staticmethod
     def write_report(summary_dict, seqid, genus, key):
@@ -282,6 +278,27 @@ class PointSippr(GeneSippr):
                 if header_string:
                     summary.write(header_string)
                 summary.write(summary_string)
+        # Add the strain information If no FASTA file could be created
+        except FileNotFoundError:
+            try:
+                summary_string += '{seq},{genus}\n'.format(seq=seqid,
+                                                           genus=genus)
+                # Write the summaries to the summary file
+                with open(summary_dict[genus][key]['summary'], 'a+') as summary:
+                    # Write the header if necessary
+                    if header_string:
+                        summary.write(header_string)
+                    summary.write(summary_string)
+            # If the genus isn't one that is covered by the PointFinder database, still include the strain information
+            except KeyError:
+                summary_string += '{seq},{genus}\n'.format(seq=seqid,
+                                                           genus=genus)
+                # Write the summaries to the summary file
+                with open(summary_dict['Escherichia'][key]['summary'], 'a+') as summary:
+                    # Write the header if necessary
+                    if header_string:
+                        summary.write(header_string)
+                    summary.write(summary_string)
 
     @staticmethod
     def write_table_report(summary_dict, seqid, genus):
@@ -292,41 +309,63 @@ class PointSippr(GeneSippr):
         :param genus: MASH-calculated genus of current isolate
         """
         # Set the header string if the summary report doesn't already exist
-        if not os.path.isfile(summary_dict[genus]['table']['summary']):
-            summary_string = summary_dict[genus]['table']['header']
-        else:
-            summary_string = str()
-        summary_string += '{seq},'.format(seq=seqid)
-        # Read in the predictions
-        with open(summary_dict[genus]['table']['output'], 'r') as outputs:
-            for header_value in summary_dict[genus]['table']['header'].split(',')[:-1]:
-                for line in outputs:
-                    if line.startswith('{hv}\n'.format(hv=header_value)):
-                        # Iterate through the lines following the match
-                        for subline in outputs:
-                            if subline != '\n':
-                                if subline.startswith('Mutation'):
-                                    for detailline in outputs:
-                                        if detailline != '\n':
-                                            summary_string += '{},'.format(detailline.split('\t')[0])
-                                        else:
-                                            break
+        try:
+            if not os.path.isfile(summary_dict[genus]['table']['summary']):
+                header_string = summary_dict[genus]['table']['header']
+            else:
+                header_string = str()
+        except KeyError:
+            if not os.path.isfile(summary_dict['Escherichia']['table']['summary']):
+                header_string = summary_dict['Escherichia']['table']['header']
+            else:
+                header_string = str()
+        summary_string = '{seq},'.format(seq=seqid)
+        try:
+            # Read in the predictions
+            with open(summary_dict[genus]['table']['output'], 'r') as outputs:
+                for header_value in summary_dict[genus]['table']['header'].split(',')[:-1]:
+                    for line in outputs:
+                        if line.startswith('{hv}\n'.format(hv=header_value)):
+                            # Iterate through the lines following the match
+                            for subline in outputs:
+                                if subline != '\n':
+                                    if subline.startswith('Mutation'):
+                                        for detailline in outputs:
+                                            if detailline != '\n':
+                                                summary_string += '{},'.format(detailline.split('\t')[0])
+                                            else:
+                                                break
+                                    else:
+                                        summary_string += '{},'.format(
+                                            subline.replace(',', ';').replace('\t', ',').rstrip())
+                                        break
                                 else:
-                                    summary_string += '{},'.format(
-                                        subline.replace(',', ';').replace('\t', ',').rstrip())
                                     break
-                            else:
                                 break
-                            break
-                # Reset the file iterator to the first line in preparation for the next header
-                outputs.seek(0)
-        # Ensure that there were results to report
-        if summary_string:
-            if not summary_string.endswith('\n'):
-                summary_string += '\n'
-            # Write the summaries to the summary file
-            with open(summary_dict[genus]['table']['summary'], 'a+') as summary:
-                summary.write(summary_string)
+                    # Reset the file iterator to the first line in preparation for the next header
+                    outputs.seek(0)
+            # Ensure that there were results to report
+            if summary_string:
+                if not summary_string.endswith('\n'):
+                    summary_string += '\n'
+                # Write the summaries to the summary file
+                with open(summary_dict[genus]['table']['summary'], 'a+') as summary:
+                    # Write the header if necessary
+                    if header_string:
+                        summary.write(header_string)
+                    summary.write(summary_string)
+        except FileNotFoundError:
+            try:
+                # Write the summaries to the summary file
+                with open(summary_dict[genus]['table']['summary'], 'a+') as summary:
+                    if not summary_string.endswith('\n'):
+                        summary_string += '\n'
+                    # Write the header if necessary
+                    if header_string:
+                        summary.write(header_string)
+                    summary.write(summary_string)
+            except KeyError:
+                pass
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline, revbait):
         # Dictionary to convert the mash-calculated genus to the pointfinder format
