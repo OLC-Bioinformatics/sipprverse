@@ -26,5 +26,6 @@ setup(
                       'pysam',
                       'xlsxwriter',
                       'geneseekr',
-                      'confindr']
+                      'confindr',
+                      'validator_helper']
 )
