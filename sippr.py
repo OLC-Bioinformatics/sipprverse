@@ -92,7 +92,8 @@ class Sipprverse(object):
             self.analysistype = 'GDCS'
             self.targetpath = os.path.join(self.reffilepath, self.analysistype)
             Sippr(inputobject=self,
-                  cutoff=0.95)
+                  cutoff=0.95,
+                  k=self.gdcs_kmer_size)
             # Create the reports
             self.reports = Reports(self)
             Reports.gdcsreporter(self.reports)
@@ -192,6 +193,7 @@ class Sipprverse(object):
         self.sixteens = args.sixteens
         self.virulence = args.virulence
         self.averagedepth = args.averagedepth
+        self.gdcs_kmer_size = args.gdcs_kmer_size
         try:
             self.user_genes = os.path.join(args.user_genes)
             assert os.path.isfile(self.user_genes), 'Cannot find user-supplied target file: {targets}. Please ' \
@@ -248,6 +250,10 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--customcutoffs',
                         default=0.90,
                         help='Custom cutoff values')
+    parser.add_argument('-gk', '--gdcs_kmer_size',
+                        default=19,
+                        help='Kmer size to use for baiting GDCS sequences. Defaults to 19, set lower to increase '
+                             'sensitivity.')
     parser.add_argument('-F', '--full_suite',
                         action='store_true',
                         default=False,
