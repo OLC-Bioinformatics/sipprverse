@@ -29,7 +29,8 @@ class PointSippr(GeneSippr):
             except KeyError:
                 sample[self.analysistype].pointfindergenus = 'ND'
         # Run the raw read mapping
-        PointSipping(self, self.cutoff)
+        PointSipping(inputobject=self,
+                     cutoff=self.cutoff)
         # Create FASTA files from the raw read matcves
         self.fasta()
         # Run PointFinder on the FASTA files
@@ -103,83 +104,120 @@ class PointSippr(GeneSippr):
             run_subprocess(pointfinder_cmd)
             self.queue.task_done()
 
+    def populate_summary_dict(self, genus=str(), key=str()):
+        """
+        :param genus: Non-supported genus to be added to the dictionary
+        :param key: section of dictionary to be populated. Supported keys are: prediction, table, and results
+        Populate self.summary_dict as required. If the genus is not provided, populate the dictionary for Salmonella
+        Escherichia and Campylobacter. If the genus is provided, this genus is non-standard, and an 'empty' profile
+        must be created for it
+        """
+        # If the genus is not provided, generate the generic dictionary
+        if not genus:
+            # Populate the summary dict
+            self.summary_dict = {
+                'Salmonella':
+                    {
+                        'prediction':
+                            {
+                                'header': 'Strain,Colitsin,Colistin,Spectinomycin,Quinolones,\n',
+                                'output': str(),
+                                'summary': os.path.join(self.reportpath, 'Salmonella_prediction_summary.csv')
+                            },
+                        'table':
+                            {
+                                'header': 'Strain,parE,parC,gyrA,pmrB,pmrA,gyrB,16S_rrsD,23S,\n',
+                                'output': str(),
+                                'summary': os.path.join(self.reportpath, 'Salmonella_table_summary.csv')
+                            },
+                        'results':
+                            {
+                                'header': 'Strain,Genus,Mutation,NucleotideChange,AminoAcidChange,Resistance,PMID,\n',
+                                'output': str(),
+                                'summary': os.path.join(self.reportpath, 'PointFinder_results_summary.csv')
+                            }
+                    },
+                'Escherichia':
+                    {
+                        'prediction':
+                            {
+                                'header': 'Strain,Colistin,GentamicinC,gentamicinC,Streptomycin,Macrolide,Sulfonamide,'
+                                          'Tobramycin,Neomycin,Fluoroquinolones,Aminocoumarin,Tetracycline,KanamycinA,'
+                                          'Spectinomycin,B-lactamResistance,Paromomycin,Kasugamicin,Quinolones,G418,'
+                                          'QuinolonesAndfluoroquinolones,\n',
+                                'output': str(),
+                                'summary': os.path.join(self.reportpath, 'Escherichia_prediction_summary.csv')
+                            },
+                        'table':
+                            {
+                                'header': 'Strain,parE,parC,folP,gyrA,pmrB,pmrA,16S_rrsB,16S_rrsH,gyrB,ampC,'
+                                          '16S_rrsC,23S,\n',
+                                'output': str(),
+                                'summary': os.path.join(self.reportpath, 'Escherichia_table_summary.csv')
+                            },
+                        'results':
+                            {
+                                'header': 'Strain,Genus,Mutation,NucleotideChange,AminoAcidChange,Resistance,PMID,\n',
+                                'output': str(),
+                                'summary': os.path.join(self.reportpath, 'PointFinder_results_summary.csv')
+                            }
+                    },
+                'Campylobacter':
+                    {
+
+                        'prediction':
+                            {
+                                'header': 'Strain,LowLevelIncreaseMIC,AssociatedWithT86Mutations,Macrolide,Quinolone,'
+                                          'Streptinomycin,Erythromycin,IntermediateResistance,HighLevelResistance_'
+                                          'nalidixic_and_ciprofloxacin,\n',
+                                'output': str(),
+                                'summary': os.path.join(self.reportpath, 'Campylobacter_prediction_summary.csv')
+                            },
+                        'table':
+                            {
+                                'header': 'Strain,L22,rpsL,cmeR,gyrA,23S,\n',
+                                'output': str(),
+                                'summary': os.path.join(self.reportpath, 'Campylobacter_table_summary.csv')
+                            },
+                        'results':
+                            {
+                                'header': 'Strain,Genus,Mutation,NucleotideChange,AminoAcidChange,Resistance,PMID,\n',
+                                'output': str(),
+                                'summary': os.path.join(self.reportpath, 'PointFinder_results_summary.csv')
+                            }
+                    }
+            }
+        else:
+            # Create the nesting structure as required
+            if genus not in self.summary_dict:
+                self.summary_dict[genus] = dict()
+            if key not in self.summary_dict[genus]:
+                self.summary_dict[genus][key] = dict()
+            # The output section is the same regardless of the key
+            self.summary_dict[genus][key]['output'] = str()
+            # The results report is more generic, and contains all strains, so the header and summary are set to
+            # the default values required to generate this report
+            if key == 'results':
+                self.summary_dict[genus][key]['header'] = \
+                    'Strain,Genus,Mutation,NucleotideChange,AminoAcidChange,Resistance,PMID,\n'
+                self.summary_dict[genus][key]['summary'] = \
+                    os.path.join(self.reportpath, 'PointFinder_results_summary.csv')
+            # Create an empty header, and a report with the genus name
+            else:
+                self.summary_dict[genus][key]['header'] = 'Strain,\n'
+                self.summary_dict[genus][key]['summary'] = os.path.join(self.reportpath, '{genus}_{key}_summary.csv'
+                                                                        .format(genus=genus,
+                                                                                key=key))
+                # Remove the report if it exists, as the script will append data to this existing report
+                if os.path.isfile(self.summary_dict[genus][key]['summary']):
+                    os.remove(self.summary_dict[genus][key]['summary'])
+
     def parse_pointfinder(self):
         """
         Create summary reports for the PointFinder outputs
         """
-        # Populate the summary dict
-        self.summary_dict = {
-            'Salmonella':
-                {
-                    'prediction':
-                        {
-                            'header': 'Strain,Colitsin,Colistin,Spectinomycin,Quinolones,\n',
-                            'output': str(),
-                            'summary': os.path.join(self.reportpath, 'Salmonella_prediction_summary.csv')
-                        },
-                    'table':
-                        {
-                            'header': 'Strain,parE,parC,gyrA,pmrB,pmrA,gyrB,16S_rrsD,23S,\n',
-                            'output': str(),
-                            'summary': os.path.join(self.reportpath, 'Salmonella_table_summary.csv')
-                        },
-                    'results':
-                        {
-                            'header': 'Strain,Genus,Mutation,NucleotideChange,AminoAcidChange,Resistance,PMID,\n',
-                            'output': str(),
-                            'summary': os.path.join(self.reportpath, 'PointFinder_results_summary.csv')
-                        }
-                },
-            'Escherichia':
-                {
-                    'prediction':
-                        {
-                            'header': 'Strain,Colistin,GentamicinC,gentamicinC,Streptomycin,Macrolide,Sulfonamide,'
-                                      'Tobramycin,Neomycin,Fluoroquinolones,Aminocoumarin,Tetracycline,KanamycinA,'
-                                      'Spectinomycin,B-lactamResistance,Paromomycin,Kasugamicin,Quinolones,G418,'
-                                      'QuinolonesAndfluoroquinolones,\n',
-                            'output': str(),
-                            'summary': os.path.join(self.reportpath, 'Escherichia_prediction_summary.csv')
-                        },
-                    'table':
-                        {
-                            'header': 'Strain,parE,parC,folP,gyrA,pmrB,pmrA,16S_rrsB,16S_rrsH,gyrB,ampC,'
-                                      '16S_rrsC,23S,\n',
-                            'output': str(),
-                            'summary': os.path.join(self.reportpath, 'Escherichia_table_summary.csv')
-                        },
-                    'results':
-                        {
-                            'header': 'Strain,Genus,Mutation,NucleotideChange,AminoAcidChange,Resistance,PMID,\n',
-                            'output': str(),
-                            'summary': os.path.join(self.reportpath, 'PointFinder_results_summary.csv')
-                        }
-                },
-            'Campylobacter':
-                {
-
-                    'prediction':
-                        {
-                            'header': 'Strain,LowLevelIncreaseMIC,AssociatedWithT86Mutations,Macrolide,Quinolone,'
-                                      'Streptinomycin,Erythromycin,IntermediateResistance,HighLevelResistance_'
-                                      'nalidixic_and_ciprofloxacin,\n',
-                            'output': str(),
-                            'summary': os.path.join(self.reportpath, 'Campylobacter_prediction_summary.csv')
-                        },
-                    'table':
-                        {
-                            'header': 'Strain,L22,rpsL,cmeR,gyrA,23S,\n',
-                            'output': str(),
-                            'summary': os.path.join(self.reportpath, 'Campylobacter_table_summary.csv')
-                        },
-                    'results':
-                        {
-                            'header': 'Strain,Genus,Mutation,NucleotideChange,AminoAcidChange,Resistance,PMID,\n',
-                            'output': str(),
-                            'summary': os.path.join(self.reportpath, 'PointFinder_results_summary.csv')
-                        }
-                }
-        }
+        # Create the nested dictionary that stores the necessary values for creating summary reports
+        self.populate_summary_dict()
         # Clear out any previous reports
         for organism in self.summary_dict:
             for report in self.summary_dict[organism]:
@@ -188,19 +226,38 @@ class PointSippr(GeneSippr):
                 except FileNotFoundError:
                     pass
         for sample in self.runmetadata.samples:
+            # Find the PointFinder outputs. If the outputs don't exist, create the appropriate entries in the
+            # summary dictionary as required
             try:
-                # Find the PointFinder outputs
                 self.summary_dict[sample.general.referencegenus]['prediction']['output'] = \
                     glob(os.path.join(sample[self.analysistype].pointfinder_outputs, '{seq}*prediction.txt'
                                       .format(seq=sample.name)))[0]
+            except IndexError:
+                try:
+                    self.summary_dict[sample.general.referencegenus]['prediction']['output'] = str()
+                except KeyError:
+                    self.populate_summary_dict(genus=sample.general.referencegenus,
+                                               key='prediction')
+            try:
                 self.summary_dict[sample.general.referencegenus]['table']['output'] = \
                     glob(os.path.join(sample[self.analysistype].pointfinder_outputs, '{seq}*table.txt'
                                       .format(seq=sample.name)))[0]
+            except IndexError:
+                try:
+                    self.summary_dict[sample.general.referencegenus]['table']['output'] = str()
+                except KeyError:
+                    self.populate_summary_dict(genus=sample.general.referencegenus,
+                                               key='table')
+            try:
                 self.summary_dict[sample.general.referencegenus]['results']['output'] = \
                     glob(os.path.join(sample[self.analysistype].pointfinder_outputs, '{seq}*results.tsv'
                                       .format(seq=sample.name)))[0]
             except IndexError:
-                pass
+                try:
+                    self.summary_dict[sample.general.referencegenus]['results']['output'] = str()
+                except KeyError:
+                    self.populate_summary_dict(genus=sample.general.referencegenus,
+                                               key='results')
             # Process the predictions
             self.write_report(summary_dict=self.summary_dict,
                               seqid=sample.name,
@@ -227,18 +284,10 @@ class PointSippr(GeneSippr):
         :param key: current result type. Options are 'prediction', and 'results'
         """
         # Set the header string if the summary report doesn't already exist
-        try:
-            if not os.path.isfile(summary_dict[genus][key]['summary']):
-                header_string = summary_dict[genus][key]['header']
-            else:
-                header_string = str()
-        except KeyError:
-            # If the genus is not in the summary_dict, default to Escherichia
-            # 'Strain,Genus,Mutation,NucleotideChange,AminoAcidChange,Resistance,PMID,\n'
-            if not os.path.isfile(summary_dict['Escherichia'][key]['summary']):
-                header_string = summary_dict['Escherichia'][key]['header']
-            else:
-                header_string = str()
+        if not os.path.isfile(summary_dict[genus][key]['summary']):
+            header_string = summary_dict[genus][key]['header']
+        else:
+            header_string = str()
         summary_string = str()
         try:
             # Read in the predictions
@@ -260,45 +309,37 @@ class PointSippr(GeneSippr):
                 if not summary_string.endswith('\n'):
                     summary_string += '\n'
             else:
-                summary_string += '{seq},{genus}\n'.format(seq=seqid,
-                                                           genus=genus)
+                if key == 'results':
+                    summary_string += '{seq},{genus}\n'.format(seq=seqid,
+                                                               genus=genus)
+                else:
+                    summary_string += '{seq}\n'.format(seq=seqid)
             # Write the summaries to the summary file
             with open(summary_dict[genus][key]['summary'], 'a+') as summary:
                 # Write the header if necessary
                 if header_string:
                     summary.write(header_string)
                 summary.write(summary_string)
-        # If the genus isn't one that is covered by the PointFinder database, still include the strain information
-        except KeyError:
-            summary_string += '{seq},{genus}\n'.format(seq=seqid,
-                                                       genus=genus)
+        # Add the strain information If no FASTA file could be created by reference mapping
+        except FileNotFoundError:
+            # Extract the length of the header from the dictionary. Subtract two (don't need the strain, or the
+            # empty column created by a trailing comma
+            header_len = len(summary_dict[genus][key]['header'].split(',')) - 2
+            # When processing the results outputs, add the seqid to the summary string
+            if key == 'results':
+                summary_string += '{seq},{genus}\n'.format(seq=seqid,
+                                                           genus=genus)
+            # For the prediction summary, populate the summary string with the appropriate number of comma-separated
+            # '0' entries
+            elif key == 'prediction':
+                summary_string += '{seq}{empty}\n'.format(seq=seqid,
+                                                          empty=',0' * header_len)
             # Write the summaries to the summary file
-            with open(summary_dict['Escherichia'][key]['summary'], 'a+') as summary:
+            with open(summary_dict[genus][key]['summary'], 'a+') as summary:
                 # Write the header if necessary
                 if header_string:
                     summary.write(header_string)
                 summary.write(summary_string)
-        # Add the strain information If no FASTA file could be created
-        except FileNotFoundError:
-            try:
-                summary_string += '{seq},{genus}\n'.format(seq=seqid,
-                                                           genus=genus)
-                # Write the summaries to the summary file
-                with open(summary_dict[genus][key]['summary'], 'a+') as summary:
-                    # Write the header if necessary
-                    if header_string:
-                        summary.write(header_string)
-                    summary.write(summary_string)
-            # If the genus isn't one that is covered by the PointFinder database, still include the strain information
-            except KeyError:
-                summary_string += '{seq},{genus}\n'.format(seq=seqid,
-                                                           genus=genus)
-                # Write the summaries to the summary file
-                with open(summary_dict['Escherichia'][key]['summary'], 'a+') as summary:
-                    # Write the header if necessary
-                    if header_string:
-                        summary.write(header_string)
-                    summary.write(summary_string)
 
     @staticmethod
     def write_table_report(summary_dict, seqid, genus):
@@ -309,16 +350,10 @@ class PointSippr(GeneSippr):
         :param genus: MASH-calculated genus of current isolate
         """
         # Set the header string if the summary report doesn't already exist
-        try:
-            if not os.path.isfile(summary_dict[genus]['table']['summary']):
-                header_string = summary_dict[genus]['table']['header']
-            else:
-                header_string = str()
-        except KeyError:
-            if not os.path.isfile(summary_dict['Escherichia']['table']['summary']):
-                header_string = summary_dict['Escherichia']['table']['header']
-            else:
-                header_string = str()
+        if not os.path.isfile(summary_dict[genus]['table']['summary']):
+            header_string = summary_dict[genus]['table']['header']
+        else:
+            header_string = str()
         summary_string = '{seq},'.format(seq=seqid)
         try:
             # Read in the predictions
@@ -355,17 +390,17 @@ class PointSippr(GeneSippr):
                         summary.write(header_string)
                     summary.write(summary_string)
         except FileNotFoundError:
-            try:
-                # Write the summaries to the summary file
-                with open(summary_dict[genus]['table']['summary'], 'a+') as summary:
-                    if not summary_string.endswith('\n'):
-                        summary_string += '\n'
-                    # Write the header if necessary
-                    if header_string:
-                        summary.write(header_string)
-                    summary.write(summary_string)
-            except KeyError:
-                pass
+            # Write the summaries to the summary file
+            with open(summary_dict[genus]['table']['summary'], 'a+') as summary:
+                # Extract the length of the header from the dictionary. Subtract two (don't need the strain, or the
+                # empty column created by a trailing comma
+                header_len = len(summary_dict[genus]['table']['header'].split(',')) - 2
+                # Populate the summary strain with the appropriate number of comma-separated 'Gene not found' entries
+                summary_string += '{empty}\n'.format(empty='Gene not found,' * header_len)
+                # Write the header if necessary
+                if header_string:
+                    summary.write(header_string)
+                summary.write(summary_string)
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff, pipeline, revbait):
         # Dictionary to convert the mash-calculated genus to the pointfinder format
@@ -429,4 +464,8 @@ class PointSipping(Sippr):
             sample[self.analysistype].logerr = os.path.join(sample[self.analysistype].outputdir, 'logerr.txt')
             sample[self.analysistype].baitedfastq = \
                 os.path.join(sample[self.analysistype].outputdir,
-                             '{}_targetMatches.fastq.gz'.format(self.analysistype))
+                             '{at}_targetMatches.fastq.gz'.format(at=self.analysistype))
+
+    def __init__(self, inputobject, cutoff):
+        super().__init__(inputobject=inputobject,
+                         cutoff=cutoff)
