@@ -363,7 +363,11 @@ class GeneSippr(object):
                         row = str()
                         if self.analysistype == 'mlst':
                             header_row = str()
-                            if sample.general.referencegenus not in mlst_dict:
+                            try:
+                                if sample.general.referencegenus not in mlst_dict:
+                                    mlst_dict[sample.general.referencegenus] = dict()
+                            except AttributeError:
+                                sample.general.referencegenus = 'ND'
                                 mlst_dict[sample.general.referencegenus] = dict()
                         # Additional fields such as clonal complex and lineage
                         additional_fields = list()
@@ -374,7 +378,7 @@ class GeneSippr(object):
                                     _ = sample[self.analysistype].meta_dict[
                                         sample[self.analysistype].sequencetype][header]
                                     additional_fields.append(header.rstrip())
-                                except (AttributeError, KeyError) as e:
+                                except (AttributeError, KeyError):
                                     pass
                         if self.analysistype == 'mlst':
                             additional_fields = sorted(additional_fields)
@@ -390,7 +394,8 @@ class GeneSippr(object):
                                 'genus', 'species', 'subspecies', 'lineage', 'sublineage', 'other_designation', 'notes'
                             ]
                             header_fields = [
-                                'rMLST_genus', 'species', 'subspecies', 'lineage', 'sublineage', 'other_designation', 'notes'
+                                'rMLST_genus', 'species', 'subspecies', 'lineage', 'sublineage', 'other_designation',
+                                'notes'
                             ]
                         # Populate the header with the appropriate data, including all the genes in the list of targets
                         if not header_row:
@@ -521,7 +526,11 @@ class GeneSippr(object):
         genus_list = list()
         if self.analysistype == 'mlst':
             for sample in self.runmetadata.samples:
-                genus_list.append(sample.general.referencegenus)
+                try:
+                    genus_list.append(sample.general.referencegenus)
+                except AttributeError:
+                    sample.general.referencegenus = 'ND'
+                    genus_list.append(sample.general.referencegenus)
         # Read in the report
         if self.analysistype == 'mlst':
             for genus in genus_list:
@@ -677,7 +686,13 @@ class GeneSippr(object):
             self.copy = args.copy
         except AttributeError:
             self.copy = False
-        self.runmetadata = args.runmetadata
+        try:
+            self.runmetadata = args.runmetadata
+        except AttributeError:
+            # Create the objects to be used in the analyses
+            objects = Objectprep(self)
+            objects.objectprep()
+            self.runmetadata = objects.samples
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         try:
             self.cpus = int(args.cpus)
@@ -792,7 +807,13 @@ if __name__ == '__main__':
     start = time.time()
 
     # Run the script
-    GeneSippr(arguments, commit, start, homepath, arguments.analysistype, arguments.customcutoffs, arguments.pipeline)
-
+    mlst_sippr = GeneSippr(args=arguments,
+                           pipelinecommit=commit,
+                           startingtime=start,
+                           scriptpath=homepath,
+                           analysistype=arguments.analysistype,
+                           cutoff=arguments.customcutoffs,
+                           pipeline=arguments.pipeline)
+    mlst_sippr.runner()
     # Print a bold, green exit statement
     print('\033[92m' + '\033[1m' + "\nElapsed Time: %0.2f seconds" % (time.time() - start) + '\033[0m')
