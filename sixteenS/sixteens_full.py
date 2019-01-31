@@ -77,9 +77,7 @@ class SixteenSSipper(Sippr):
         # Use samtools to index the sorted bam file
         self.indexing()
         # Parse the results
-        self.parsing()
-        # Filter out any sequences with cigar features such as internal soft-clipping from the results
-        self.clipper()
+        self.parsebam()
 
     def targets(self):
         """
