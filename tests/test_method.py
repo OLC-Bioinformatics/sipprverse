@@ -326,6 +326,14 @@ def test_clear_blast(variables):
     os.remove(os.path.join(targetpath, 'baitedtargets.nhr'))
 
 
+def test_clear_kma(variables):
+    targetpath = os.path.join(variables.referencefilepath, 'ConFindr', 'databases')
+    os.remove(os.path.join(targetpath, 'rMLST_combined_kma.index.b'))
+    os.remove(os.path.join(targetpath, 'rMLST_combined_kma.length.b'))
+    os.remove(os.path.join(targetpath, 'rMLST_combined_kma.name'))
+    os.remove(os.path.join(targetpath, 'rMLST_combined_kma.seq.b'))
+
+
 def test_clear_logs(variables):
     # Use os.walk to find all log files in the subfolders within the reference file path
     for root, folders, files in os.walk(variables.referencefilepath):
