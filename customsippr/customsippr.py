@@ -42,13 +42,18 @@ class CustomGenes(object):
         # Add all the genes to the header
         header = 'Sample,{genes}\n'.format(genes=','.join(sorted(self.genes)))
         data = str()
-        with open(os.path.join(self.reportpath, '{}.csv'.format(self.analysistype)), 'w') as report:
+        with open(os.path.join(self.reportpath, '{at}.csv'.format(at=self.analysistype)), 'w') as report:
             for sample in self.runmetadata:
                 data += sample.name + ','
                 # Iterate through all the user-supplied target names
                 for target in sorted(self.genes):
+                    # There was an issue with 'target' not matching 'name' due to a dash being replaced by an underscore
+                    # only in 'name'. This will hopefully address this issue
+                    target = target.replace('-', '_')
                     gene_results = str()
                     for name, identity in sample[self.analysistype].results.items():
+                        # Ensure that all dashes are replaced with underscores
+                        name = name.replace('-', '_')
                         # If the current target matches the target in the header, add the data to the string
                         if name == target:
                             gene_results += '{percent_id}% ({avgdepth} +/ {stddev}),'\
