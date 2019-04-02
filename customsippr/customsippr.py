@@ -1,9 +1,8 @@
 #!/usr/bin/python3
-from accessoryFunctions.accessoryFunctions import combinetargets, printtime
+from accessoryFunctions.accessoryFunctions import combinetargets
 from sipprCommon.sippingmethods import Sippr
-from Bio.SeqRecord import SeqRecord
-from Bio.Seq import Seq
 from Bio import SeqIO
+import logging
 import os
 
 __author__ = 'adamkoziol'
@@ -25,7 +24,7 @@ class CustomGenes(object):
         Validate the user-supplied targets by running the (multi-)FASTA file through the method that combines the
         targets. Will also be useful for the downstream analyses
         """
-        printtime('Validating user-supplied targets', self.starttime)
+        logging.info('Validating user-supplied targets')
         combinetargets([self.targets], self.targetpath)
 
     def gene_names(self):
@@ -51,12 +50,11 @@ class CustomGenes(object):
                 # Iterate through all the user-supplied target names
                 for target in sorted(self.genes):
                     write_results = False
-                    if write_header:
-                        header += '{target}_match_details,{target},'.format(target=target)
                     # There was an issue with 'target' not matching 'name' due to a dash being replaced by an underscore
                     # only in 'name'. This will hopefully address this issue
                     target = target.replace('-', '_')
-                    # gene_results = str()
+                    if write_header:
+                        header += '{target}_match_details,{target},'.format(target=target)
                     for name, identity in sample[self.analysistype].results.items():
                         # Ensure that all dashes are replaced with underscores
                         name = name.replace('-', '_')
@@ -81,7 +79,6 @@ class CustomGenes(object):
             report.write(data)
 
     def __init__(self, args):
-        self.starttime = args.starttime
         self.targets = args.user_genes
         self.targetpath = os.path.split(self.targets)[0]
         self.path = args.path
