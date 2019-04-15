@@ -129,7 +129,9 @@ class Sipprverse(object):
                        pipeline=True,
                        revbait=True)
         if self.user_genes:
-            custom = CustomGenes(self)
+            custom = CustomGenes(args=self,
+                                 kmer_size=self.kmer_size,
+                                 allow_soft_clips=self.allow_soft_clips)
             custom.main()
         # Print the metadata
         MetadataPrinter(self)
@@ -194,6 +196,8 @@ class Sipprverse(object):
         self.virulence = args.virulence
         self.averagedepth = args.averagedepth
         self.gdcs_kmer_size = args.gdcs_kmer_size
+        self.kmer_size = args.kmer_size
+        self.allow_soft_clips = args.allow_soft_clips
         try:
             self.user_genes = os.path.join(args.user_genes)
             assert os.path.isfile(self.user_genes), 'Cannot find user-supplied target file: {targets}. Please ' \
@@ -254,6 +258,16 @@ if __name__ == '__main__':
                         default=19,
                         help='Kmer size to use for baiting GDCS sequences. Defaults to 19, set lower to increase '
                              'sensitivity.')
+    parser.add_argument('-k', '--kmer_size',
+                        default=19,
+                        help='Kmer size to use for baiting sequences. Defaults to 19, set lower to increase '
+                             'sensitivity.')
+    parser.add_argument('-sc', '--allow_soft_clips',
+                        action='store_true',
+                        default=False,
+                        help='Do not discard sequences if internal soft clips are present. Default is False, as this '
+                             'is usually best for removing false positive matches, but sometimes it is necessary to '
+                             'disable this functionality')
     parser.add_argument('-F', '--full_suite',
                         action='store_true',
                         default=False,

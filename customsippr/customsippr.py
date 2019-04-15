@@ -16,7 +16,9 @@ class CustomGenes(object):
         """
         self.target_validate()
         self.gene_names()
-        Sippr(self)
+        Sippr(inputobject=self,
+              k=self.kmer_size,
+              allow_soft_clips=self.allow_soft_clips)
         self.report()
 
     def target_validate(self):
@@ -78,7 +80,7 @@ class CustomGenes(object):
             report.write(header)
             report.write(data)
 
-    def __init__(self, args):
+    def __init__(self, args, kmer_size=19, allow_soft_clips=False):
         self.targets = args.user_genes
         self.targetpath = os.path.split(self.targets)[0]
         self.path = args.path
@@ -94,3 +96,5 @@ class CustomGenes(object):
         self.taxonomy = False
         self.logfile = args.logfile
         self.genes = list()
+        self.kmer_size = kmer_size
+        self.allow_soft_clips = allow_soft_clips
