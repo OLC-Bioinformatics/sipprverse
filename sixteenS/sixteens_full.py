@@ -42,8 +42,8 @@ class SixteenSBait(Sippr):
         Create the GenObject for the analysis type, create the hash file for baiting (if necessary)
         """
         for sample in self.runmetadata:
+            setattr(sample, self.analysistype, GenObject())
             if sample.general.bestassemblyfile != 'NA':
-                setattr(sample, self.analysistype, GenObject())
                 sample[self.analysistype].runanalysis = True
                 sample[self.analysistype].targetpath = self.targetpath
                 baitpath = os.path.join(self.targetpath, 'bait')
@@ -57,7 +57,8 @@ class SixteenSBait(Sippr):
                 sample[self.analysistype].logout = os.path.join(sample[self.analysistype].outputdir, 'logout.txt')
                 sample[self.analysistype].logerr = os.path.join(sample[self.analysistype].outputdir, 'logerr.txt')
                 sample[self.analysistype].baitedfastq = os.path.join(sample[self.analysistype].outputdir,
-                                                                     '{}_targetMatches.fastq'.format(self.analysistype))
+                                                                     '{at}_targetMatches.fastq'
+                                                                     .format(at=self.analysistype))
                 sample[self.analysistype].complete = False
 
 
@@ -85,21 +86,22 @@ class SixteenSSipper(Sippr):
         genera-specific FASTA file that will be used for all the reference mapping; it replaces the 'bait file' in the
         code
         """
-        logging.info('Performing analysis with {} targets folder'.format(self.analysistype))
+        logging.info('Performing analysis with {at} targets folder'.format(at=self.analysistype))
         for sample in self.runmetadata:
             if sample.general.bestassemblyfile != 'NA':
                 sample[self.analysistype].targetpath = \
-                    os.path.join(self.targetpath, 'genera', sample[self.analysistype].genus, '')
+                    os.path.join(self.targetpath, 'genera', sample[self.analysistype].genus)
                 # There is a relatively strict databasing scheme necessary for the custom targets. Eventually,
                 # there will be a helper script to combine individual files into a properly formatted combined file
                 try:
-                    sample[self.analysistype].mappingfile = glob('{}*.fa'
-                                                                 .format(sample[self.analysistype].targetpath))[0]
+                    sample[self.analysistype].mappingfile = glob(os.path.join(sample[self.analysistype].targetpath,
+                                                                              '*.fa'))[0]
                 # If the fasta file is missing, raise a custom error
                 except IndexError as e:
                     # noinspection PyPropertyAccess
-                    e.args = ['Cannot find the combined fasta file in {}. Please note that the file must have a '
-                              '.fasta extension'.format(sample[self.analysistype].targetpath)]
+                    e.args = ['Cannot find the combined fasta file in {target_path}. '
+                              'Please note that the file must have a .fasta extension'
+                                  .format(target_path=sample[self.analysistype].targetpath)]
                     if os.path.isdir(sample[self.analysistype].targetpath):
                         raise
                     else:
@@ -167,9 +169,10 @@ class SixteenS(object):
                     sample[self.analysistype].subsampledfastq = \
                         os.path.splitext(sample[self.analysistype].baitedfastq)[0] + '_subsampled.fastq'
                     # Set the system call
-                    sample[self.analysistype].seqtkcall = 'reformat.sh in={} out={} samplereadstarget=1000'\
-                        .format(sample[self.analysistype].baitedfastq,
-                                sample[self.analysistype].subsampledfastq)
+                    sample[self.analysistype].seqtkcall = 'reformat.sh in={baited} out={subsampled} ' \
+                                                          'samplereadstarget=1000'\
+                        .format(baited=sample[self.analysistype].baitedfastq,
+                                subsampled=sample[self.analysistype].subsampledfastq)
                     # Add the sample to the queue
                     self.samplequeue.put(sample)
         self.samplequeue.join()
@@ -242,27 +245,34 @@ class SixteenS(object):
                 # Remove the file extension
                 db = os.path.splitext(sample[self.analysistype].baitfile)[0]
                 # Add '.nhr' for searching below
-                nhr = '{}.nhr'.format(db)
+                nhr = '{db}.nhr'.format(db=db)
                 # Check for already existing database files
                 if not os.path.isfile(str(nhr)):
                     # Create the databases
-                    command = 'makeblastdb -in {} -parse_seqids -max_file_sz 2GB -dbtype nucl -out {}'\
-                        .format(sample[self.analysistype].baitfile, db)
+                    command = 'makeblastdb -in {bait} -parse_seqids -max_file_sz 2GB -dbtype nucl -out {out}'\
+                        .format(bait=sample[self.analysistype].baitfile,
+                                out=db)
                     out, err = run_subprocess(command)
-                    write_to_logfile(command,
-                                     command,
-                                     self.logfile, sample.general.logout, sample.general.logerr,
-                                     sample[self.analysistype].logout, sample[self.analysistype].logerr)
-                    write_to_logfile(out,
-                                     err,
-                                     self.logfile, sample.general.logout, sample.general.logerr,
-                                     sample[self.analysistype].logout, sample[self.analysistype].logerr)
+                    write_to_logfile(out=command,
+                                     err=command,
+                                     logfile=self.logfile,
+                                     samplelog=sample.general.logout,
+                                     sampleerr=sample.general.logerr,
+                                     analysislog=sample[self.analysistype].logout,
+                                     analysiserr=sample[self.analysistype].logerr)
+                    write_to_logfile(out=out,
+                                     err=err,
+                                     logfile=self.logfile,
+                                     samplelog=sample.general.logout,
+                                     sampleerr=sample.general.logerr,
+                                     analysislog=sample[self.analysistype].logout,
+                                     analysiserr=sample[self.analysistype].logerr)
 
     def blast(self):
         """
         Run BLAST analyses of the subsampled FASTQ reads against the NCBI 16S reference database
         """
-        logging.info('BLASTing FASTA files against {} database'.format(self.analysistype))
+        logging.info('BLASTing FASTA files against {at} database'.format(at=self.analysistype))
         for _ in range(self.cpus):
             threads = Thread(target=self.blastthreads, args=())
             threads.setDaemon(True)
@@ -273,7 +283,8 @@ class SixteenS(object):
                     # Set the name of the BLAST report
                     sample[self.analysistype].blastreport = os.path.join(
                         sample[self.analysistype].outputdir,
-                        '{}_{}_blastresults.csv'.format(sample.name, self.analysistype))
+                        '{sn}_{at}_blastresults.csv'.format(sn=sample.name,
+                                                            at=self.analysistype))
                     # Use the NCBI BLASTn command line wrapper module from BioPython to set the parameters of the search
                     blastn = NcbiblastnCommandline(query=sample[self.analysistype].fasta,
                                                    db=os.path.splitext(sample[self.analysistype].baitfile)[0],
@@ -346,20 +357,17 @@ class SixteenS(object):
                         # Previous code relies on having the closest refseq genus, so set this as above
                         # sample.general.closestrefseqgenus = sample[self.analysistype].genus
                     except IndexError:
-                        # Populate attributes with 'NA'
-                        sample[self.analysistype].sortedgenera = 'NA'
-                        sample[self.analysistype].genus = 'NA'
-                        # sample.general.closestrefseqgenus = 'NA'
+                        # Populate attributes with 'ND'
+                        sample[self.analysistype].sortedgenera = 'ND'
+                        sample[self.analysistype].genus = 'ND'
                 else:
-                    # Populate attributes with 'NA'
-                    sample[self.analysistype].sortedgenera = 'NA'
-                    sample[self.analysistype].genus = 'NA'
-                    # sample.general.closestrefseqgenus = 'NA'
+                    # Populate attributes with 'ND'
+                    sample[self.analysistype].sortedgenera = 'ND'
+                    sample[self.analysistype].genus = 'ND'
             else:
-                # Populate attributes with 'NA'
-                sample[self.analysistype].sortedgenera = 'NA'
-                sample[self.analysistype].genus = 'NA'
-                # sample.general.closestrefseqgenus = 'NA'
+                # Populate attributes with 'ND'
+                sample[self.analysistype].sortedgenera = 'ND'
+                sample[self.analysistype].genus = 'ND'
 
     def reporter(self):
         """
@@ -367,7 +375,7 @@ class SixteenS(object):
         """
         # Create the path in which the reports are stored
         make_path(self.reportpath)
-        logging.info('Creating {} report'.format(self.analysistype))
+        logging.info('Creating {at} report'.format(at=self.analysistype))
         # Initialise the header and data strings
         header = 'Strain,Gene,PercentIdentity,Genus,FoldCoverage\n'
         data = ''
@@ -375,8 +383,8 @@ class SixteenS(object):
             with open(os.path.join(self.reportpath, self.analysistype + '_sequences.fa'), 'w') as sequences:
                 for sample in self.runmetadata.samples:
                     # Initialise
-                    sample[self.analysistype].sixteens_match = 'NA'
-                    sample[self.analysistype].species = 'NA'
+                    sample[self.analysistype].sixteens_match = 'ND'
+                    sample[self.analysistype].species = 'ND'
                     try:
                         # Select the best hit of all the full-length 16S genes mapped - for 16S use the hit with the
                         # fewest number of SNPs rather than the highest percent identity
@@ -398,24 +406,27 @@ class SixteenS(object):
                         # data string
                         for name, identity in sample[self.analysistype].results.items():
                             if name == sample[self.analysistype].besthit:
-                                data += '{},{},{},{}\n'.format(name, identity, sample[self.analysistype].genus,
-                                                               sample[self.analysistype].avgdepth[name])
+                                data += '{gene},{id},{genus},{depth}\n'.format(gene=sample[self.analysistype]
+                                                                               .sixteens_match,
+                                                                               id=identity,
+                                                                               genus=sample[self.analysistype].genus,
+                                                                               depth=sample[self.analysistype]
+                                                                               .avgdepth[name])
                                 # Create a FASTA-formatted sequence output of the 16S sequence
                                 record = SeqRecord(Seq(sample[self.analysistype].sequences[name],
                                                        IUPAC.unambiguous_dna),
-                                                   id='{}_{}'.format(sample.name, '16S'),
+                                                   id='{sn}_16S'.format(sn=sample.name),
                                                    description='')
                                 SeqIO.write(record, sequences, 'fasta')
                     except (AttributeError, IndexError):
-                        data += '{}\n'.format(sample.name)
+                        data += '{sn}\n'.format(sn=sample.name)
             # Write the results to the report
             report.write(header)
             report.write(data)
 
     def report_parse(self):
         """
-
-        :return:
+        Rather than re-performing analyses, parse the report, and populate metadata objects
         """
         test = SixteenSBait(self)
         test.targets()
@@ -431,7 +442,10 @@ class SixteenS(object):
                     fold_coverage = '0'
                 for sample in self.runmetadata.samples:
                     if sample.name == strain:
-                        sample.general.closestrefseqgenus = genus
+                        if not hasattr(sample.general, 'closestrefseqgenus'):
+                            sample.general.closestrefseqgenus = genus
+                        if not hasattr(sample.general, 'referencegenus'):
+                            sample.general.referencegenus = genus
                         sample[self.analysistype].genus = genus
                         sample[self.analysistype].avgdepth = dict()
                         sample[self.analysistype].avgdepth[sixteens] = fold_coverage.rstrip()
@@ -449,11 +463,10 @@ class SixteenS(object):
                     for sixteens in sample[self.analysistype].avgdepth:
                         sample[self.analysistype].sequences[sixteens] = str(record.seq)
         for sample in self.runmetadata.samples:
-            try:
-                if sample[self.analysistype].sequences:
-                    pass
-            except AttributeError:
+            if not hasattr(sample[self.analysistype], 'sequences'):
                 sample[self.analysistype].sequences = dict()
+            if not hasattr(sample[self.analysistype], 'sixteens_match') or not sample[self.analysistype].sixteens_match:
+                sample[self.analysistype].sixteens_match = 'ND'
 
     def __init__(self, args, pipelinecommit, startingtime, scriptpath, analysistype, cutoff):
         """
