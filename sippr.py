@@ -40,7 +40,7 @@ class Sipprverse(object):
             self.targetpath = os.path.join(self.reffilepath, self.analysistype)
             Sippr(inputobject=self,
                   cutoff=0.90,
-                  averagedepth=5)
+                  averagedepth=self.averagedepth)
             # Create the reports
             self.reports = Reports(self)
             Reports.reporter(self.reports)
@@ -93,7 +93,8 @@ class Sipprverse(object):
             self.targetpath = os.path.join(self.reffilepath, self.analysistype)
             Sippr(inputobject=self,
                   cutoff=0.95,
-                  k=self.gdcs_kmer_size)
+                  k=self.gdcs_kmer_size,
+                  averagedepth=self.averagedepth,)
             # Create the reports
             self.reports = Reports(self)
             Reports.gdcsreporter(self.reports)
@@ -130,6 +131,7 @@ class Sipprverse(object):
                        revbait=True)
         if self.user_genes:
             custom = CustomGenes(args=self,
+                                 cutoff=self.cutoff,
                                  kmer_size=self.kmer_size,
                                  allow_soft_clips=self.allow_soft_clips)
             custom.main()
@@ -253,14 +255,15 @@ if __name__ == '__main__':
                         help='Number of threads. Default is the number of cores in the system')
     parser.add_argument('-c', '--customcutoffs',
                         default=0.90,
+                        type=float,
                         help='Custom cutoff values')
     parser.add_argument('-gk', '--gdcs_kmer_size',
-                        default=19,
-                        help='Kmer size to use for baiting GDCS sequences. Defaults to 19, set lower to increase '
+                        default=1,
+                        help='Kmer size to use for baiting GDCS sequences. Defaults to 15, set lower to increase '
                              'sensitivity.')
     parser.add_argument('-k', '--kmer_size',
-                        default=19,
-                        help='Kmer size to use for baiting sequences. Defaults to 19, set lower to increase '
+                        default=15,
+                        help='Kmer size to use for baiting sequences. Defaults to 15, set lower to increase '
                              'sensitivity.')
     parser.add_argument('-sc', '--allow_soft_clips',
                         action='store_true',
