@@ -33,7 +33,7 @@ class Mash(object):
             make_path(sample[self.analysistype].reportdir)
             # Create a file containing the path/name of the filtered, corrected fastq files
             sample[self.analysistype].filelist = os.path.join(sample[self.analysistype].reportdir,
-                                                              '{}_fastqfiles.txt'.format(sample.name))
+                                                              '{sn}_fastqfiles.txt'.format(sn=sample.name))
             with open(sample[self.analysistype].filelist, 'w') as filelist:
                 filelist.write('\n'.join(sample.general.trimmedcorrectedfastqfiles))
 
@@ -185,14 +185,14 @@ class Mash(object):
                         sample.general.closestrefseqgenus = sample[self.analysistype].closestrefseqgenus
                         break
                     except ValueError:
-                        sample[self.analysistype].closestrefseq = 'NA'
-                        sample[self.analysistype].closestrefseqgenus = 'NA'
-                        sample[self.analysistype].closestrefseqspecies = 'NA'
-                        sample[self.analysistype].mashdistance = 'NA'
-                        sample[self.analysistype].pvalue = 'NA'
-                        sample[self.analysistype].nummatches = 'NA'
-                        sample.general.referencegenus = 'NA'
-                        sample.general.closestrefseqgenus = 'NA'
+                        sample[self.analysistype].closestrefseq = 'ND'
+                        sample[self.analysistype].closestrefseqgenus = 'ND'
+                        sample[self.analysistype].closestrefseqspecies = 'ND'
+                        sample[self.analysistype].mashdistance = 'ND'
+                        sample[self.analysistype].pvalue = 'ND'
+                        sample[self.analysistype].nummatches = 'ND'
+                        sample.general.referencegenus = 'ND'
+                        sample.general.closestrefseqgenus = 'ND'
                         break
                     # I have encountered a strain that has a best match with the RefSeq database provided by the
                     # developers of MASH that doesn't have a corresponding entry in the assembly_summary_refseq.txt
@@ -200,15 +200,14 @@ class Mash(object):
                     except KeyError:
                         pass
             else:
-                sample[self.analysistype].closestrefseq = 'NA'
-                sample[self.analysistype].closestrefseqgenus = 'NA'
-                sample[self.analysistype].closestrefseqspecies = 'NA'
-                sample[self.analysistype].mashdistance = 'NA'
-                sample[self.analysistype].pvalue = 'NA'
-                sample[self.analysistype].nummatches = 'NA'
-                sample.general.referencegenus = 'NA'
-                sample.general.closestrefseqgenus = 'NA'
-
+                sample[self.analysistype].closestrefseq = 'ND'
+                sample[self.analysistype].closestrefseqgenus = 'ND'
+                sample[self.analysistype].closestrefseqspecies = 'ND'
+                sample[self.analysistype].mashdistance = 'ND'
+                sample[self.analysistype].pvalue = 'ND'
+                sample[self.analysistype].nummatches = 'ND'
+                sample.general.referencegenus = 'ND'
+                sample.general.closestrefseqgenus = 'ND'
         self.reporter()
 
     def reporter(self):
