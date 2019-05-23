@@ -9,3 +9,15 @@
 # Log files #
 #############
 *.log
+
+# Dist folder
+dist/
+
+# Site folder
+site/
+
+# Misc
+.Rhistory
+.cache/
+.idea/
+sipprverse.egg-info/

@@ -1,1 +1,0 @@
-Requires databases to end in .fsa
