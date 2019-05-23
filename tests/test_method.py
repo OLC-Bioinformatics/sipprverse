@@ -7,10 +7,8 @@ from Bio.Blast.Applications import NcbiblastnCommandline
 from argparse import ArgumentParser
 from subprocess import call
 import multiprocessing
-from glob import glob
 from time import time
 import psutil
-import pytest
 import shutil
 import sys
 import os
@@ -24,7 +22,6 @@ from method import Method
 __author__ = 'adamkoziol'
 
 
-@pytest.fixture()
 def variables():
     v = ArgumentParser()
     v.outputpath = os.path.join(testpath, 'testdata', 'results')
@@ -40,18 +37,19 @@ def variables():
     return v
 
 
-@pytest.fixture()
-def method_init(variables):
-    method = Method(variables, '', time(), scriptpath)
-    return method
+def method_init():
+    global var
+    var = variables()
+    method_obj = Method(var, '', time(), scriptpath)
+    return method_obj
 
 
-method = method_init(variables())
+method = method_init()
 
 
-def test_bcl2fastq(variables):
+def test_bcl2fastq():
     method.createobjects()
-    assert os.path.isfile(os.path.join(variables.outputpath, variables.miseqfolder, '1_0',
+    assert os.path.isfile(os.path.join(var.outputpath, var.miseqfolder, '1_0',
                                        'Undetermined_S0_L001_R1_001.fastq.gz'))
 
 
@@ -73,9 +71,9 @@ def metadata_update(analysistype):
         sample.general.logerr = os.path.join(method.sequencepath, 'logerr')
 
 
-def test_fastq_bait(variables):
-    outfile = os.path.join(variables.outputpath, 'bait', 'baited.fastq')
-    targetpath = os.path.join(variables.referencefilepath, 'bait')
+def test_fastq_bait():
+    outfile = os.path.join(var.outputpath, 'bait', 'baited.fastq')
+    targetpath = os.path.join(var.referencefilepath, 'bait')
     baitcall = 'bbduk.sh ref={ref} -Xmx5G in={input} threads={cpus} outm={out}'.format(
         ref=os.path.join(targetpath, 'combinedtargets.fasta'),
         input=os.path.join(targetpath, 'genesippr.fastq.gz'),
@@ -87,9 +85,9 @@ def test_fastq_bait(variables):
     assert size.st_size > 0
 
 
-def test_reverse_bait(variables):
-    outfile = os.path.join(variables.outputpath, 'reverse_bait', 'baited_targets.fasta')
-    targetpath = os.path.join(variables.referencefilepath, 'bait')
+def test_reverse_bait():
+    outfile = os.path.join(var.outputpath, 'reverse_bait', 'baited_targets.fasta')
+    targetpath = os.path.join(var.referencefilepath, 'bait')
     baitcall = 'bbduk.sh -Xmx5G ref={ref} in={input} threads={cpus} outm={out}'.format(
         ref=os.path.join(targetpath, 'genesippr.fastq.gz'),
         input=os.path.join(targetpath, 'combinedtargets.fasta'),
@@ -101,9 +99,9 @@ def test_reverse_bait(variables):
     assert size.st_size > 0
 
 
-def test_bowtie2_build(variables):
+def test_bowtie2_build():
     # Use bowtie2 wrapper to create index the target file
-    targetpath = os.path.join(variables.referencefilepath, 'bait')
+    targetpath = os.path.join(var.referencefilepath, 'bait')
     bowtie2build = Bowtie2BuildCommandLine(reference=os.path.join(targetpath, 'baitedtargets.fa'),
                                            bt2=os.path.join(targetpath, 'baitedtargets'))
 
@@ -112,10 +110,10 @@ def test_bowtie2_build(variables):
     assert size.st_size > 0
 
 
-def test_bowtie2_align(variables):
-    outpath = os.path.join(variables.outputpath, 'bait')
+def test_bowtie2_align():
+    outpath = os.path.join(var.outputpath, 'bait')
     outfile = os.path.join(outpath, 'map_test_sorted.bam')
-    targetpath = os.path.join(variables.referencefilepath, 'bait')
+    targetpath = os.path.join(var.referencefilepath, 'bait')
     # Use samtools wrapper to set up the bam sorting command
     samsort = SamtoolsSortCommandline(input=outfile,
                                       o=True,
@@ -148,25 +146,25 @@ def test_bowtie2_align(variables):
     assert size.st_size > 0
 
 
-def test_index_target(variables):
-    targetpath = os.path.join(variables.referencefilepath, 'bait')
+def test_index_target():
+    targetpath = os.path.join(var.referencefilepath, 'bait')
     target_index = SamtoolsFaidxCommandline(reference=os.path.join(targetpath, 'baitedtargets.fa'))
     target_index()
     size = os.stat(os.path.join(targetpath, 'baitedtargets.fa.fai'))
     assert size.st_size > 0
 
 
-def test_index_bam(variables):
-    targetpath = os.path.join(variables.referencefilepath, 'bait')
+def test_index_bam():
+    targetpath = os.path.join(var.referencefilepath, 'bait')
     bam_index = SamtoolsIndexCommandline(input=os.path.join(targetpath, 'genesippr_sorted.bam'))
     bam_index()
     size = os.stat(os.path.join(targetpath, 'genesippr_sorted.bam.bai'))
     assert size.st_size > 0
 
 
-def test_subsample(variables):
-    targetpath = os.path.join(variables.referencefilepath, 'blast')
-    outpath = os.path.join(variables.outputpath, 'blast')
+def test_subsample():
+    targetpath = os.path.join(var.referencefilepath, 'blast')
+    outpath = os.path.join(var.outputpath, 'blast')
     make_path(outpath)
     outfile = os.path.join(outpath, 'subsampled_reads.fastq.gz')
     cmd = 'reformat.sh in={input} out={output} samplebasestarget=100000'.format(
@@ -177,8 +175,8 @@ def test_subsample(variables):
     assert size.st_size > 0
 
 
-def test_downsample(variables):
-    outpath = os.path.join(variables.outputpath, 'blast')
+def test_downsample():
+    outpath = os.path.join(var.outputpath, 'blast')
     outfile = os.path.join(outpath, 'subsampled_reads.fastq')
     cmd = 'seqtk sample {input} 1000 > {output}' .format(
         input=os.path.join(outpath, 'subsampled_reads.fastq.gz'),
@@ -188,18 +186,18 @@ def test_downsample(variables):
     assert size.st_size > 0
 
 
-def test_fastq_to_fasta(variables):
-    outfile = os.path.join(variables.outputpath, 'blast', 'subsampled_reads.fasta')
+def test_fastq_to_fasta():
+    outfile = os.path.join(var.outputpath, 'blast', 'subsampled_reads.fasta')
     cmd = 'reformat.sh in={input} out={output}' \
-        .format(input=os.path.join(os.path.join(variables.outputpath, 'blast', 'subsampled_reads.fastq')),
+        .format(input=os.path.join(os.path.join(var.outputpath, 'blast', 'subsampled_reads.fastq')),
                 output=outfile)
     call(cmd, shell=True)
     size = os.stat(outfile)
     assert size.st_size > 0
 
 
-def test_make_blastdb(variables):
-    targetpath = os.path.join(variables.referencefilepath, 'blast')
+def test_make_blastdb():
+    targetpath = os.path.join(var.referencefilepath, 'blast')
     command = 'makeblastdb -in {targets} -parse_seqids -max_file_sz 2GB -dbtype nucl -out {output}'.format(
         targets=os.path.join(targetpath, 'baitedtargets.fa'),
         output=os.path.join(targetpath, 'baitedtargets'))
@@ -209,9 +207,9 @@ def test_make_blastdb(variables):
     assert size.st_size > 0
 
 
-def test_blast(variables):
-    targetpath = os.path.join(variables.referencefilepath, 'blast')
-    outpath = os.path.join(variables.outputpath, 'blast')
+def test_blast():
+    targetpath = os.path.join(var.referencefilepath, 'blast')
+    outpath = os.path.join(var.outputpath, 'blast')
     outfile = os.path.join(outpath, 'blast_results.csv')
     # Use the NCBI BLASTn command line wrapper module from BioPython to set the parameters of the search
     blastn = NcbiblastnCommandline(query=os.path.join(outpath, 'subsampled_reads.fasta'),
@@ -298,12 +296,12 @@ def test_gdcs():
     clean_folder(analysistype)
 
 
-def test_clear_results(variables):
-    shutil.rmtree(variables.outputpath)
+def test_clear_results():
+    shutil.rmtree(var.outputpath)
 
 
-def test_clear_targets(variables):
-    targetpath = os.path.join(variables.referencefilepath, 'bait')
+def test_clear_targets():
+    targetpath = os.path.join(var.referencefilepath, 'bait')
     os.remove(os.path.join(targetpath, 'baitedtargets.1.bt2'))
     os.remove(os.path.join(targetpath, 'baitedtargets.2.bt2'))
     os.remove(os.path.join(targetpath, 'baitedtargets.3.bt2'))
@@ -314,8 +312,8 @@ def test_clear_targets(variables):
     os.remove(os.path.join(targetpath, 'genesippr_sorted.bam.bai'))
 
 
-def test_clear_blast(variables):
-    targetpath = os.path.join(variables.referencefilepath, 'blast')
+def test_clear_blast():
+    targetpath = os.path.join(var.referencefilepath, 'blast')
     os.remove(os.path.join(targetpath, 'baitedtargets.nsq'))
     os.remove(os.path.join(targetpath, 'baitedtargets.nsi'))
     os.remove(os.path.join(targetpath, 'baitedtargets.nsd'))
@@ -326,17 +324,17 @@ def test_clear_blast(variables):
     os.remove(os.path.join(targetpath, 'baitedtargets.nhr'))
 
 
-def test_clear_kma(variables):
-    targetpath = os.path.join(variables.referencefilepath, 'ConFindr', 'databases')
+def test_clear_kma():
+    targetpath = os.path.join(var.referencefilepath, 'ConFindr', 'databases')
     os.remove(os.path.join(targetpath, 'rMLST_combined_kma.index.b'))
     os.remove(os.path.join(targetpath, 'rMLST_combined_kma.length.b'))
     os.remove(os.path.join(targetpath, 'rMLST_combined_kma.name'))
     os.remove(os.path.join(targetpath, 'rMLST_combined_kma.seq.b'))
 
 
-def test_clear_logs(variables):
+def test_clear_logs():
     # Use os.walk to find all log files in the subfolders within the reference file path
-    for root, folders, files in os.walk(variables.referencefilepath):
+    for root, folders, files in os.walk(var.referencefilepath):
         for sub_file in files:
             # Only target log files
             if '.log' in sub_file:
