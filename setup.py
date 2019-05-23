@@ -4,7 +4,7 @@ __author__ = 'adamkoziol'
 
 setup(
     name="sipprverse",
-    version="0.2.26",
+    version="0.2.27",
     packages=find_packages(),
     include_package_data=True,
     scripts=[
@@ -23,9 +23,6 @@ setup(
                       'seaborn',
                       'numpy',
                       'pytest',
-                      'pysam',
-                      'xlsxwriter',
-                      'geneseekr',
                       'confindr',
                       'validator_helper']
 )
