@@ -18,6 +18,7 @@ class CustomGenes(object):
         self.gene_names()
         Sippr(inputobject=self,
               k=self.kmer_size,
+              cutoff=self.cutoff,
               allow_soft_clips=self.allow_soft_clips)
         self.report()
 
@@ -80,8 +81,8 @@ class CustomGenes(object):
             report.write(header)
             report.write(data)
 
-    def __init__(self, args, kmer_size=19, allow_soft_clips=False):
-        self.targets = args.user_genes
+    def __init__(self, args, cutoff=0.9, kmer_size=15, allow_soft_clips=False):
+        self.targets = os.path.abspath(os.path.join(args.user_genes))
         self.targetpath = os.path.split(self.targets)[0]
         self.path = args.path
         self.reportpath = args.reportpath
@@ -96,5 +97,6 @@ class CustomGenes(object):
         self.taxonomy = False
         self.logfile = args.logfile
         self.genes = list()
+        self.cutoff = cutoff
         self.kmer_size = kmer_size
         self.allow_soft_clips = allow_soft_clips
