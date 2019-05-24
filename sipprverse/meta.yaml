@@ -1,8 +1,8 @@
 {% set name = "sipprverse" %}
-{% set version = "0.2.27" %}
+{% set version = "0.2.32" %}
 {% set file_ext = "tar.gz" %}
 {% set hash_type = "sha256" %}
-{% set hash_value = "47937b90ce83923869006b23a90cc5b7005b12cd486c008df9130c51787ecc13" %}
+{% set hash_value = "aa8cb7fe1f582664f990a697a28fbaf03563e1e1747efa1f42b89ef36952604e" %}
 
 package:
   name: '{{ name|lower }}'
@@ -42,17 +42,12 @@ requirements:
     - pytest=4.5.0=py36_0
     - pysam=0.15.2=py36h4b7d16d_3
     - validator_helper=0.0.6=py_0
-    - geneseekr=0.3.4=py_0
+    - geneseekr=0.3.5=py_0
     - confindr=0.7.0=py_0
-  
+    - genemethods=0.0.0.1=py_0
+
 test:
   imports:
-    - MASHsippr
-    - MLSTsippr
-    - genesippr
-    - serosippr
-    - sipprverse_reporter
-    - sixteenS
     - tests
 
 about:

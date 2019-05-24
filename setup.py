@@ -5,12 +5,12 @@ __author__ = 'adamkoziol'
 
 setup(
     name="sipprverse",
-    version="0.2.29",
+    version="0.2.33",
     packages=find_packages(),
     include_package_data=True,
     scripts=[
-        os.path.join('sipprverse', 'sippr.py'),
-        os.path.join('sipprverse', 'method.py')
+        os.path.join('sippr', 'sippr.py'),
+        os.path.join('sippr', 'method.py')
     ],
     license='MIT',
     author='Adam Koziol',
