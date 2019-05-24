@@ -1,8 +1,8 @@
 {% set name = "sipprverse" %}
-{% set version = "0.2.32" %}
+{% set version = "0.2.33" %}
 {% set file_ext = "tar.gz" %}
 {% set hash_type = "sha256" %}
-{% set hash_value = "aa8cb7fe1f582664f990a697a28fbaf03563e1e1747efa1f42b89ef36952604e" %}
+{% set hash_value = "0892481ae65b2807d143dc0da59a258b7f6b3433f5f8b3819987a2b5f5f75ed1" %}
 
 package:
   name: '{{ name|lower }}'
