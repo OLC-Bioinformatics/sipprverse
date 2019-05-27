@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from accessoryFunctions.accessoryFunctions import make_path, MetadataObject, SetupLogging
 from accessoryFunctions.metadataprinter import MetadataPrinter
-from spadespipeline.typingclasses import Resistance, Virulence
+from typingclasses.typingclasses import Resistance, Virulence
 from sixteenS.sixteens_full import SixteenS as SixteensFull
 from MLSTsippr.mlst import GeneSippr as MLSTSippr
 from customsippr.customsippr import CustomGenes

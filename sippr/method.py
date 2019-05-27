@@ -3,7 +3,7 @@ from accessoryFunctions.accessoryFunctions import MetadataObject, make_path, pri
 from accessoryFunctions.metadataprinter import MetadataPrinter
 from sixteenS.sixteens_full import SixteenS as SixteensFull
 from sipprverse_reporter.reports import Reports, ReportImage
-from spadespipeline.typingclasses import GDCS
+from typingclasses.typingclasses import GDCS
 import spadespipeline.quality as quality
 from sipprCommon.create_sample_sheet import SampleSheet
 from sipprCommon.objectprep import Objectprep
