@@ -1,8 +1,9 @@
 #!/usr/bin/env python 3
-from accessoryFunctions.accessoryFunctions import make_path
+from olctools.accessoryFunctions.accessoryFunctions import make_path
+from genemethods.sipprCommon.bowtie import Bowtie2CommandLine, Bowtie2BuildCommandLine
+from sipprverse.sippr.method import Method
 from Bio.Sequencing.Applications import SamtoolsFaidxCommandline, SamtoolsIndexCommandline, \
     SamtoolsSortCommandline, SamtoolsViewCommandline
-from sipprCommon.bowtie import Bowtie2CommandLine, Bowtie2BuildCommandLine
 from Bio.Blast.Applications import NcbiblastnCommandline
 from argparse import ArgumentParser
 from subprocess import call
@@ -17,7 +18,6 @@ mem = psutil.virtual_memory()
 testpath = os.path.abspath(os.path.dirname(__file__))
 scriptpath = os.path.join(testpath, '..')
 sys.path.append(scriptpath)
-from method import Method
 
 __author__ = 'adamkoziol'
 

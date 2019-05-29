@@ -1,7 +1,7 @@
-#!/usr/bin/env python
-from accessoryFunctions.accessoryFunctions import GenObject, make_path, MetadataObject, relative_symlink, run_subprocess, SetupLogging
-from biotools import bbtools
-# from cowbat.assembly_pipeline import RunAssemble
+#!/usr/bin/env python3
+from olctools.accessoryFunctions.accessoryFunctions import GenObject, make_path, MetadataObject, relative_symlink, \
+    run_subprocess, SetupLogging
+from genewrappers.biotools import bbtools
 from argparse import ArgumentParser
 from Bio import SeqIO
 from glob import glob

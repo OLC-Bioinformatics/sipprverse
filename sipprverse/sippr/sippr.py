@@ -1,16 +1,16 @@
 #!/usr/bin/python3
-from accessoryFunctions.accessoryFunctions import make_path, MetadataObject, SetupLogging
-from accessoryFunctions.metadataprinter import MetadataPrinter
-from typingclasses.typingclasses import Resistance, Virulence
-from sixteenS.sixteens_full import SixteenS as SixteensFull
-from MLSTsippr.mlst import GeneSippr as MLSTSippr
-from customsippr.customsippr import CustomGenes
-from pointsippr.pointsippr import PointSippr
-from sipprverse_reporter.reports import Reports
-from sipprCommon.objectprep import Objectprep
-from sipprCommon.sippingmethods import Sippr
-from serosippr.serosippr import SeroSippr
-import MASHsippr.mash as mash
+from olctools.accessoryFunctions.accessoryFunctions import make_path, MetadataObject, SetupLogging
+from olctools.accessoryFunctions.metadataprinter import MetadataPrinter
+from genemethods.typingclasses.typingclasses import Resistance, Virulence
+from genemethods.sixteenS.sixteens_full import SixteenS as SixteensFull
+from genemethods.MLSTsippr.mlst import GeneSippr as MLSTSippr
+from genemethods.customsippr.customsippr import CustomGenes
+from genemethods.pointsippr.pointsippr import PointSippr
+from genemethods.sipprverse_reporter.reports import Reports
+from genemethods.sipprCommon.objectprep import Objectprep
+from genemethods.sipprCommon.sippingmethods import Sippr
+from genemethods.serosippr.serosippr import SeroSippr
+import genemethods.MASHsippr.mash as mash
 from argparse import ArgumentParser
 import multiprocessing
 import subprocess

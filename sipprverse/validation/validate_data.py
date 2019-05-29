@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-
-import os
-import logging
-import argparse
+from olctools.accessoryFunctions.accessoryFunctions import SetupLogging
 from validator_helper import validate
-from accessoryFunctions.accessoryFunctions import SetupLogging
+import argparse
+import logging
+import os
 
 
 def check_all_reports_created(test_genesippr_folder):

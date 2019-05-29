@@ -1,14 +1,14 @@
 #!/usr/bin/python3
-from accessoryFunctions.accessoryFunctions import MetadataObject, make_path, printtime, SetupLogging
-from accessoryFunctions.metadataprinter import MetadataPrinter
-from sixteenS.sixteens_full import SixteenS as SixteensFull
-from sipprverse_reporter.reports import Reports, ReportImage
-from typingclasses.typingclasses import GDCS
-import spadespipeline.quality as quality
-from sipprCommon.create_sample_sheet import SampleSheet
-from sipprCommon.objectprep import Objectprep
-from genesippr.genesippr import GeneSippr
-import MASHsippr.mash as mash
+from olctools.accessoryFunctions.accessoryFunctions import MetadataObject, make_path, printtime, SetupLogging
+from olctools.accessoryFunctions.metadataprinter import MetadataPrinter
+from genemethods.sixteenS.sixteens_full import SixteenS as SixteensFull
+from genemethods.sipprverse_reporter.reports import Reports, ReportImage
+from genemethods.typingclasses.typingclasses import GDCS
+import genemethods.assemblypipeline.quality as quality
+from genemethods.sipprCommon.create_sample_sheet import SampleSheet
+from genemethods.sipprCommon.objectprep import Objectprep
+from genemethods.genesippr.genesippr import GeneSippr
+import genemethods.MASHsippr.mash as mash
 from argparse import ArgumentParser
 import multiprocessing
 from time import sleep
