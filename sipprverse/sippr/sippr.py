@@ -249,6 +249,7 @@ if __name__ == '__main__':
                         help='Provide the location of the folder containing reference database')
     parser.add_argument('-a', '--averagedepth',
                         default=5,
+                        type=int,
                         help='Cutoff value for mapping depth to use when parsing BAM files.')
     parser.add_argument('-n', '--numthreads',
                         default=multiprocessing.cpu_count(),
