@@ -40,7 +40,8 @@ class Sipprverse(object):
             self.targetpath = os.path.join(self.reffilepath, self.analysistype)
             Sippr(inputobject=self,
                   cutoff=0.90,
-                  averagedepth=self.averagedepth)
+                  averagedepth=self.averagedepth,
+                  allow_soft_clips=self.allow_soft_clips)
             # Create the reports
             self.reports = Reports(self)
             Reports.reporter(self.reports)
@@ -51,7 +52,8 @@ class Sipprverse(object):
                          startingtime=self.starttime,
                          scriptpath=self.homepath,
                          analysistype='sixteens_full',
-                         cutoff=0.985)
+                         cutoff=0.985,
+                         allow_soft_clips=self.allow_soft_clips)
         if self.closestreference:
             self.pipeline = True
             mash.Mash(inputobject=self,
@@ -63,7 +65,8 @@ class Sipprverse(object):
                               scriptpath=self.homepath,
                               analysistype='rMLST',
                               cutoff=1.0,
-                              pipeline=True)
+                              pipeline=True,
+                              allow_soft_clips=self.allow_soft_clips)
             rmlst.runner()
         if self.resistance:
             # ResFinding
@@ -74,7 +77,8 @@ class Sipprverse(object):
                              analysistype='resfinder',
                              cutoff=0.7,
                              pipeline=False,
-                             revbait=True)
+                             revbait=True,
+                             allow_soft_clips=self.allow_soft_clips)
             res.main()
         if self.virulence:
             self.genus_specific()
@@ -85,7 +89,8 @@ class Sipprverse(object):
                       analysistype='virulence',
                       cutoff=0.95,
                       pipeline=False,
-                      revbait=True)
+                      revbait=True,
+                      allow_soft_clips=self.allow_soft_clips)
         if self.gdcs:
             self.genus_specific()
             # Run the GDCS analysis
@@ -94,7 +99,8 @@ class Sipprverse(object):
             Sippr(inputobject=self,
                   cutoff=0.95,
                   k=self.gdcs_kmer_size,
-                  averagedepth=self.averagedepth,)
+                  averagedepth=self.averagedepth,
+                  allow_soft_clips=self.allow_soft_clips)
             # Create the reports
             self.reports = Reports(self)
             Reports.gdcsreporter(self.reports)
@@ -106,7 +112,8 @@ class Sipprverse(object):
                              scriptpath=self.homepath,
                              analysistype='MLST',
                              cutoff=1.0,
-                             pipeline=True)
+                             pipeline=True,
+                             allow_soft_clips=self.allow_soft_clips)
             mlst.runner()
         # Serotyping
         if self.serotype:
@@ -117,7 +124,8 @@ class Sipprverse(object):
                       scriptpath=self.homepath,
                       analysistype='serosippr',
                       cutoff=0.90,
-                      pipeline=True)
+                      pipeline=True,
+                      allow_soft_clips=self.allow_soft_clips)
         # Point mutation detection
         if self.pointfinder:
             self.genus_specific()
@@ -128,7 +136,8 @@ class Sipprverse(object):
                        analysistype='pointfinder',
                        cutoff=0.85,
                        pipeline=True,
-                       revbait=True)
+                       revbait=True,
+                       allow_soft_clips=self.allow_soft_clips)
         if self.user_genes:
             custom = CustomGenes(args=self,
                                  cutoff=self.cutoff,
