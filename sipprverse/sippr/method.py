@@ -223,7 +223,9 @@ class Method(object):
         """
         Run the GDCS analysis
         """
-        GDCS(inputobject=self)
+        # Run the GDCS analysis
+        gdcs = GDCS(inputobject=self)
+        gdcs.main()
 
     def complete(self):
         """

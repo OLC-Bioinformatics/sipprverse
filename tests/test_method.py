@@ -287,10 +287,10 @@ def test_mash():
 
 
 def test_gdcs():
-    analysistype = 'GDCS'
+    analysistype = 'gdcs'
     metadata_update(analysistype)
     method.run_gdcs()
-    outfile = os.path.join(method.reportpath, '{}.csv'.format(analysistype))
+    outfile = os.path.join(method.reportpath, '{}.csv'.format(analysistype.lower()))
     size = os.stat(outfile)
     assert size.st_size > 0
     clean_folder(analysistype)
@@ -325,7 +325,7 @@ def test_clear_blast():
 
 
 def test_clear_kma():
-    targetpath = os.path.join(var.referencefilepath, 'ConFindr', 'databases')
+    targetpath = os.path.join(var.referencefilepath, 'ConFindr')
     os.remove(os.path.join(targetpath, 'rMLST_combined_kma.index.b'))
     os.remove(os.path.join(targetpath, 'rMLST_combined_kma.length.b'))
     os.remove(os.path.join(targetpath, 'rMLST_combined_kma.name'))
