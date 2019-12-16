@@ -193,6 +193,12 @@ class Sipprverse(object):
             .format(self.targetpath)
         # Set the custom cutoff value
         self.cutoff = args.customcutoffs
+        if self.cutoff > 1:
+            self.cutoff = self.cutoff / 100
+            logging.warning('Cutoff value should be a decimal fraction. The supplied cutoff value, {arg_cutoff}, is '
+                            'greater than 1.0, and has been adjust to be {new_cutoff}.'
+                            .format(arg_cutoff=args.customcutoffs,
+                                    new_cutoff=self.cutoff))
         # Use the argument for the number of threads to use, or default to the number of cpus in the system
         self.cpus = int(args.numthreads)
         self.closestreference = args.closestreference
@@ -266,7 +272,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--customcutoffs',
                         default=0.90,
                         type=float,
-                        help='Custom cutoff values')
+                        help='Decimal fraction for custom cutoff values. Default is 0.90')
     parser.add_argument('-gk', '--gdcs_kmer_size',
                         default=1,
                         help='Kmer size to use for baiting GDCS sequences. Defaults to 15, set lower to increase '
