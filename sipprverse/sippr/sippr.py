@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from olctools.accessoryFunctions.accessoryFunctions import make_path, MetadataObject, SetupLogging
 from olctools.accessoryFunctions.metadataprinter import MetadataPrinter
-from genemethods.typingclasses.typingclasses import Resistance, Virulence
+from genemethods.typingclasses.typingclasses import Resistance, Verotoxin, Virulence
 from genemethods.sixteenS.sixteens_full import SixteenS as SixteensFull
 from genemethods.MLSTsippr.mlst import GeneSippr as MLSTSippr
 from genemethods.customsippr.customsippr import CustomGenes
@@ -82,7 +82,7 @@ class Sipprverse(object):
             res.main()
         if self.virulence:
             self.genus_specific()
-            Virulence(args=self,
+            vir = Virulence(args=self,
                       pipelinecommit=self.commit,
                       startingtime=self.starttime,
                       scriptpath=self.homepath,
@@ -91,6 +91,8 @@ class Sipprverse(object):
                       pipeline=False,
                       revbait=True,
                       allow_soft_clips=self.allow_soft_clips)
+            # vir.runner()
+
         if self.gdcs:
             self.genus_specific()
             # Run the GDCS analysis
@@ -138,6 +140,13 @@ class Sipprverse(object):
                        pipeline=True,
                        revbait=True,
                        allow_soft_clips=self.allow_soft_clips)
+        # Verotoxin typing
+        if self.verotoxin:
+            vero = Verotoxin(args=self,
+                             pipeline=True,
+                             analysistype='verotoxin',
+                             cutoff=80)
+            vero.main()
         if self.user_genes:
             custom = CustomGenes(args=self,
                                  cutoff=self.cutoff,
@@ -211,6 +220,7 @@ class Sipprverse(object):
         self.serotype = args.serotype
         self.sixteens = args.sixteens
         self.virulence = args.virulence
+        self.verotoxin = args.verotoxin
         self.averagedepth = args.averagedepth
         self.gdcs_kmer_size = args.gdcs_kmer_size
         self.kmer_size = args.kmer_size
@@ -218,7 +228,7 @@ class Sipprverse(object):
         try:
             self.user_genes = os.path.join(args.user_genes)
             assert os.path.isfile(self.user_genes), 'Cannot find user-supplied target file: {targets}. Please ' \
-                                                    'double-check name and path of file'\
+                                                    'double-check name and path of file' \
                 .format(targets=self.user_genes)
         except TypeError:
             self.user_genes = args.user_genes
@@ -234,6 +244,7 @@ class Sipprverse(object):
             self.serotype = True
             self.sixteens = True
             self.virulence = True
+            self.verotoxin = True
         self.reports = str()
         self.threads = int()
         self.runmetadata = MetadataObject()
@@ -267,8 +278,8 @@ if __name__ == '__main__':
                         type=int,
                         help='Cutoff value for mapping depth to use when parsing BAM files.')
     parser.add_argument('-n', '--numthreads',
-                        default=multiprocessing.cpu_count(),
-                        help='Number of threads. Default is the number of cores in the system')
+                        default=multiprocessing.cpu_count() - 1,
+                        help='Number of threads. Default is the number of cores in the system minus one')
     parser.add_argument('-c', '--customcutoffs',
                         default=0.90,
                         type=float,
@@ -283,57 +294,47 @@ if __name__ == '__main__':
                              'sensitivity.')
     parser.add_argument('-sc', '--allow_soft_clips',
                         action='store_true',
-                        default=False,
                         help='Do not discard sequences if internal soft clips are present. Default is False, as this '
                              'is usually best for removing false positive matches, but sometimes it is necessary to '
                              'disable this functionality')
     parser.add_argument('-F', '--full_suite',
                         action='store_true',
-                        default=False,
                         help='Perform all the built-in GeneSippr analyses (AMR, GDCS, Genesippr, MASH, MLST, '
                              'rMLST, Serotype, SixteenS, and Virulence')
     parser.add_argument('-A', '--resistance',
                         action='store_true',
-                        default=False,
                         help='Perform AMR analysis on samples')
     parser.add_argument('-C', '--closestreference',
                         action='store_true',
-                        default=False,
                         help='Determine closest RefSeq match with mash')
     parser.add_argument('-G', '--genesippr',
                         action='store_true',
-                        default=False,
                         help='Perform GeneSippr analysis on samples')
     parser.add_argument('-M', '--mlst',
                         action='store_true',
-                        default=False,
                         help='Perform MLST analysis on samples')
     parser.add_argument('-P', '--pointfinder',
                         action='store_true',
-                        default=False,
                         help='Perform PointFinder analyses')
     parser.add_argument('-Q', '--gdcs',
                         action='store_true',
-                        default=False,
                         help='Perform GDCS Quality analysis on samples')
     parser.add_argument('-R', '--rmlst',
                         action='store_true',
-                        default=False,
                         help='Perform rMLST analysis on samples')
     parser.add_argument('-S', '--serotype',
                         action='store_true',
-                        default=False,
                         help='Perform serotype analysis on samples determined to be Escherichia')
     parser.add_argument('-U', '--user_genes',
-                        default=False,
                         help='Name and path of user provided (multi-)FASTA file of genes to run against samples')
     parser.add_argument('-V', '--virulence',
                         action='store_true',
-                        default=False,
                         help='Perform virulence analysis on samples')
+    parser.add_argument('-VT', '--verotoxin',
+                        action='store_true',
+                        help='Perform verotoxin typing')
     parser.add_argument('-X', '--sixteens',
                         action='store_true',
-                        default=False,
                         help='Perform 16S typing of samples')
     # Get the arguments into an object
     arguments = parser.parse_args()
