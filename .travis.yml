@@ -12,7 +12,7 @@ before_install:
   - conda config --add channels Freenome
   - conda config --add channels conda-forge
   - conda config --add channels bioconda
-  - conda install -c olcbioinformatics sipprverse=0.2.46=py_4
+  - conda install -c olcbioinformatics sipprverse=0.2.46=py_5
 
 script:
   - pytest tests/test_imports.py -s -vv --maxfail=1
