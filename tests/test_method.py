@@ -1,7 +1,8 @@
 #!/usr/bin/env python 3
-from olctools.accessoryFunctions.accessoryFunctions import make_path
+from olctools.accessoryFunctions.accessoryFunctions import make_path, run_subprocess
 from genemethods.sipprCommon.bowtie import Bowtie2CommandLine, Bowtie2BuildCommandLine
 from sipprverse.sippr.method import Method
+import genemethods
 from Bio.Sequencing.Applications import SamtoolsFaidxCommandline, SamtoolsIndexCommandline, \
     SamtoolsSortCommandline, SamtoolsViewCommandline
 from Bio.Blast.Applications import NcbiblastnCommandline
@@ -17,6 +18,7 @@ import os
 mem = psutil.virtual_memory()
 testpath = os.path.abspath(os.path.dirname(__file__))
 scriptpath = os.path.join(testpath, '..')
+scriptlocation = genemethods.sipprCommon.editsamheaders.__file__
 sys.path.append(scriptpath)
 
 __author__ = 'adamkoziol'
@@ -123,7 +125,7 @@ def test_bowtie2_align():
         # SAM header for that read is set to 'secondary alignment', or 256. Please see:
         # http://davetang.org/muse/2014/03/06/understanding-bam-flags/ The script below reads in the stdin
         # and subtracts 256 from headers which include 256
-        'python3 {}'.format(scriptpath),
+        'python3 {}'.format(scriptlocation),
         # Use samtools wrapper to set up the samtools view
         SamtoolsViewCommandline(b=True,
                                 S=True,
@@ -141,7 +143,7 @@ def test_bowtie2_align():
                                       threads=multiprocessing.cpu_count(),
                                       samtools=samtools,
                                       **indict)
-    bowtie2align(cwd=outpath)
+    run_subprocess(command=str(bowtie2align))
     size = os.stat(outfile)
     assert size.st_size > 0
 
@@ -202,7 +204,7 @@ def test_make_blastdb():
         targets=os.path.join(targetpath, 'baitedtargets.fa'),
         output=os.path.join(targetpath, 'baitedtargets'))
     call(command, shell=True)
-    outfile = os.path.join(targetpath, 'baitedtargets.nsi')
+    outfile = os.path.join(targetpath, 'baitedtargets.ndb')
     size = os.stat(outfile)
     assert size.st_size > 0
 
@@ -216,8 +218,8 @@ def test_blast():
                                    db=os.path.join(targetpath, 'baitedtargets'),
                                    max_target_seqs=1,
                                    num_threads=multiprocessing.cpu_count(),
-                                   outfmt="'6 qseqid sseqid positive mismatch gaps "
-                                          "evalue bitscore slen length qstart qend qseq sstart send sseq'",
+                                   outfmt='6 qseqid sseqid positive mismatch gaps evalue bitscore slen length qstart '
+                                          'qend qseq sstart send sseq',
                                    out=outfile)
     blastn()
     size = os.stat(outfile)
@@ -314,19 +316,21 @@ def test_clear_targets():
 
 def test_clear_blast():
     targetpath = os.path.join(var.referencefilepath, 'blast')
-    os.remove(os.path.join(targetpath, 'baitedtargets.nsq'))
-    os.remove(os.path.join(targetpath, 'baitedtargets.nsi'))
-    os.remove(os.path.join(targetpath, 'baitedtargets.nsd'))
-    os.remove(os.path.join(targetpath, 'baitedtargets.nog'))
-    os.remove(os.path.join(targetpath, 'baitedtargets.nni'))
-    os.remove(os.path.join(targetpath, 'baitedtargets.nnd'))
-    os.remove(os.path.join(targetpath, 'baitedtargets.nin'))
+    os.remove(os.path.join(targetpath, 'baitedtargets.ndb'))
     os.remove(os.path.join(targetpath, 'baitedtargets.nhr'))
+    os.remove(os.path.join(targetpath, 'baitedtargets.nin'))
+    os.remove(os.path.join(targetpath, 'baitedtargets.nnd'))
+    os.remove(os.path.join(targetpath, 'baitedtargets.nni'))
+    os.remove(os.path.join(targetpath, 'baitedtargets.nog'))
+    os.remove(os.path.join(targetpath, 'baitedtargets.nos'))
+    os.remove(os.path.join(targetpath, 'baitedtargets.ntf'))
+    os.remove(os.path.join(targetpath, 'baitedtargets.nsq'))
+    os.remove(os.path.join(targetpath, 'baitedtargets.nto'))
+    os.remove(os.path.join(targetpath, 'baitedtargets.not'))
 
 
 def test_clear_kma():
     targetpath = os.path.join(var.referencefilepath, 'ConFindr')
-    os.remove(os.path.join(targetpath, 'rMLST_combined_kma.index.b'))
     os.remove(os.path.join(targetpath, 'rMLST_combined_kma.length.b'))
     os.remove(os.path.join(targetpath, 'rMLST_combined_kma.name'))
     os.remove(os.path.join(targetpath, 'rMLST_combined_kma.seq.b'))
