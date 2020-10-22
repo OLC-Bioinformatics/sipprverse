@@ -16,4 +16,4 @@ before_install:
 
 script:
   - python -m pytest tests/test_imports.py -s -vv --maxfail=1
-  - pytest -m pytest tests/test_method.py -s -vv --maxfail=1
+  - python -m pytest tests/test_method.py -s -vv --maxfail=1
