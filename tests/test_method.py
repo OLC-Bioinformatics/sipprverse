@@ -289,10 +289,10 @@ def test_mash():
 
 
 def test_gdcs():
-    analysistype = 'gdcs'
+    analysistype = 'GDCS'
     metadata_update(analysistype)
     method.run_gdcs()
-    outfile = os.path.join(method.reportpath, '{}.csv'.format(analysistype.lower()))
+    outfile = os.path.join(method.reportpath, '{}.csv'.format(analysistype))
     size = os.stat(outfile)
     assert size.st_size > 0
     clean_folder(analysistype)
