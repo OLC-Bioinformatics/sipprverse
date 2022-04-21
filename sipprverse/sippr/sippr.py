@@ -92,7 +92,6 @@ class Sipprverse(object):
                             revbait=True,
                             allow_soft_clips=self.allow_soft_clips)
             vir.runner()
-
         if self.gdcs:
             self.genus_specific()
             # Run the GDCS analysis
