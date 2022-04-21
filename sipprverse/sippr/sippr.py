@@ -83,15 +83,15 @@ class Sipprverse(object):
         if self.virulence:
             self.genus_specific()
             vir = Virulence(args=self,
-                      pipelinecommit=self.commit,
-                      startingtime=self.starttime,
-                      scriptpath=self.homepath,
-                      analysistype='virulence',
-                      cutoff=0.95,
-                      pipeline=False,
-                      revbait=True,
-                      allow_soft_clips=self.allow_soft_clips)
-            # vir.runner()
+                            pipelinecommit=self.commit,
+                            startingtime=self.starttime,
+                            scriptpath=self.homepath,
+                            analysistype='virulence',
+                            cutoff=0.95,
+                            pipeline=False,
+                            revbait=True,
+                            allow_soft_clips=self.allow_soft_clips)
+            vir.runner()
 
         if self.gdcs:
             self.genus_specific()
